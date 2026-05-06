@@ -7,7 +7,8 @@
     "login": "Anmelden",
     "register": "Registrieren",
     "logout": "Abmelden",
-    "profile": "Profil"
+    "profile": "Profil",
+    "notifications": "Benachrichtigungen"
   },
   "home": {
     "hero": {
@@ -187,7 +188,8 @@
     "ai_search_btn": "KI-Suche starten",
     "apply_btn": "Bewerbung erstellen",
     "free_limit_warning": "Sie haben das Limit von 10 kostenlosen Suchanfragen erreicht.",
-    "upgrade_link": "Pro upgraden"
+    "upgrade_link": "Pro upgraden",
+    "error_generic": "Fehler bei der Suche. Bitte versuchen Sie es erneut."
   },
   "feed": {
     "title": "Community-Feed",
