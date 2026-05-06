@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
+  createAdminClient: vi.fn(),
 }));
 vi.mock("@/lib/stripe", () => ({
   stripe: {
@@ -26,7 +27,7 @@ vi.mock("@/lib/stripe", () => ({
   },
 }));
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 import { POST as CHECKOUT } from "@/app/api/stripe/checkout/route";
 import { POST as PORTAL } from "@/app/api/stripe/portal/route";
@@ -42,7 +43,7 @@ describe("POST /api/stripe/checkout", () => {
     expect(res.status).toBe(401);
   });
 
-  it("redirects to Stripe checkout URL for authenticated user", async () => {
+  it("returns checkout session URL for authenticated user", async () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({
         user: { id: "u1", email: "t@t.de" },
@@ -52,8 +53,9 @@ describe("POST /api/stripe/checkout", () => {
     );
     const req = new NextRequest("http://localhost/api/stripe/checkout", { method: "POST" });
     const res = await CHECKOUT(req);
-    expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toContain("stripe.com");
+    const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(data.url).toContain("stripe.com");
   });
 });
 
@@ -79,7 +81,7 @@ describe("POST /api/stripe/portal", () => {
     expect(res.status).toBe(404);
   });
 
-  it("redirects to Billing Portal URL when customer exists", async () => {
+  it("returns billing portal URL when customer exists", async () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({
         user: { id: "u1", email: "t@t.de" },
@@ -88,8 +90,9 @@ describe("POST /api/stripe/portal", () => {
     );
     const req = new NextRequest("http://localhost/api/stripe/portal", { method: "POST" });
     const res = await PORTAL(req);
-    expect(res.status).toBe(302);
-    expect(res.headers.get("location")).toContain("stripe.com");
+    const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(data.url).toContain("stripe.com");
   });
 });
 
@@ -105,6 +108,7 @@ describe("POST /api/stripe/webhook", () => {
   });
 
   it("upgrades user to Pro on checkout.session.completed", async () => {
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
     const mockEvent = {
       type: "checkout.session.completed",
       data: {
@@ -117,8 +121,8 @@ describe("POST /api/stripe/webhook", () => {
       },
     };
     vi.mocked(stripe!.webhooks.constructEvent).mockReturnValue(mockEvent as never);
-    vi.mocked(createClient).mockResolvedValue(
-      createSupabaseMock({ user: { id: "u1" }, updateData: {} }) as never
+    vi.mocked(createAdminClient).mockResolvedValue(
+      createSupabaseMock({ user: { id: "u1" }, updateData: {}, singleData: { profile_id: "u1" } }) as never
     );
     const req = new NextRequest("http://localhost/api/stripe/webhook", {
       method: "POST",
@@ -130,16 +134,18 @@ describe("POST /api/stripe/webhook", () => {
     });
     const res = await WEBHOOK(req);
     expect(res.status).toBe(200);
+    vi.unstubAllEnvs();
   });
 
   it("downgrades user to free on customer.subscription.deleted", async () => {
+    vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
     const mockEvent = {
       type: "customer.subscription.deleted",
-      data: { object: { customer: "cus_abc" } },
+      data: { object: { customer: "cus_abc", status: "canceled" } },
     };
     vi.mocked(stripe!.webhooks.constructEvent).mockReturnValue(mockEvent as never);
-    vi.mocked(createClient).mockResolvedValue(
-      createSupabaseMock({ user: { id: "u1" }, updateData: {} }) as never
+    vi.mocked(createAdminClient).mockResolvedValue(
+      createSupabaseMock({ user: { id: "u1" }, updateData: {}, singleData: { profile_id: "u1" } }) as never
     );
     const req = new NextRequest("http://localhost/api/stripe/webhook", {
       method: "POST",
@@ -151,5 +157,6 @@ describe("POST /api/stripe/webhook", () => {
     });
     const res = await WEBHOOK(req);
     expect(res.status).toBe(200);
+    vi.unstubAllEnvs();
   });
 });

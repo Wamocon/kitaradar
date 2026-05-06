@@ -70,7 +70,7 @@ describe("SearchClient", () => {
 
   it("shows empty-state hint before any search", () => {
     render(<SearchClient isLoggedIn={false} />);
-    expect(screen.getByText(/Adresse.*eingeben/)).toBeTruthy();
+    expect(screen.getByText(/Geben Sie eine Adresse ein/)).toBeTruthy();
   });
 
   it("performs search and renders kita cards", async () => {

@@ -2,7 +2,7 @@ import { vi } from "vitest";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 export interface MockSupabaseConfig {
-  user?: { id: string; email: string } | null;
+  user?: { id: string; email?: string } | null;
   singleData?: Record<string, unknown> | null;
   singleError?: string | null;
   manyData?: unknown[];
@@ -11,6 +11,7 @@ export interface MockSupabaseConfig {
   insertError?: string | null;
   updateData?: Record<string, unknown> | null;
   updateError?: string | null;
+  deleteData?: Record<string, unknown> | null;
   deleteError?: string | null;
   rpcError?: string | null;
 }
@@ -38,16 +39,25 @@ export function createSupabaseMock(cfg: MockSupabaseConfig = {}) {
   const deleteResult = { error: deleteError ? { message: deleteError } : null };
   const rpcResult = { error: rpcError ? { message: rpcError } : null };
 
-  // A minimal fluent query builder that covers common patterns
+  // ─── Chainable terminal result (non-thenable → await returns it directly) ──
+  // Supports patterns: .limit().eq(), .order().limit(), .order().limit().eq()
+  const terminalChain: Record<string, unknown> = {
+    ...manyResult,
+    eq: vi.fn(),
+    in: vi.fn(),
+    single: vi.fn().mockResolvedValue(singleResult),
+  };
+  terminalChain["eq"] = vi.fn().mockReturnValue(terminalChain);
+  terminalChain["in"] = vi.fn().mockReturnValue(terminalChain);
+
   const single = vi.fn().mockResolvedValue(singleResult);
 
-  const terminalMany = vi.fn().mockResolvedValue(manyResult);
-
-  const limitChain = { ...manyResult, limit: terminalMany };
+  const terminalMany = vi.fn().mockReturnValue(terminalChain);
 
   const orderChain = {
     ...manyResult,
     limit: terminalMany,
+    eq: vi.fn().mockReturnValue(terminalChain),
     single,
   };
 
@@ -71,7 +81,7 @@ export function createSupabaseMock(cfg: MockSupabaseConfig = {}) {
     eq: vi.fn().mockReturnValue(eqChain),
     order: vi.fn().mockReturnValue(orderChain),
     limit: terminalMany,
-    in: vi.fn().mockReturnValue({ ...manyResult, eq: vi.fn().mockResolvedValue(manyResult) }),
+    in: vi.fn().mockReturnValue({ ...manyResult, eq: vi.fn().mockReturnValue(manyResult) }),
   };
 
   const insertChain = {
@@ -80,25 +90,31 @@ export function createSupabaseMock(cfg: MockSupabaseConfig = {}) {
     single: vi.fn().mockResolvedValue(insertResult),
   };
 
+  // updateChain: supports .eq(), .eq().eq(), .in().eq(), .eq().select(), .eq().eq().select().single()
+  const updateSelectResult = { single: vi.fn().mockResolvedValue(updateResult) };
+  const updateDoubleEqResult = {
+    ...updateResult,
+    select: vi.fn().mockReturnValue(updateSelectResult),
+    eq: vi.fn().mockReturnValue(updateResult),
+  };
+  const updateEqResult = {
+    ...updateResult,
+    eq: vi.fn().mockReturnValue(updateDoubleEqResult),
+    select: vi.fn().mockReturnValue(updateSelectResult),
+  };
   const updateChain = {
     ...updateResult,
-    eq: vi.fn().mockReturnValue({
-      ...updateResult,
-      eq: vi.fn().mockReturnValue({
-        ...updateResult,
-        select: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue(updateResult) }),
-      }),
-      select: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue(updateResult) }),
-    }),
+    eq: vi.fn().mockReturnValue(updateEqResult),
+    in: vi.fn().mockReturnValue(updateEqResult),
   };
 
   const deleteChain = {
     ...deleteResult,
     eq: vi.fn().mockReturnValue({
       ...deleteResult,
-      eq: vi.fn().mockResolvedValue(deleteResult),
+      eq: vi.fn().mockReturnValue(deleteResult),
     }),
-    in: vi.fn().mockReturnValue({ ...deleteResult, eq: vi.fn().mockResolvedValue(deleteResult) }),
+    in: vi.fn().mockReturnValue({ ...deleteResult, eq: vi.fn().mockReturnValue(deleteResult) }),
   };
 
   return {

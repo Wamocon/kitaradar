@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { ProfileClient } from "@/components/profile/ProfileClient";
 
 vi.mock("next/link", () => ({
@@ -106,7 +106,10 @@ describe("ProfileClient", () => {
     );
     render(<ProfileClient {...defaultProps} />);
     expect(screen.getByText("Lena")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "" })); // Trash icon button
+    // The trash button is inside the child item containing "Lena"
+    const childItem = screen.getByText("Lena").closest("div")!.parentElement as HTMLElement;
+    const trashBtn = within(childItem).getByRole("button");
+    fireEvent.click(trashBtn);
     await waitFor(() => {
       expect(screen.queryByText("Lena")).toBeNull();
     });
@@ -118,13 +121,11 @@ describe("ProfileClient", () => {
       "fetch",
       vi.fn().mockResolvedValue({ ok: true, blob: async () => blobMock })
     );
-    const appendSpy = vi.spyOn(document.body, "appendChild").mockImplementation(vi.fn());
     render(<ProfileClient {...defaultProps} />);
     fireEvent.click(screen.getByText("Daten exportieren"));
     await waitFor(() => {
       expect(URL.createObjectURL).toHaveBeenCalled();
     });
-    appendSpy.mockRestore();
   });
 
   it("shows delete confirmation when 'Konto löschen' is first clicked", () => {

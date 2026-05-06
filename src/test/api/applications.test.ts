@@ -24,8 +24,7 @@ describe("GET /api/applications", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({ user: null }) as never
     );
-    const req = new NextRequest("http://localhost/api/applications");
-    const res = await GET(req);
+    const res = await GET();
     expect(res.status).toBe(401);
   });
 
@@ -33,8 +32,7 @@ describe("GET /api/applications", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({ user: { id: "u1" }, manyData: [mockApplication] }) as never
     );
-    const req = new NextRequest("http://localhost/api/applications");
-    const res = await GET(req);
+    const res = await GET();
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data.applications).toHaveLength(1);
