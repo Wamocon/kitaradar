@@ -93,7 +93,7 @@ describe("SearchClient", () => {
     fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "München" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
-      expect(screen.getByText("search_limit_reached")).toBeTruthy();
+      expect(screen.getByText("free_limit_warning")).toBeTruthy();
     });
   });
 
@@ -120,7 +120,7 @@ describe("SearchClient", () => {
     fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "Hamburg" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
-      expect(screen.getByText("error")).toBeTruthy();
+      expect(screen.getByText("error_generic")).toBeTruthy();
     });
   });
 

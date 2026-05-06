@@ -1,2 +1,3 @@
 // Empty CSS mock – replaces leaflet/dist/leaflet.css in test environments
-export default {};
+const styleMock: Record<string, string> = {};
+export default styleMock;
