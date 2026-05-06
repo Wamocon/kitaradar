@@ -29,7 +29,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
-  const t = useTranslations("common");
+  const t = useTranslations("search");
   const [address, setAddress] = useState("");
   const [radius, setRadius] = useState(5);
   const [kitaType, setKitaType] = useState<string>("all");
@@ -60,7 +60,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       });
 
       if (res.status === 429) {
-        setError(t("search_limit_reached"));
+        setError(t("free_limit_warning"));
         return;
       }
 
@@ -75,7 +75,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       setKitas(data.kitas ?? []);
       if (data.center) setCenter(data.center);
     } catch {
-      setError(t("error"));
+      setError(t("error_generic"));
     } finally {
       setIsLoading(false);
     }

@@ -7,7 +7,8 @@
     "login": "Sign in",
     "register": "Sign up",
     "logout": "Sign out",
-    "profile": "Profile"
+    "profile": "Profile",
+    "notifications": "Notifications"
   },
   "home": {
     "hero": {
@@ -187,7 +188,8 @@
     "ai_search_btn": "Start AI search",
     "apply_btn": "Create application",
     "free_limit_warning": "You have reached the limit of 10 free searches.",
-    "upgrade_link": "Upgrade to Pro"
+    "upgrade_link": "Upgrade to Pro",
+    "error_generic": "Search failed. Please try again."
   },
   "feed": {
     "title": "Community Feed",
