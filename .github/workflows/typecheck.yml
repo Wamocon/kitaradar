@@ -1,23 +1,22 @@
 # =============================================================================
-# Unittest Workflow
+# TypeScript Typecheck Workflow
 # =============================================================================
-# Runs on every push to any branch.
-# For PR branches this fires via the push event (NOT pull_request) to avoid
-# double execution — the deploy-test workflow handles the PR event separately.
+# Runs tsc --noEmit on every push to any branch.
+# Catches type errors before they reach the build or deployment stage.
 # =============================================================================
 
-name: Unittests
+name: TypeScript
 
 on:
   push:
 
 concurrency:
-  group: unittest-${{ github.ref }}
+  group: typecheck-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Run Tests
+  typecheck:
+    name: TypeScript Check
     runs-on: ubuntu-latest
 
     steps:
@@ -33,13 +32,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
-        run: npm run test:coverage
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 14
+      - name: Run TypeScript check
+        run: npm run typecheck
