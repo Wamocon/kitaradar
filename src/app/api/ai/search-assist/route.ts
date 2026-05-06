@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
     )
     .join("\n");
 
+  const model = process.env.MAX_MODEL ?? "llama3";
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model,
     messages: [
       {
         role: "system",
