@@ -1,0 +1,21 @@
+# =============================================================================
+# Validation Checks Workflow
+# =============================================================================
+# Runs TypeScript typecheck + ESLint on every push to any branch.
+# For PR branches this fires via the push event (NOT pull_request) to avoid
+# double execution — the deploy-test workflow handles the PR event separately.
+# =============================================================================
+
+name: Validation Checks
+
+on:
+  push:
+
+concurrency:
+  group: validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Typecheck & Lint
+    uses: Wamocon/github_workflow/.github/workflows/pr-checks.yml@main

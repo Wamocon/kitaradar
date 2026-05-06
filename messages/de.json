@@ -1,0 +1,288 @@
+{
+  "nav": {
+    "search": "Kita suchen",
+    "feed": "Community",
+    "dashboard": "Dashboard",
+    "pricing": "Preise",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden",
+    "profile": "Profil"
+  },
+  "home": {
+    "hero": {
+      "badge": "Neu in Deutschland",
+      "headline": "Finden Sie den freien Kita-Platz in Ihrer Nähe",
+      "subline": "KitaRadar bündelt alle Einrichtungen auf einer Karte – mit KI-Suchassistenz, automatisch generiertem Bewerbungsschreiben und Community-Tipps von anderen Eltern.",
+      "cta_primary": "Jetzt kostenlos starten",
+      "cta_secondary": "Mehr erfahren"
+    },
+    "stats": {
+      "missing_spots": "fehlende Kita-Plätze in DE",
+      "avg_search_time": "Monate durchschnittliche Suche",
+      "parents_frustrated": "Eltern bewerten Suche als unübersichtlich"
+    },
+    "features": {
+      "headline": "Alles was Sie für die Kita-Suche brauchen",
+      "subline": "Von der Umkreissuche bis zur fertigen Bewerbung – in einem durchgängigen Workflow.",
+      "map": {
+        "title": "Kartenbasierte Umkreissuche",
+        "desc": "Alle Kitas im Umkreis auf einer Karte – anbieter- und trägerübergreifend. Radius, Träger und Konzept filtern."
+      },
+      "ai_search": {
+        "title": "KI-Suchassistent",
+        "desc": "Die KI priorisiert die wirklich passenden Einrichtungen nach Ihren Präferenzen: Konzept, Alter, Öffnungszeiten, Entfernung."
+      },
+      "ai_apply": {
+        "title": "KI-Bewerbungsgenerator",
+        "desc": "Individualisiertes Anschreiben auf Knopfdruck. Der E-Mail-Client öffnet sich mit vorausgefülltem Empfänger und Text."
+      },
+      "community": {
+        "title": "Community-Feed",
+        "desc": "Aktuelle Erfahrungen und Kapazitätshinweise direkt von anderen Eltern. Immer aktuell, nie veraltet."
+      },
+      "tracking": {
+        "title": "Bewerbungs-Tracking",
+        "desc": "Behalten Sie den Überblick: bei welcher Kita läuft gerade eine Bewerbung, was ist der aktuelle Stand?"
+      },
+      "free": {
+        "title": "Kostenlos starten",
+        "desc": "10 Suchabfragen pro Monat gratis. Pro-Upgrade für unbegrenzte Nutzung und KI-Features ab 7,99 €/Monat."
+      }
+    },
+    "how_it_works": {
+      "headline": "So einfach funktioniert KitaRadar",
+      "step1": { "title": "Umkreis festlegen", "desc": "Adresse eingeben, Radius wählen und erste Treffer sehen." },
+      "step2": { "title": "KI filtert für Sie", "desc": "Der Assistent grenzt die Auswahl auf Ihre Präferenzen ein." },
+      "step3": { "title": "Bewerbung generieren", "desc": "KI erstellt ein individuelles Anschreiben für jede Kita." },
+      "step4": { "title": "E-Mail versenden", "desc": "Ein Klick – Ihr E-Mail-Client öffnet sich mit allem vorausgefüllt." }
+    },
+    "cta_section": {
+      "headline": "Starten Sie Ihre Kita-Suche heute",
+      "subline": "Kostenlos registrieren – in 2 Minuten.",
+      "btn": "Kostenlos registrieren"
+    }
+  },
+  "pricing": {
+    "headline": "Einfache, faire Preise",
+    "subline": "Starten Sie kostenlos. Upgraden Sie, wenn Sie mehr brauchen.",
+    "free": {
+      "name": "Free",
+      "price": "0 €",
+      "period": "/Monat",
+      "features": [
+        "Basis-Umkreissuche",
+        "10 Suchanfragen/Monat",
+        "Kita-Detailansicht",
+        "Community-Feed lesen"
+      ],
+      "cta": "Kostenlos starten",
+      "note": "Keine Kreditkarte erforderlich"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "7,99 €",
+      "period": "/Monat",
+      "badge": "Empfohlen",
+      "features": [
+        "Unbegrenzte Suchanfragen",
+        "KI-Suchassistent",
+        "KI-Bewerbungsgenerator",
+        "E-Mail-Direktversand",
+        "Bewerbungs-Tracking",
+        "Community-Beiträge verfassen",
+        "Prioritäts-Support"
+      ],
+      "cta": "Pro jetzt testen",
+      "note": "Jederzeit kündbar"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melden Sie sich bei KitaRadar an",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "forgot_password": "Passwort vergessen?",
+      "submit": "Anmelden",
+      "no_account": "Noch kein Konto?",
+      "register_link": "Jetzt registrieren",
+      "or": "oder"
+    },
+    "register": {
+      "title": "Konto erstellen",
+      "subtitle": "Starten Sie Ihre Kita-Suche",
+      "name": "Vollständiger Name",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "confirm_password": "Passwort bestätigen",
+      "submit": "Registrieren",
+      "has_account": "Bereits ein Konto?",
+      "login_link": "Anmelden",
+      "terms_agree": "Ich stimme den",
+      "terms_link": "AGB",
+      "and": "und der",
+      "privacy_link": "Datenschutzerklärung",
+      "terms_agree_end": "zu."
+    },
+    "reset": {
+      "title": "Passwort zurücksetzen",
+      "subtitle": "Wir senden Ihnen einen Reset-Link",
+      "email": "E-Mail-Adresse",
+      "submit": "Reset-Link senden",
+      "back_to_login": "Zurück zur Anmeldung",
+      "success": "E-Mail gesendet! Bitte prüfen Sie Ihr Postfach."
+    }
+  },
+  "dashboard": {
+    "title": "Mein Dashboard",
+    "welcome": "Hallo, {name}!",
+    "stats": {
+      "searches": "Suchanfragen",
+      "applications": "Bewerbungen",
+      "responses": "Antworten"
+    },
+    "applications": {
+      "title": "Meine Bewerbungen",
+      "empty": "Noch keine Bewerbungen. Starten Sie Ihre Suche!",
+      "status": {
+        "sent": "Gesendet",
+        "waiting": "Wartet",
+        "positive": "Positiv",
+        "negative": "Abgelehnt"
+      }
+    },
+    "upgrade_banner": {
+      "title": "Auf Pro upgraden",
+      "desc": "Sie haben {remaining} von 10 kostenlosen Suchanfragen übrig.",
+      "cta": "Pro freischalten"
+    }
+  },
+  "search": {
+    "title": "Kita suchen",
+    "placeholder": "Adresse oder PLZ eingeben",
+    "radius_label": "Suchradius",
+    "radius_options": {
+      "1km": "1 km",
+      "2km": "2 km",
+      "5km": "5 km",
+      "10km": "10 km"
+    },
+    "filters": {
+      "title": "Filter",
+      "type": "Träger",
+      "type_all": "Alle Träger",
+      "type_public": "Kommunal",
+      "type_church": "Kirchlich",
+      "type_private": "Privat",
+      "age": "Altersgruppe",
+      "age_0_3": "Krippe (0–3 J.)",
+      "age_3_6": "Kiga (3–6 J.)",
+      "age_mixed": "Altersgemischt"
+    },
+    "results": "Ergebnisse",
+    "no_results": "Keine Kitas gefunden. Vergrößern Sie den Suchradius.",
+    "ai_assistant": "KI-Assistent",
+    "ai_placeholder": "Beschreiben Sie, was Ihnen wichtig ist (z.B. Montessori, ganztags, unter 2 km)...",
+    "ai_search_btn": "KI-Suche starten",
+    "apply_btn": "Bewerbung erstellen",
+    "free_limit_warning": "Sie haben das Limit von 10 kostenlosen Suchanfragen erreicht.",
+    "upgrade_link": "Pro upgraden"
+  },
+  "feed": {
+    "title": "Community-Feed",
+    "subtitle": "Aktuelle Erfahrungen und Hinweise von Eltern",
+    "new_post": "Beitrag verfassen",
+    "post_placeholder": "Teilen Sie Ihre Erfahrung mit einer Kita...",
+    "post_submit": "Veröffentlichen",
+    "pro_required": "Pro-Mitglieder können Beiträge verfassen.",
+    "upgrade_link": "Jetzt upgraden",
+    "tags": {
+      "tip": "Tipp",
+      "experience": "Erfahrung",
+      "availability": "Kapazität",
+      "warning": "Warnung"
+    },
+    "report": "Melden",
+    "empty": "Noch keine Beiträge. Seien Sie der Erste!"
+  },
+  "profile": {
+    "title": "Mein Profil",
+    "section_personal": "Persönliche Daten",
+    "section_children": "Kinderdaten",
+    "section_preferences": "Suchpräferenzen",
+    "section_subscription": "Abonnement",
+    "section_privacy": "Datenschutz",
+    "name": "Name",
+    "email": "E-Mail",
+    "save": "Speichern",
+    "child_name": "Name des Kindes",
+    "child_dob": "Geburtsdatum",
+    "child_add": "Kind hinzufügen",
+    "pref_concept": "Bevorzugtes Konzept",
+    "pref_schedule": "Gewünschte Betreuungszeit",
+    "pref_radius": "Maximaler Radius",
+    "export_data": "Meine Daten exportieren",
+    "delete_account": "Konto löschen",
+    "delete_confirm": "Sind Sie sicher? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "cancel_subscription": "Abonnement kündigen"
+  },
+  "legal": {
+    "imprint": "Impressum",
+    "privacy": "Datenschutzerklärung",
+    "terms": "AGB"
+  },
+  "footer": {
+    "tagline": "Freie Kita-Plätze finden – einfach, schnell, KI-gestützt.",
+    "product": "Produkt",
+    "company": "Unternehmen",
+    "legal": "Rechtliches",
+    "rights": "Alle Rechte vorbehalten."
+  },
+  "application": {
+    "modal_title": "Bewerbung bei {kita}",
+    "select_child": "Kind auswählen (optional)",
+    "no_child": "Kein Kind ausgewählt",
+    "cover_letter": "Anschreiben",
+    "cover_letter_placeholder": "Ihr Anschreiben an die Kita...",
+    "ai_generate": "KI-Anschreiben generieren",
+    "ai_generating": "Wird generiert...",
+    "ai_hint": "Die KI erstellt ein individuelles Anschreiben basierend auf Ihren Kinderdaten.",
+    "send_email": "E-Mail öffnen & senden",
+    "mailto_hint": "Ihr E-Mail-Client öffnet sich mit vorausgefülltem Empfänger und Anschreiben.",
+    "mark_sent": "Als gesendet markieren",
+    "save_draft": "Entwurf speichern",
+    "status_sent": "Bewerbung als gesendet gespeichert.",
+    "no_email": "Keine E-Mail-Adresse für diese Kita bekannt. Bitte kontaktieren Sie die Einrichtung direkt.",
+    "error": "Fehler beim Speichern der Bewerbung."
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "subtitle": "Ihre Antworten und Feed-Updates",
+    "empty": "Keine neuen Benachrichtigungen.",
+    "mark_all_read": "Alle als gelesen markieren",
+    "types": {
+      "application_response": "Antwort auf Bewerbung",
+      "feed_update": "Neuer Community-Beitrag"
+    }
+  },
+  "common": {
+    "loading": "Lädt...",
+    "error": "Ein Fehler ist aufgetreten.",
+    "back": "Zurück",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "learn_more": "Mehr erfahren",
+    "free_badge": "Free",
+    "pro_badge": "Pro",
+    "notifications": "Benachrichtigungen",
+    "pro_feature": "Nur für Pro-Mitglieder",
+    "upgrade_to_pro": "Auf Pro upgraden",
+    "km_away": "{distance} km entfernt",
+    "search_limit_reached": "10 kostenlose Suchanfragen pro Monat erreicht.",
+    "success": "Erfolgreich gespeichert."
+  }
+}
