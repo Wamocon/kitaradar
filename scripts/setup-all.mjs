@@ -1,4 +1,4 @@
-﻿const https = require("https");
+﻿import https from "https";
 
 // Read secrets from environment variables — never hardcode tokens in source.
 // Set these before running: VERCEL_TOKEN, GH_TOKEN
@@ -52,7 +52,8 @@ async function ghSetSecret(name, value) {
   const pk = await req({ hostname:"api.github.com", path:`/repos/${GH_OWNER}/${GH_REPO}/actions/secrets/public-key`, headers:{"Authorization":"token "+GH_TOKEN,"User-Agent":"kitaradar-setup"} });
   const { key_id, key: pubKeyB64 } = pk.body;
   // 2. Encrypt with libsodium
-  const sodium = require("libsodium-wrappers");
+  const sodiumModule = await import("libsodium-wrappers");
+  const sodium = sodiumModule.default ?? sodiumModule;
   await sodium.ready;
   const encBytes = sodium.crypto_box_seal(Buffer.from(value), Buffer.from(pubKeyB64,"base64"));
   const encVal   = Buffer.from(encBytes).toString("base64");

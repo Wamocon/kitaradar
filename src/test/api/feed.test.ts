@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createSupabaseMock } from "@/test/helpers/supabase";
 import { NextRequest } from "next/server";
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 
 vi.mock("@supabase/ssr", () => ({
   createBrowserClient: vi.fn().mockReturnValue({ __isMockClient: true }),
