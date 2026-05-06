@@ -126,14 +126,30 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
           <div className="flex items-center gap-1">
             <Filter className="h-4 w-4 text-muted" />
             <select
-              value={radius}
-              onChange={(e) => setRadius(Number(e.target.value))}
+              value={[1, 2, 5, 10, 20].includes(radius) ? radius : "custom"}
+              onChange={(e) => {
+                if (e.target.value !== "custom") setRadius(Number(e.target.value));
+              }}
               className="rounded-md border border-border bg-card px-2 py-2 text-sm focus:border-primary focus:outline-none"
             >
               {[1, 2, 5, 10, 20].map((r) => (
                 <option key={r} value={r}>{r} km</option>
               ))}
+              <option value="custom">Eigener…</option>
             </select>
+            {![1, 2, 5, 10, 20].includes(radius) && (
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={radius}
+                onChange={(e) => {
+                  const v = Math.min(Math.max(Number(e.target.value) || 1, 1), 100);
+                  setRadius(v);
+                }}
+                className="w-16 rounded-md border border-border bg-card px-2 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            )}
           </div>
 
           <div className="flex gap-1">
