@@ -1,0 +1,35 @@
+# =============================================================================
+# Vercel Deploy Test Workflow
+# =============================================================================
+# Fires on every push to a Pull Request targeting main.
+# Uses the pull_request event (NOT push) so Unittests/Validation do NOT
+# run twice — they already run via their own push-based workflows.
+#
+# Deploys to Vercel Preview environment (kitaradar-test schema).
+#
+# Secrets required (repository level):
+#   - VERCEL_PROJECT_ID
+# Already set at organisation level:
+#   - VERCEL_TOKEN
+#   - VERCEL_ORG_ID
+# =============================================================================
+
+name: Vercel Deploy Test
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: deploy-test-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    name: Deploy — Preview (kitaradar-test)
+    uses: Wamocon/github_workflow/.github/workflows/deploy.yml@main
+    with:
+      vercel_env: preview
+      db_schema: kitaradar-test
+    secrets: inherit

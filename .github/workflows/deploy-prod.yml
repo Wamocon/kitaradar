@@ -1,0 +1,34 @@
+# =============================================================================
+# Vercel Deploy Prod Workflow
+# =============================================================================
+# Fires on every push to main — which includes PR merges.
+# Unittests and Validation also run on this push via their own workflows.
+# No double execution: each workflow listens to a distinct event.
+#
+# Deploys to Vercel Production environment (kitaradar-prod schema).
+#
+# Secrets required (repository level):
+#   - VERCEL_PROJECT_ID
+# Already set at organisation level:
+#   - VERCEL_TOKEN
+#   - VERCEL_ORG_ID
+# =============================================================================
+
+name: Vercel Deploy Prod
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-prod-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-production:
+    name: Deploy — Production (kitaradar-prod)
+    uses: Wamocon/github_workflow/.github/workflows/deploy.yml@main
+    with:
+      vercel_env: production
+      db_schema: kitaradar-prod
+    secrets: inherit
