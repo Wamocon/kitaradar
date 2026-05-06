@@ -1,23 +1,22 @@
 # =============================================================================
-# Unittest Workflow
+# Lint Workflow
 # =============================================================================
-# Runs on every push to any branch.
-# For PR branches this fires via the push event (NOT pull_request) to avoid
-# double execution — the deploy-test workflow handles the PR event separately.
+# Runs ESLint on every push to any branch.
+# Fast feedback loop — fails early on style or import issues.
 # =============================================================================
 
-name: Unittests
+name: Lint
 
 on:
   push:
 
 concurrency:
-  group: unittest-${{ github.ref }}
+  group: lint-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Run Tests
+  lint:
+    name: ESLint
     runs-on: ubuntu-latest
 
     steps:
@@ -33,13 +32,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
-        run: npm run test:coverage
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 14
+      - name: Run ESLint
+        run: npm run lint
