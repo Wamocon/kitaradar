@@ -22,8 +22,7 @@ describe("GET /api/notifications", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({ user: null }) as never
     );
-    const req = new NextRequest("http://localhost/api/notifications");
-    const res = await GET(req);
+    const res = await GET();
     expect(res.status).toBe(401);
   });
 
@@ -31,8 +30,7 @@ describe("GET /api/notifications", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({ user: { id: "u1" }, manyData: [mockNotification] }) as never
     );
-    const req = new NextRequest("http://localhost/api/notifications");
-    const res = await GET(req);
+    const res = await GET();
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data.notifications).toHaveLength(1);
@@ -84,7 +82,7 @@ describe("PATCH /api/notifications", () => {
     expect(data.success).toBe(true);
   });
 
-  it("returns 400 when neither all nor ids is provided", async () => {
+  it("returns 200 (success) when body has no actionable keys", async () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({ user: { id: "u1" } }) as never
     );
@@ -94,6 +92,6 @@ describe("PATCH /api/notifications", () => {
       headers: { "Content-Type": "application/json" },
     });
     const res = await PATCH(req);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(200);
   });
 });

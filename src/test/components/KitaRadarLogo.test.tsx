@@ -11,15 +11,17 @@ describe("KitaRadarLogo", () => {
   it("applies the default className when none is provided", () => {
     const { container } = render(<KitaRadarLogo />);
     const svg = container.querySelector("svg")!;
-    expect(svg.className).toContain("h-8");
-    expect(svg.className).toContain("w-8");
+    const cls = svg.getAttribute("class") ?? "";
+    expect(cls).toContain("h-8");
+    expect(cls).toContain("w-8");
   });
 
   it("applies a custom className", () => {
     const { container } = render(<KitaRadarLogo className="h-12 w-12 text-red-500" />);
     const svg = container.querySelector("svg")!;
-    expect(svg.className).toContain("h-12");
-    expect(svg.className).toContain("w-12");
+    const cls = svg.getAttribute("class") ?? "";
+    expect(cls).toContain("h-12");
+    expect(cls).toContain("w-12");
   });
 
   it("has an accessible aria-label", () => {

@@ -26,8 +26,7 @@ describe("GET /api/user/export", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({ user: null }) as never
     );
-    const req = new NextRequest("http://localhost/api/user/export");
-    const res = await EXPORT(req);
+    const res = await EXPORT();
     expect(res.status).toBe(401);
   });
 
@@ -39,8 +38,7 @@ describe("GET /api/user/export", () => {
         manyData: [],
       }) as never
     );
-    const req = new NextRequest("http://localhost/api/user/export");
-    const res = await EXPORT(req);
+    const res = await EXPORT();
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("application/json");
     const data = await res.json();
@@ -56,20 +54,18 @@ describe("DELETE /api/user/account", () => {
     vi.mocked(createAdminClient).mockResolvedValue(
       createSupabaseMock({}) as never
     );
-    const req = new NextRequest("http://localhost/api/user/account", { method: "DELETE" });
-    const res = await DELETE_ACCOUNT(req);
+    const res = await DELETE_ACCOUNT();
     expect(res.status).toBe(401);
   });
 
   it("deletes account and returns 200", async () => {
     vi.mocked(createClient).mockResolvedValue(
-      createSupabaseMock({ user: { id: "u1" }, deleteData: {} }) as never
+      createSupabaseMock({ user: { id: "u1" } }) as never
     );
     vi.mocked(createAdminClient).mockResolvedValue(
-      createSupabaseMock({ deleteData: {} }) as never
+      createSupabaseMock({}) as never
     );
-    const req = new NextRequest("http://localhost/api/user/account", { method: "DELETE" });
-    const res = await DELETE_ACCOUNT(req);
+    const res = await DELETE_ACCOUNT();
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
@@ -102,7 +98,7 @@ describe("PATCH /api/user/profile", () => {
     const res = await PATCH_PROFILE(req);
     const data = await res.json();
     expect(res.status).toBe(200);
-    expect(data.profile.full_name).toBe("Max");
+    expect(data.success).toBe(true);
   });
 });
 

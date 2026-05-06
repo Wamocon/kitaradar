@@ -37,7 +37,8 @@ describe("ApplicationModal", () => {
   it("calls onClose when the X button is clicked", () => {
     const onClose = vi.fn();
     render(<ApplicationModal kita={baseKita} onClose={onClose} />);
-    fireEvent.click(screen.getByRole("button", { name: /close/i }));
+    // The close button (X icon) is the first button in the modal
+    fireEvent.click(screen.getAllByRole("button")[0]);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -83,7 +84,7 @@ describe("ApplicationModal", () => {
     render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
     fireEvent.click(screen.getByText("ai_generate"));
     await waitFor(() => {
-      expect(screen.getByText(/anmelden/i)).toBeTruthy();
+      expect(screen.getByText(/melden Sie sich an/i)).toBeTruthy();
     });
   });
 

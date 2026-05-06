@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 
+// Mock the openai package to avoid browser-environment detection error in jsdom
+// Uses a class so 'new OpenAI(...)' works correctly
+vi.mock("openai", () => {
+  class MockOpenAI {
+    chat = { completions: { create: vi.fn() } };
+  }
+  return { default: MockOpenAI };
+});
+
 describe("openai lib", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -14,9 +23,9 @@ describe("openai lib", () => {
 
   it("exports an OpenAI-like object when OPENAI_API_KEY is set", async () => {
     vi.stubEnv("OPENAI_API_KEY", "sk-test-fake");
+    vi.resetModules();
     const { openai } = await import("@/lib/openai");
     expect(openai).not.toBeNull();
-    // OpenAI SDK exposes chat, completions etc.
     expect(openai).toHaveProperty("chat");
   });
 });
