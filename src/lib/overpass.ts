@@ -62,11 +62,18 @@ out center tags;
 
   const res = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "KitaRadar/1.0 (kitaradar@wamocon.com)",
+      "Accept": "application/json",
+    },
     body: `data=${encodeURIComponent(query)}`,
   });
 
-  if (!res.ok) return [];
+  if (!res.ok) {
+    console.error(`[overpass] HTTP ${res.status} ${res.statusText}`);
+    return [];
+  }
 
   const data: { elements: OverpassElement[] } = await res.json();
 
