@@ -1,9 +1,8 @@
 # =============================================================================
 # Vercel Deploy Prod Workflow
 # =============================================================================
-# Fires on every push to main — which includes PR merges.
-# Unittests and Validation also run on this push via their own workflows.
-# No double execution: each workflow listens to a distinct event.
+# Fires only when a GitHub Release is published (created from any tag/branch).
+# Create a release via: GitHub → Releases → "Draft a new release".
 #
 # Deploys to Vercel Production environment (kitaradar-prod schema).
 #
@@ -17,8 +16,8 @@
 name: Vercel Deploy Prod
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
 
 concurrency:
   group: deploy-prod-${{ github.ref }}
