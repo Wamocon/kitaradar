@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "address required" }, { status: 400 });
   }
 
-  const radiusMeters = Math.min(Math.max((body.radius ?? 5) * 1000, 500), 50000);
+  const radiusMeters = Math.min(Math.max((body.radius ?? 5) * 1000, 500), 100000);
 
   // Free-tier search limit check
   if (user) {
