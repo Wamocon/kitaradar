@@ -15,14 +15,14 @@ describe("openai lib", () => {
     vi.resetModules();
   });
 
-  it("exports null when OPENAI_API_KEY is not set", async () => {
-    vi.stubEnv("OPENAI_API_KEY", "");
+  it("exports null when MAX_BASE_URL is not set", async () => {
+    vi.stubEnv("MAX_BASE_URL", "");
     const { openai } = await import("@/lib/openai");
     expect(openai).toBeNull();
   });
 
-  it("exports an OpenAI-like object when OPENAI_API_KEY is set", async () => {
-    vi.stubEnv("OPENAI_API_KEY", "sk-test-fake");
+  it("exports an OpenAI-like object when MAX_BASE_URL is set", async () => {
+    vi.stubEnv("MAX_BASE_URL", "http://192.168.178.62:3000/v1");
     vi.resetModules();
     const { openai } = await import("@/lib/openai");
     expect(openai).not.toBeNull();
