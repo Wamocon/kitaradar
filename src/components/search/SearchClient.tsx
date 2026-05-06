@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import type { OverpassKita } from "@/lib/overpass";
 import { KitaCard } from "./KitaCard";
 import { ApplicationModal } from "./ApplicationModal";
+import { AddressAutocomplete } from "./AddressAutocomplete";
+import type { AutocompleteResult } from "@/app/api/geocode/autocomplete/route";
 import { useTranslations } from "next-intl";
 import { Search, Loader2, Filter, Sparkles } from "lucide-react";
 import "leaflet/dist/leaflet.css";
@@ -31,6 +33,7 @@ const TYPE_LABELS: Record<string, string> = {
 export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const t = useTranslations("search");
   const [address, setAddress] = useState("");
+  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [radius, setRadius] = useState(5);
   const [kitaType, setKitaType] = useState<string>("all");
   const [kitas, setKitas] = useState<OverpassKita[]>([]);
@@ -53,10 +56,15 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
     setAiRanking("");
 
     try {
+      // If user picked from dropdown, pass coords directly to avoid a second geocode round-trip
+      const body = selectedCoords
+        ? { address, lat: selectedCoords.lat, lng: selectedCoords.lng, radius, kitaType }
+        : { address, radius, kitaType };
+
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address, radius, kitaType }),
+        body: JSON.stringify(body),
       });
 
       if (res.status === 429) {
@@ -104,16 +112,16 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       {/* Search bar */}
       <div className="border-b border-border bg-background px-4 py-3">
         <form onSubmit={handleSearch} className="mx-auto flex max-w-4xl flex-wrap gap-2">
-          <div className="relative flex-1 min-w-48">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-            <input
-              type="text"
+          <AddressAutocomplete
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Adresse oder PLZ eingeben..."
-              className="w-full rounded-md border border-border bg-card pl-9 pr-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              onChange={(v) => {
+                setAddress(v);
+                setSelectedCoords(null); // reset coords when user types manually
+              }}
+              onSelect={(result: AutocompleteResult) => {
+                setSelectedCoords({ lat: result.lat, lng: result.lng });
+              }}
             />
-          </div>
 
           <div className="flex items-center gap-1">
             <Filter className="h-4 w-4 text-muted" />

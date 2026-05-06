@@ -11,6 +11,8 @@ export async function POST(request: NextRequest) {
 
   const body: {
     address: string;
+    lat?: number;
+    lng?: number;
     radius?: number;
     kitaType?: string;
     ageGroup?: string;
@@ -42,7 +44,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const coords = await geocodeAddress(body.address);
+  // Use pre-resolved coords from autocomplete selection, or geocode the address
+  let coords: { lat: number; lng: number } | null = null;
+  if (typeof body.lat === "number" && typeof body.lng === "number") {
+    coords = { lat: body.lat, lng: body.lng };
+  } else {
+    coords = await geocodeAddress(body.address);
+  }
   if (!coords) {
     return NextResponse.json({ error: "geocode_failed" }, { status: 422 });
   }
