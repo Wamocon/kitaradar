@@ -33,6 +33,14 @@ const mockKitas = [
 
 describe("SearchClient", () => {
   beforeEach(() => {
+    // Mock geolocation – deny permission so the auto-search doesn't interfere
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      geolocation: {
+        getCurrentPosition: vi.fn((_success, error) => error?.({ code: 1, message: "denied" })),
+      },
+    });
+
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -45,7 +53,7 @@ describe("SearchClient", () => {
 
   it("renders the address input", () => {
     render(<SearchClient isLoggedIn={false} />);
-    expect(screen.getByPlaceholderText(/Adresse/)).toBeTruthy();
+    expect(screen.getByPlaceholderText(/Stadt|PLZ/)).toBeTruthy();
   });
 
   it("renders the search button", () => {
@@ -75,7 +83,7 @@ describe("SearchClient", () => {
 
   it("performs search and renders kita cards", async () => {
     render(<SearchClient isLoggedIn={false} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), {
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), {
       target: { value: "Berlin Mitte" },
     });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
@@ -90,7 +98,7 @@ describe("SearchClient", () => {
       vi.fn().mockResolvedValue({ ok: false, status: 429, json: async () => ({}) })
     );
     render(<SearchClient isLoggedIn={false} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "München" } });
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "München" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
       expect(screen.getByText("free_limit_warning")).toBeTruthy();
@@ -107,7 +115,7 @@ describe("SearchClient", () => {
       })
     );
     render(<SearchClient isLoggedIn={false} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "xyzxyz999" } });
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "xyzxyz999" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
       expect(screen.getByText(/nicht gefunden/i)).toBeTruthy();
@@ -117,7 +125,7 @@ describe("SearchClient", () => {
   it("shows generic error on network failure", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
     render(<SearchClient isLoggedIn={false} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "Hamburg" } });
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Hamburg" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
       expect(screen.getByText("error_generic")).toBeTruthy();
@@ -126,7 +134,7 @@ describe("SearchClient", () => {
 
   it("renders map after successful search", async () => {
     render(<SearchClient isLoggedIn={false} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "Berlin" } });
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
       expect(screen.getByTestId("kita-map")).toBeTruthy();
@@ -135,7 +143,7 @@ describe("SearchClient", () => {
 
   it("shows AI assist section when logged in and results are available", async () => {
     render(<SearchClient isLoggedIn={true} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "Berlin" } });
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/KI:/)).toBeTruthy();
@@ -144,7 +152,7 @@ describe("SearchClient", () => {
 
   it("does not show AI assist section when not logged in", async () => {
     render(<SearchClient isLoggedIn={false} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "Berlin" } });
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
       expect(screen.queryByPlaceholderText(/KI:/)).toBeNull();
@@ -160,7 +168,7 @@ describe("SearchClient", () => {
 
   it("opens ApplicationModal when apply button is clicked", async () => {
     render(<SearchClient isLoggedIn={true} />);
-    fireEvent.change(screen.getByPlaceholderText(/Adresse/), { target: { value: "Berlin" } });
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => screen.getByText("Jetzt bewerben"));
     fireEvent.click(screen.getByText("Jetzt bewerben"));
