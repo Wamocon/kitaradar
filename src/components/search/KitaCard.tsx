@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import type { OverpassKita } from "@/lib/overpass";
 import { MapPin, Phone, Mail, Globe, Tag } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -25,7 +26,7 @@ interface KitaCardProps {
   onApply: () => void;
 }
 
-export function KitaCard({ kita, selected, onSelect, onApply }: KitaCardProps) {
+export const KitaCard = memo(function KitaCard({ kita, selected, onSelect, onApply }: KitaCardProps) {
   const t = useTranslations("common");
 
   return (
@@ -102,4 +103,4 @@ export function KitaCard({ kita, selected, onSelect, onApply }: KitaCardProps) {
       </button>
     </div>
   );
-}
+});
