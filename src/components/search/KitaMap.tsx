@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { OverpassKita } from "@/lib/overpass";
@@ -39,7 +39,7 @@ interface KitaMapProps {
   onSelect: (kita: OverpassKita) => void;
 }
 
-export function KitaMap({ kitas, center, selectedId, onSelect }: KitaMapProps) {
+export const KitaMap = memo(function KitaMap({ kitas, center, selectedId, onSelect }: KitaMapProps) {
   return (
     <MapContainer
       center={[center.lat, center.lng]}
@@ -70,4 +70,4 @@ export function KitaMap({ kitas, center, selectedId, onSelect }: KitaMapProps) {
       ))}
     </MapContainer>
   );
-}
+});

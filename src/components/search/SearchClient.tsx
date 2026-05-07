@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { OverpassKita } from "@/lib/overpass";
 import { KitaCard } from "./KitaCard";
@@ -8,7 +8,7 @@ import { ApplicationModal } from "./ApplicationModal";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { AutocompleteResult } from "@/app/api/geocode/autocomplete/route";
 import { useTranslations } from "next-intl";
-import { Search, Loader2, Filter, Sparkles } from "lucide-react";
+import { Search, Loader2, Filter, Sparkles, LocateFixed } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
 // Dynamically load map to avoid SSR issues with Leaflet
@@ -37,30 +37,88 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [radius, setRadius] = useState(5);
   const [kitaType, setKitaType] = useState<string>("all");
   const [kitas, setKitas] = useState<OverpassKita[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedKita, setSelectedKita] = useState<OverpassKita | null>(null);
   const [applyKita, setApplyKita] = useState<OverpassKita | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [error, setError] = useState("");
   const [aiQuery, setAiQuery] = useState("");
   const [aiRanking, setAiRanking] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const geoSearchedRef = useRef(false);
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!address.trim()) return;
-
+  const searchWithCoords = useCallback(async (lat: number, lng: number, addressLabel: string, searchRadius = radius) => {
     setIsLoading(true);
     setError("");
     setKitas([]);
     setAiRanking("");
-
+    setTotal(null);
     try {
-      // If user picked from dropdown, pass coords directly to avoid a second geocode round-trip
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: addressLabel, lat, lng, radius: searchRadius, kitaType }),
+      });
+      if (res.status === 429) { setError(t("free_limit_warning")); return; }
+      const data: { kitas?: OverpassKita[]; center?: { lat: number; lng: number }; total?: number; error?: string } = await res.json();
+      setKitas(data.kitas ?? []);
+      setTotal(data.total ?? data.kitas?.length ?? null);
+      if (data.center) setCenter(data.center);
+    } catch {
+      setError(t("error_generic"));
+    } finally {
+      setIsLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kitaType, radius, t]);
+
+  // Auto-search on mount via browser geolocation
+  useEffect(() => {
+    if (geoSearchedRef.current) return;
+    if (!navigator.geolocation) return;
+    geoSearchedRef.current = true;
+    setIsGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        // Reverse geocode to get a human-readable label
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=12`,
+            { headers: { "User-Agent": "KitaRadar/1.0 (kitaradar@wamocon.com)" } }
+          );
+          const data: { address?: { city?: string; town?: string; village?: string; suburb?: string; postcode?: string } } = await res.json();
+          const addr = data.address ?? {};
+          const label = addr.city ?? addr.town ?? addr.village ?? addr.suburb ?? "Mein Standort";
+          setAddress(label);
+          setSelectedCoords({ lat: latitude, lng: longitude });
+          await searchWithCoords(latitude, longitude, label, radius);
+        } catch {
+          // Ignore reverse geocode errors
+        } finally {
+          setIsGeoLoading(false);
+        }
+      },
+      () => { setIsGeoLoading(false); }, // Permission denied or error — fail silently
+      { timeout: 8000, maximumAge: 300000 }
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (!address.trim()) return;
+    setIsLoading(true);
+    setError("");
+    setKitas([]);
+    setAiRanking("");
+    setTotal(null);
+    try {
       const body = selectedCoords
         ? { address, lat: selectedCoords.lat, lng: selectedCoords.lng, radius, kitaType }
         : { address, radius, kitaType };
-
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,16 +129,14 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         setError(t("free_limit_warning"));
         return;
       }
-
-      const data: { kitas?: OverpassKita[]; center?: { lat: number; lng: number }; error?: string } =
+      const data: { kitas?: OverpassKita[]; center?: { lat: number; lng: number }; total?: number; error?: string } =
         await res.json();
-
       if (data.error === "geocode_failed") {
         setError("Adresse nicht gefunden. Bitte überprüfen Sie Ihre Eingabe.");
         return;
       }
-
       setKitas(data.kitas ?? []);
+      setTotal(data.total ?? data.kitas?.length ?? null);
       if (data.center) setCenter(data.center);
     } catch {
       setError(t("error_generic"));
@@ -116,12 +172,51 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
               value={address}
               onChange={(v) => {
                 setAddress(v);
-                setSelectedCoords(null); // reset coords when user types manually
+                setSelectedCoords(null);
               }}
               onSelect={(result: AutocompleteResult) => {
                 setSelectedCoords({ lat: result.lat, lng: result.lng });
               }}
             />
+
+          {/* Geolocation button */}
+          <button
+            type="button"
+            title="Meinen Standort verwenden"
+            disabled={isGeoLoading || isLoading}
+            onClick={() => {
+              if (!navigator.geolocation) return;
+              setIsGeoLoading(true);
+              navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                  const { latitude, longitude } = pos.coords;
+                  try {
+                    const res = await fetch(
+                      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=12`,
+                      { headers: { "User-Agent": "KitaRadar/1.0 (kitaradar@wamocon.com)" } }
+                    );
+                    const data: { address?: { city?: string; town?: string; village?: string; suburb?: string } } = await res.json();
+                    const addr = data.address ?? {};
+                    const label = addr.city ?? addr.town ?? addr.village ?? addr.suburb ?? "Mein Standort";
+                    setAddress(label);
+                    setSelectedCoords({ lat: latitude, lng: longitude });
+                    await searchWithCoords(latitude, longitude, label, radius);
+                  } catch {
+                    /* ignore */
+                  } finally {
+                    setIsGeoLoading(false);
+                  }
+                },
+                () => setIsGeoLoading(false),
+                { timeout: 8000, maximumAge: 300000 }
+              );
+            }}
+            className="flex items-center justify-center rounded-md border border-border bg-card px-2.5 py-2 text-muted hover:border-primary/50 hover:text-primary disabled:opacity-50 transition-colors"
+          >
+            {isGeoLoading
+              ? <Loader2 className="h-4 w-4 animate-spin" />
+              : <LocateFixed className="h-4 w-4" />}
+          </button>
 
           <div className="flex items-center gap-1">
             <Filter className="h-4 w-4 text-muted" />
@@ -221,16 +316,22 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
           {/* Results count */}
           {kitas.length > 0 && (
             <div className="border-b border-border bg-card px-3 py-2 text-xs text-muted">
-              {kitas.length} Einrichtungen gefunden
+              {kitas.length} Einrichtungen
+              {total !== null && total > kitas.length && (
+                <span> (von {total} – nach Entfernung sortiert)</span>
+              )}
             </div>
           )}
 
           {/* List */}
           <div className="flex-1 overflow-y-auto">
-            {kitas.length === 0 && !isLoading && (
+          {kitas.length === 0 && !isLoading && (
               <div className="flex flex-col items-center justify-center gap-2 p-8 text-center text-sm text-muted">
                 <Search className="h-8 w-8 opacity-30" />
-                <p>Geben Sie eine Adresse ein und klicken Sie auf &quot;Suchen&quot;.</p>
+                {isGeoLoading
+                  ? <p>Standort wird ermittelt…</p>
+                  : <p>Geben Sie eine Adresse ein und klicken Sie auf &quot;Suchen&quot;.</p>
+                }
               </div>
             )}
             <div className="space-y-2 p-3">

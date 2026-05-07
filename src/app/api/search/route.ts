@@ -65,5 +65,10 @@ export async function POST(request: NextRequest) {
   // Sort by distance
   kitas.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
 
-  return NextResponse.json({ kitas, center: coords });
+  // Cap at 200 results — rendering more markers causes UI freezes
+  const MAX_RESULTS = 200;
+  const total = kitas.length;
+  kitas = kitas.slice(0, MAX_RESULTS);
+
+  return NextResponse.json({ kitas, center: coords, total });
 }
