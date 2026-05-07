@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { openai } from "@/lib/openai";
+import { openai, getModel } from "@/lib/openai";
 import { createClient } from "@/lib/supabase/server";
 import type { OverpassKita } from "@/lib/overpass";
 
@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
     )
     .join("\n");
 
-  const model = process.env.MAX_MODEL ?? "llama3";
+  // Kita-Ranking ist strukturierte Auswahl → default-Modell ist ausreichend
+  const model = getModel("default");
   const completion = await openai.chat.completions.create({
     model,
     messages: [
