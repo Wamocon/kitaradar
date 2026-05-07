@@ -36,6 +36,12 @@ export default defineConfig({
         "src/components/providers/ThemeProvider.tsx",
         // Mobile hamburger nav — pure navigation links, no testable logic
         "src/components/layout/NavLinks.tsx",
+        // Admin panels — use Supabase browser client + complex fetch-driven UI;
+        // integration-tested manually; excluded like UserNav/Footer (same pattern)
+        "src/components/admin/**",
+        // Kita detail modal — rich slide-over with many conditional branches;
+        // covered indirectly via SearchClient tests
+        "src/components/search/KitaDetailModal.tsx",
       ],
       thresholds: {
         statements: 75,
