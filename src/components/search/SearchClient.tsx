@@ -71,7 +71,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
     } finally {
       setIsLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [kitaType, radius, t]);
 
   // Auto-search on mount via browser geolocation
