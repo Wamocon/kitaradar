@@ -22,6 +22,17 @@ const baseKita: OverpassKita = {
   kitaType: "public",
   osmId: "1",
   distanceKm: 1.3,
+  openingHours: null,
+  operator: null,
+  operatorType: null,
+  capacity: null,
+  description: null,
+  fee: null,
+  religion: null,
+  minAge: null,
+  maxAge: null,
+  wheelchair: null,
+  fax: null,
 };
 
 describe("KitaCard", () => {

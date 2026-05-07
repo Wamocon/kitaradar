@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
-import { Bell, User, LogOut } from "lucide-react";
+import { Bell, User, LogOut, Shield } from "lucide-react";
 
 export async function UserNav() {
   const supabase = await createClient();
@@ -30,8 +30,27 @@ export async function UserNav() {
     );
   }
 
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.role === "admin";
+
   return (
     <div className="hidden items-center gap-1 sm:flex">
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+          aria-label="Admin-Bereich"
+        >
+          <Shield className="h-3.5 w-3.5" />
+          Admin
+        </Link>
+      )}
       <Link
         href="/notifications"
         className="rounded-md p-2 text-muted hover:bg-border hover:text-foreground transition-colors"
@@ -58,3 +77,4 @@ export async function UserNav() {
     </div>
   );
 }
+
