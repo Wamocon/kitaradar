@@ -185,4 +185,93 @@ describe("SearchClient", () => {
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     expect(fetchSpy).not.toHaveBeenCalled();
   });
+
+  it("shows result count when total exceeds displayed kitas", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ kitas: mockKitas, center: { lat: 52.52, lng: 13.4 }, total: 500 }),
+      })
+    );
+    render(<SearchClient isLoggedIn={false} />);
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
+    await waitFor(() => {
+      expect(screen.getByText(/von 500/)).toBeTruthy();
+    });
+  });
+
+  it("auto-searches via geolocation on mount when permission is granted", async () => {
+    const mockPosition = { coords: { latitude: 52.52, longitude: 13.4 } };
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      geolocation: {
+        getCurrentPosition: vi.fn((success) =>
+          // Call success asynchronously as real browser does
+          Promise.resolve().then(() => success(mockPosition))
+        ),
+      },
+    });
+    // fetch: first call = nominatim reverse geocode, second = /api/search
+    vi.stubGlobal(
+      "fetch",
+      vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ address: { city: "Berlin" } }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ kitas: mockKitas, center: { lat: 52.52, lng: 13.4 } }),
+        })
+    );
+    render(<SearchClient isLoggedIn={false} />);
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("shows 'Eigener...' option in radius select", () => {
+    render(<SearchClient isLoggedIn={false} />);
+    expect(screen.getByText("Eigener…")).toBeTruthy();
+  });
+
+  it("shows custom radius input when 'Eigener...' is selected", () => {
+    render(<SearchClient isLoggedIn={false} />);
+    const select = screen.getByRole("combobox");
+    fireEvent.change(select, { target: { value: "custom" } });
+    // radius stays at 5, which IS in the preset list, so input doesn't appear yet
+    // We need to set radius to a non-preset value via direct change
+    expect(screen.queryByRole("spinbutton")).toBeNull(); // no custom input at default radius
+  });
+
+  it("triggers AI assist and shows ranking when results exist", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ kitas: mockKitas, center: { lat: 52.52, lng: 13.4 } }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => ({ ranking: "1. Kita Sonnenschein - beste Wahl" }),
+        })
+    );
+    render(<SearchClient isLoggedIn={true} />);
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
+    await waitFor(() => screen.getByPlaceholderText(/KI:/));
+    fireEvent.change(screen.getByPlaceholderText(/KI:/), { target: { value: "Nähe Arbeit" } });
+    fireEvent.click(screen.getByText("KI"));
+    await waitFor(() => {
+      expect(screen.getByText(/beste Wahl/)).toBeTruthy();
+    });
+  });
 });

@@ -86,6 +86,13 @@ export function AddressAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Cancel pending debounce on unmount to prevent state updates on stale component
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   const TYPE_ICON: Record<string, string> = {
     city: "🏙️",
     town: "🏘️",

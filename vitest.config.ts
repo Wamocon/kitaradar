@@ -32,6 +32,10 @@ export default defineConfig({
         "src/components/layout/Header.tsx",
         // Simple wrapper with no testable logic
         "src/components/ThemeProvider.tsx",
+        // next-themes wrapper — delegates entirely to third-party library
+        "src/components/providers/ThemeProvider.tsx",
+        // Mobile hamburger nav — pure navigation links, no testable logic
+        "src/components/layout/NavLinks.tsx",
       ],
       thresholds: {
         statements: 75,
