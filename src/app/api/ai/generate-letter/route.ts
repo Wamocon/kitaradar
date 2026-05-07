@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { openai } from "@/lib/openai";
+import { openai, getModel } from "@/lib/openai";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
     .filter(Boolean)
     .join(", ");
 
-  const model = process.env.MAX_MODEL ?? "llama3";
+  // Anschreiben erfordert gutes Sprachgefühl → reasoning-Modell
+  const model = getModel("reasoning");
   const completion = await openai.chat.completions.create({
     model,
     messages: [
