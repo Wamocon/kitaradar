@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import type { OverpassKita } from "@/lib/overpass";
 import { KitaCard } from "./KitaCard";
 import { ApplicationModal } from "./ApplicationModal";
+import { KitaDetailModal } from "./KitaDetailModal";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { AutocompleteResult } from "@/app/api/geocode/autocomplete/route";
 import { useTranslations } from "next-intl";
@@ -41,6 +42,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedKita, setSelectedKita] = useState<OverpassKita | null>(null);
   const [applyKita, setApplyKita] = useState<OverpassKita | null>(null);
+  const [detailKita, setDetailKita] = useState<OverpassKita | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [error, setError] = useState("");
@@ -340,7 +342,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                   key={kita.id}
                   kita={kita}
                   selected={selectedKita?.id === kita.id}
-                  onSelect={() => setSelectedKita(kita)}
+                  onSelect={() => { setSelectedKita(kita); setDetailKita(kita); }}
                   onApply={() => setApplyKita(kita)}
                 />
               ))}
@@ -355,7 +357,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
               kitas={kitas}
               center={center}
               selectedId={selectedKita?.id}
-              onSelect={setSelectedKita}
+              onSelect={(kita) => { setSelectedKita(kita); setDetailKita(kita); }}
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-3 rounded-lg bg-card text-muted">
@@ -369,6 +371,12 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       {applyKita && (
         <ApplicationModal kita={applyKita} onClose={() => setApplyKita(null)} />
       )}
+
+      <KitaDetailModal
+        kita={detailKita}
+        onClose={() => setDetailKita(null)}
+        onApply={(kita) => { setDetailKita(null); setApplyKita(kita); }}
+      />
     </div>
   );
 }

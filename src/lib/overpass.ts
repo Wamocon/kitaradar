@@ -12,6 +12,18 @@ export interface OverpassKita {
   kitaType: "public" | "church" | "private" | "free";
   osmId: string;
   distanceKm?: number;
+  // Extended detail fields from OSM
+  openingHours: string | null;
+  operator: string | null;
+  operatorType: string | null;
+  capacity: number | null;
+  description: string | null;
+  fee: string | null;
+  religion: string | null;
+  minAge: number | null;
+  maxAge: number | null;
+  wheelchair: boolean | null;
+  fax: string | null;
 }
 
 interface NominatimResult {
@@ -96,6 +108,12 @@ out center tags;
 
       const distanceKm = haversineKm(lat, lng, elLat, elLng);
 
+      const rawCapacity = tags["capacity"];
+      const capacity = rawCapacity ? parseInt(rawCapacity, 10) : null;
+      const rawMinAge = tags["min_age"];
+      const rawMaxAge = tags["max_age"];
+      const rawWheelchair = tags["wheelchair"];
+
       return {
         id: `osm-${el.id}`,
         name: tags["name"] ?? "Unbekannte Einrichtung",
@@ -110,6 +128,18 @@ out center tags;
         kitaType,
         osmId: String(el.id),
         distanceKm: Math.round(distanceKm * 10) / 10,
+        // Extended OSM fields
+        openingHours: tags["opening_hours"] ?? null,
+        operator: tags["operator"] ?? null,
+        operatorType: tags["operator:type"] ?? null,
+        capacity: !isNaN(capacity ?? NaN) ? capacity : null,
+        description: tags["description"] ?? tags["note"] ?? null,
+        fee: tags["fee"] ?? null,
+        religion: tags["religion"] ?? null,
+        minAge: rawMinAge ? parseFloat(rawMinAge) : null,
+        maxAge: rawMaxAge ? parseFloat(rawMaxAge) : null,
+        wheelchair: rawWheelchair === "yes" ? true : rawWheelchair === "no" ? false : null,
+        fax: tags["contact:fax"] ?? tags["fax"] ?? null,
       };
     });
 }

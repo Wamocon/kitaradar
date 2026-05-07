@@ -18,7 +18,7 @@ export default async function ProfilePage() {
   if (!user) redirect("/auth/login");
 
   const [profileRes, childrenRes] = await Promise.all([
-    supabase.from("profiles").select("full_name, tier, search_count").eq("id", user.id).single(),
+    supabase.from("profiles").select("full_name, tier, search_count, role, phone, partner_name, notification_email, default_search_city, default_search_radius").eq("id", user.id).single(),
     supabase.from("children").select("*").eq("profile_id", user.id),
   ]);
 
@@ -38,6 +38,12 @@ export default async function ProfilePage() {
             initialChildren={children}
             tier={profile?.tier ?? "free"}
             searchCount={profile?.search_count ?? 0}
+            role={profile?.role ?? "parent"}
+            phone={profile?.phone ?? ""}
+            partnerName={profile?.partner_name ?? ""}
+            notificationEmail={profile?.notification_email ?? true}
+            defaultSearchCity={profile?.default_search_city ?? ""}
+            defaultSearchRadius={profile?.default_search_radius ?? 5}
           />
         </div>
       </main>

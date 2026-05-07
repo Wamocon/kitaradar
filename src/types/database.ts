@@ -3,6 +3,7 @@ export type AgeGroup = "0-3" | "3-6" | "mixed";
 export type ApplicationStatus = "draft" | "sent" | "waiting" | "positive" | "negative";
 export type SubscriptionTier = "free" | "pro";
 export type FeedTag = "tip" | "experience" | "availability" | "warning";
+export type UserRole = "admin" | "mother" | "father" | "parent";
 
 export interface Database {
   Tables: {
@@ -16,6 +17,12 @@ export interface Database {
         search_count_month: number;
         search_count_reset_at: string;
         stripe_customer_id: string | null;
+        role: UserRole;
+        phone: string | null;
+        partner_name: string | null;
+        notification_email: boolean;
+        default_search_city: string | null;
+        default_search_radius: number;
         created_at: string;
         updated_at: string;
       };
