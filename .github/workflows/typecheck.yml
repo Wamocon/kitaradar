@@ -10,6 +10,9 @@ name: TypeScript
 on:
   push:
 
+permissions:
+  contents: read
+
 concurrency:
   group: typecheck-${{ github.ref }}
   cancel-in-progress: true
