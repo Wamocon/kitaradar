@@ -11,6 +11,9 @@ name: Unittests
 on:
   push:
 
+permissions:
+  contents: read
+
 concurrency:
   group: unittest-${{ github.ref }}
   cancel-in-progress: true
