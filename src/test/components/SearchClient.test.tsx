@@ -69,16 +69,17 @@ describe("SearchClient", () => {
 
   it("renders type filter buttons", () => {
     render(<SearchClient isLoggedIn={false} />);
-    expect(screen.getByText("Alle")).toBeTruthy();
-    expect(screen.getByText("Kommunal")).toBeTruthy();
-    expect(screen.getByText("Kirchlich")).toBeTruthy();
-    expect(screen.getByText("Privat")).toBeTruthy();
-    expect(screen.getByText("Frei")).toBeTruthy();
+    expect(screen.getByText("type_labels.all")).toBeTruthy();
+    expect(screen.getByText("type_labels.public")).toBeTruthy();
+    expect(screen.getByText("type_labels.church")).toBeTruthy();
+    expect(screen.getByText("type_labels.private")).toBeTruthy();
+    expect(screen.getByText("type_labels.free")).toBeTruthy();
   });
 
   it("shows empty-state hint before any search", () => {
     render(<SearchClient isLoggedIn={false} />);
-    expect(screen.getByText(/Geben Sie eine Adresse ein/)).toBeTruthy();
+    // Empty state shows "Adresse eingeben → Suchen" (main) and "Adresse eingeben und Suche starten." (panel)
+    expect(screen.getAllByText(/Adresse eingeben/).length).toBeGreaterThan(0);
   });
 
   it("performs search and renders kita cards", async () => {
@@ -161,8 +162,8 @@ describe("SearchClient", () => {
 
   it("selects a type filter and highlights the active button", () => {
     render(<SearchClient isLoggedIn={false} />);
-    fireEvent.click(screen.getByText("Kirchlich"));
-    const btn = screen.getByText("Kirchlich");
+    fireEvent.click(screen.getByText("type_labels.church"));
+    const btn = screen.getByText("type_labels.church");
     expect(btn.className).toContain("bg-primary");
   });
 
@@ -199,7 +200,8 @@ describe("SearchClient", () => {
     fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => {
-      expect(screen.getByText(/von 500/)).toBeTruthy();
+      // Result count renders as "top {count}/{total}" e.g. "top 1/500"
+      expect(screen.getByText(/\/500/)).toBeTruthy();
     });
   });
 

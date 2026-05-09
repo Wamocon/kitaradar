@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { OverpassKita } from "@/lib/overpass";
 import {
   X,
@@ -18,6 +18,10 @@ import {
   Printer,
   Baby,
   BookOpen,
+  Star,
+  ChevronLeft,
+  Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -34,6 +38,17 @@ const TYPE_COLORS: Record<OverpassKita["kitaType"], string> = {
   private: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-purple-200 dark:border-purple-700",
   free: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border-green-200 dark:border-green-700",
 };
+
+interface EnrichmentData {
+  google_rating: number | null;
+  google_ratings_count: number;
+  photoUrls: string[];
+  google_reviews: Array<{ author: string; rating: number; text: string; time: string }>;
+  wikidata_desc: string | null;
+  website: string | null;
+  phone: string | null;
+  opening_hours: string | null;
+}
 
 interface KitaDetailModalProps {
   kita: OverpassKita | null;
@@ -65,8 +80,70 @@ function DetailRow({ icon, label, value, href }: { icon: React.ReactNode; label:
   );
 }
 
+function StarRating({ rating, count }: { rating: number; count: number }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-sm font-bold text-foreground">{rating.toFixed(1)}</span>
+      <div className="flex">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star
+            key={i}
+            className={`h-3.5 w-3.5 ${i <= Math.round(rating) ? "text-yellow-400 fill-yellow-400" : "text-zinc-300 dark:text-zinc-600"}`}
+          />
+        ))}
+      </div>
+      <span className="text-xs text-muted-foreground">({count})</span>
+    </div>
+  );
+}
+
+function PhotoGallery({ urls }: { urls: string[] }) {
+  const [idx, setIdx] = useState(0);
+  if (!urls.length) return null;
+  return (
+    <div className="relative mb-4 overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800" style={{ height: 200 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={urls[idx]}
+        alt={`Kita Foto ${idx + 1}`}
+        className="h-full w-full object-cover"
+      />
+      {urls.length > 1 && (
+        <>
+          <button
+            onClick={() => setIdx((i) => (i - 1 + urls.length) % urls.length)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setIdx((i) => (i + 1) % urls.length)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            {urls.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className={`h-1.5 w-1.5 rounded-full transition ${i === idx ? "bg-white" : "bg-white/50"}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+      <div className="absolute top-2 right-2 rounded-md bg-black/50 px-2 py-0.5 text-xs text-white">
+        Foto: Google
+      </div>
+    </div>
+  );
+}
+
 export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps) {
   const t = useTranslations("search");
+  const [enrichment, setEnrichment] = useState<EnrichmentData | null>(null);
+  const [enrichLoading, setEnrichLoading] = useState(false);
 
   // Close on Escape
   useEffect(() => {
@@ -77,11 +154,37 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Fetch enrichment data when kita changes
+  useEffect(() => {
+    if (!kita) return;
+    const currentKita = kita;
+    async function fetchEnrichment() {
+      setEnrichment(null);
+      setEnrichLoading(true);
+      try {
+        const r = await fetch(
+          `/api/kita/${currentKita.osmId}/enrich?name=${encodeURIComponent(currentKita.name)}&lat=${currentKita.lat}&lng=${currentKita.lng}`
+        );
+        setEnrichment(r.ok ? await r.json() : null);
+      } catch {
+        setEnrichment(null);
+      } finally {
+        setEnrichLoading(false);
+      }
+    }
+    void fetchEnrichment();
+  }, [kita]);
+
   if (!kita) return null;
 
   const osmUrl = `https://www.openstreetmap.org/node/${kita.osmId}`;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${kita.lat},${kita.lng}`;
   const fullAddress = [kita.address, kita.postalCode, kita.city].filter(Boolean).join(", ");
+
+  // Merge enrichment with OSM data (prefer OSM for existing fields)
+  const phone = kita.phone ?? enrichment?.phone ?? null;
+  const website = kita.website ?? enrichment?.website ?? null;
+  const openingHours = kita.openingHours ?? enrichment?.opening_hours ?? null;
 
   return (
     <>
@@ -107,11 +210,17 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
               {TYPE_LABELS[kita.kitaType]}
             </span>
             <h2 className="text-lg font-bold text-foreground leading-tight">{kita.name}</h2>
-            {kita.distanceKm != null && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                {kita.distanceKm} km entfernt
-              </p>
-            )}
+            <div className="mt-1 flex items-center gap-3">
+              {kita.distanceKm != null && (
+                <p className="text-xs text-muted-foreground">{kita.distanceKm} km entfernt</p>
+              )}
+              {enrichment?.google_rating && (
+                <StarRating rating={enrichment.google_rating} count={enrichment.google_ratings_count} />
+              )}
+              {enrichLoading && !enrichment && (
+                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+              )}
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -125,13 +234,21 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
 
-          {/* Description */}
-          {kita.description && (
+          {/* Photo Gallery (Google) */}
+          {enrichment?.photoUrls && enrichment.photoUrls.length > 0 && (
+            <PhotoGallery urls={enrichment.photoUrls} />
+          )}
+
+          {/* Description — Wikidata or OSM */}
+          {(enrichment?.wikidata_desc ?? kita.description) && (
             <div className="mb-4 rounded-lg bg-accent/50 px-4 py-3">
               <p className="flex items-start gap-2 text-sm text-foreground">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                {kita.description}
+                {enrichment?.wikidata_desc ?? kita.description}
               </p>
+              {enrichment?.wikidata_desc && (
+                <p className="mt-1.5 text-xs text-muted-foreground">Quelle: Wikidata</p>
+              )}
             </div>
           )}
 
@@ -149,12 +266,12 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
                   href={mapsUrl}
                 />
               )}
-              {kita.phone && (
+              {phone && (
                 <DetailRow
                   icon={<Phone className="h-4 w-4" />}
                   label="Telefon"
-                  value={kita.phone}
-                  href={`tel:${kita.phone}`}
+                  value={phone}
+                  href={`tel:${phone}`}
                 />
               )}
               {kita.fax && (
@@ -172,12 +289,12 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
                   href={`mailto:${kita.email}`}
                 />
               )}
-              {kita.website && (
+              {website && (
                 <DetailRow
                   icon={<Globe className="h-4 w-4" />}
                   label="Website"
-                  value={kita.website.replace(/^https?:\/\//, "")}
-                  href={kita.website.startsWith("http") ? kita.website : `https://${kita.website}`}
+                  value={website.replace(/^https?:\/\//, "")}
+                  href={website.startsWith("http") ? website : `https://${website}`}
                 />
               )}
             </div>
@@ -196,11 +313,11 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
                   value={kita.operator}
                 />
               )}
-              {kita.openingHours && (
+              {openingHours && (
                 <DetailRow
                   icon={<Clock className="h-4 w-4" />}
                   label="Öffnungszeiten"
-                  value={kita.openingHours}
+                  value={openingHours}
                 />
               )}
               {kita.capacity != null && (
@@ -247,19 +364,43 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
             </div>
           </div>
 
+          {/* Google Bewertungen */}
+          {enrichment?.google_reviews && enrichment.google_reviews.length > 0 && (
+            <div className="mb-4">
+              <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Bewertungen (Google)
+              </h3>
+              <div className="space-y-2">
+                {enrichment.google_reviews.map((review, i) => (
+                  <div key={i} className="rounded-lg border border-border bg-card p-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-medium text-foreground">{review.author}</span>
+                      <div className="flex items-center gap-1">
+                        {[1,2,3,4,5].map((s) => (
+                          <Star key={s} className={`h-3 w-3 ${s <= review.rating ? "text-yellow-400 fill-yellow-400" : "text-zinc-300"}`} />
+                        ))}
+                        <span className="text-xs text-muted-foreground ml-1">{review.time}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{review.text}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">Bewertungen von Google Places</p>
+            </div>
+          )}
+
           {/* Datenquellen Info */}
           <div className="mb-4 rounded-lg border border-border bg-accent/30 p-4">
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Über diese Daten
             </h3>
             <p className="text-xs text-muted-foreground mb-3">
-              Diese Daten stammen aus <strong className="text-foreground">OpenStreetMap</strong> und werden von der Community gepflegt.
-              Viele Felder (Öffnungszeiten, Kapazität, Ansprechpartner) sind oft unvollständig.
-            </p>
-            <p className="text-xs text-muted-foreground mb-3">
-              <strong className="text-foreground">Weitere kostenlose Datenquellen:</strong>{" "}
-              Regionale Portale wie KitaFinder (Bayern), KitaNavigator (NRW), Kita-Berlin oder das Portal Ihrer Gemeindeverwaltung
-              haben oft aktuellere Daten zu freien Plätzen und Ansprechpartnern.
+              Diese Daten stammen aus <strong className="text-foreground">OpenStreetMap</strong>,{" "}
+              {enrichment?.google_rating ? <><strong className="text-foreground">Google Places</strong> und </> : null}
+              {enrichment?.wikidata_desc ? <><strong className="text-foreground">Wikidata</strong> und </> : null}
+              werden von der Community gepflegt.
             </p>
             <div className="flex flex-wrap gap-2">
               <a
@@ -290,9 +431,6 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
                 Google Maps
               </a>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              OSM-ID: <code className="font-mono text-foreground">{kita.osmId}</code>
-            </p>
           </div>
 
         </div>
@@ -314,3 +452,4 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
     </>
   );
 }
+

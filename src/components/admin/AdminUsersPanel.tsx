@@ -9,8 +9,8 @@ interface UserRow {
   email: string;
   full_name: string | null;
   role: string;
-  tier: string;
-  search_count: number;
+  subscription_tier: string;
+  search_count_month: number;
   created_at: string;
 }
 
@@ -49,7 +49,7 @@ export function AdminUsersPanel() {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, full_name, role, tier, search_count, created_at")
+        .select("id, email, full_name, role, subscription_tier, search_count_month, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       setUsers(data ?? []);
@@ -84,10 +84,10 @@ export function AdminUsersPanel() {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: newTier }),
+        body: JSON.stringify({ subscription_tier: newTier }),
       });
       if (!res.ok) throw new Error("Update fehlgeschlagen");
-      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, tier: newTier } : u));
+      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, subscription_tier: newTier } : u));
       setMessage({ type: "success", text: "Abo-Status aktualisiert." });
     } catch {
       setMessage({ type: "error", text: "Fehler beim Aktualisieren des Abo-Status." });
@@ -197,11 +197,11 @@ export function AdminUsersPanel() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${TIER_COLORS[user.tier] ?? TIER_COLORS.free}`}>
-                    {user.tier === "pro" ? "Pro" : "Free"}
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${TIER_COLORS[user.subscription_tier] ?? TIER_COLORS.free}`}>
+                    {user.subscription_tier === "pro" ? "Pro" : "Free"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-foreground">{user.search_count}</td>
+                <td className="px-4 py-3 text-foreground">{user.search_count_month}</td>
                 <td className="px-4 py-3 text-muted-foreground text-xs">
                   {new Date(user.created_at).toLocaleDateString("de-DE")}
                 </td>
@@ -223,16 +223,16 @@ export function AdminUsersPanel() {
                     </div>
                     {/* Abo ändern */}
                     <button
-                      onClick={() => updateTier(user.id, user.tier === "pro" ? "free" : "pro")}
+                      onClick={() => updateTier(user.id, user.subscription_tier === "pro" ? "free" : "pro")}
                       disabled={saving === user.id}
                       className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium disabled:opacity-50 transition-colors ${
-                        user.tier === "pro"
+                        user.subscription_tier === "pro"
                           ? "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
                           : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400"
                       }`}
                     >
-                      {user.tier === "pro" ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
-                      {user.tier === "pro" ? "Free" : "Pro"}
+                      {user.subscription_tier === "pro" ? <UserX className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
+                      {user.subscription_tier === "pro" ? "Free" : "Pro"}
                     </button>
                   </div>
                 </td>

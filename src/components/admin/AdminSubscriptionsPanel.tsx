@@ -9,9 +9,9 @@ interface SubRow {
   profile_id: string;
   email: string;
   full_name: string | null;
-  tier: string;
+  subscription_tier: string;
   stripe_customer_id: string | null;
-  search_count: number;
+  search_count_month: number;
   created_at: string;
 }
 
@@ -36,8 +36,8 @@ export function AdminSubscriptionsPanel() {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, full_name, tier, stripe_customer_id, search_count, created_at")
-        .order("tier", { ascending: false })
+        .select("id, email, full_name, subscription_tier, stripe_customer_id, search_count_month, created_at")
+        .order("subscription_tier", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
       setUsers((data ?? []).map((u: Record<string, unknown>) => ({ ...u, profile_id: u.id as string } as SubRow)));
@@ -54,10 +54,10 @@ export function AdminSubscriptionsPanel() {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: newTier }),
+        body: JSON.stringify({ subscription_tier: newTier }),
       });
       if (!res.ok) throw new Error();
-      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, tier: newTier } : u));
+      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, subscription_tier: newTier } : u));
       setMessage({ type: "success", text: `Abo auf ${newTier === "pro" ? "Pro" : "Free"} gesetzt.` });
     } catch {
       setMessage({ type: "error", text: "Fehler beim Aktualisieren." });
@@ -71,13 +71,13 @@ export function AdminSubscriptionsPanel() {
       const matchSearch = !search ||
         (u.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
         (u.full_name ?? "").toLowerCase().includes(search.toLowerCase());
-      const matchTier = tierFilter === "all" || u.tier === tierFilter;
+      const matchTier = tierFilter === "all" || u.subscription_tier === tierFilter;
       return matchSearch && matchTier;
     });
   }, [users, search, tierFilter]);
 
-  const proCount = users.filter((u) => u.tier === "pro").length;
-  const freeCount = users.filter((u) => u.tier === "free").length;
+  const proCount = users.filter((u) => u.subscription_tier === "pro").length;
+  const freeCount = users.filter((u) => u.subscription_tier === "free").length;
 
   return (
     <div className="space-y-4">
@@ -173,8 +173,8 @@ export function AdminSubscriptionsPanel() {
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TIER_COLORS[user.tier] ?? TIER_COLORS.free}`}>
-                    {user.tier === "pro" ? "Pro" : "Free"}
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TIER_COLORS[user.subscription_tier] ?? TIER_COLORS.free}`}>
+                    {user.subscription_tier === "pro" ? "Pro" : "Free"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -186,7 +186,7 @@ export function AdminSubscriptionsPanel() {
                     <span className="text-xs text-muted-foreground">—</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-foreground">{user.search_count}</td>
+                <td className="px-4 py-3 text-foreground">{user.search_count_month}</td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
@@ -195,15 +195,15 @@ export function AdminSubscriptionsPanel() {
                 </td>
                 <td className="px-4 py-3">
                   <button
-                    onClick={() => updateTier(user.id, user.tier === "pro" ? "free" : "pro")}
+                    onClick={() => updateTier(user.id, user.subscription_tier === "pro" ? "free" : "pro")}
                     disabled={saving === user.id}
                     className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium disabled:opacity-50 transition-colors ${
-                      user.tier === "pro"
+                      user.subscription_tier === "pro"
                         ? "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
                         : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400"
                     }`}
                   >
-                    {user.tier === "pro"
+                    {user.subscription_tier === "pro"
                       ? <><UserX className="h-3 w-3" /> Deaktivieren</>
                       : <><UserCheck className="h-3 w-3" /> Pro aktivieren</>
                     }

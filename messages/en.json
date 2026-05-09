@@ -8,7 +8,8 @@
     "register": "Sign up",
     "logout": "Sign out",
     "profile": "Profile",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "recommendations": "AI Recommendations"
   },
   "home": {
     "hero": {
@@ -99,6 +100,17 @@
     }
   },
   "auth": {
+    "branding": {
+      "tagline": "Kita Search & Application",
+      "headline_line1": "Find the perfect Kita spot",
+      "headline_line2": "quickly and easily.",
+      "subline": "KitaRadar brings all childcare facilities onto one interactive map – with AI-powered search and auto-generated cover letters.",
+      "trust_line": "Free to start · No credit card · GDPR-compliant",
+      "feature_map": "All Kitas in your area on one interactive map",
+      "feature_ai": "AI search assistant finds the right facilities",
+      "feature_apply": "Generate individual cover letters in seconds",
+      "feature_track": "Track applications – everything in one place"
+    },
     "login": {
       "title": "Welcome back",
       "subtitle": "Sign in to KitaRadar",
@@ -138,6 +150,7 @@
   "dashboard": {
     "title": "My Dashboard",
     "welcome": "Hello, {name}!",
+    "see_all": "View all →",
     "stats": {
       "searches": "Searches",
       "applications": "Applications",
@@ -189,16 +202,50 @@
     "apply_btn": "Create application",
     "free_limit_warning": "You have reached the limit of 10 free searches.",
     "upgrade_link": "Upgrade to Pro",
-    "error_generic": "Search failed. Please try again."
+    "error_generic": "Search failed. Please try again.",
+    "type_labels": {
+      "all": "All",
+      "public": "Municipal",
+      "church": "Church-run",
+      "private": "Private",
+      "free": "Free operator"
+    },
+    "tile_labels": {
+      "normal": "Normal",
+      "satellite": "Satellite",
+      "terrain3d": "3D Buildings"
+    }
   },
   "feed": {
     "title": "Community Feed",
-    "subtitle": "Real experiences and tips from parents",
+    "subtitle": "Tips and experiences from parents",
     "new_post": "Write a post",
+    "new_post_btn": "New post",
+    "cancel_btn": "Cancel",
+    "pro_notice_strong": "Pro feature:",
+    "pro_notice_text": "As a Pro member you can write posts and actively shape the community.",
+    "upgrade_now": "Upgrade now →",
     "post_placeholder": "Share your experience with a Kita...",
     "post_submit": "Publish",
     "pro_required": "Pro members can write posts.",
     "upgrade_link": "Upgrade now",
+    "anon": "Anonymous",
+    "reported": "Reported",
+    "tag_filters": {
+      "all": "All",
+      "general": "General",
+      "tip": "Tips",
+      "experience": "Experiences",
+      "question": "Questions",
+      "news": "News"
+    },
+    "tag_labels": {
+      "general": "General",
+      "tip": "Tip",
+      "experience": "Experience",
+      "question": "Question",
+      "news": "News"
+    },
     "tags": {
       "tip": "Tip",
       "experience": "Experience",
@@ -206,10 +253,186 @@
       "warning": "Warning"
     },
     "report": "Report",
-    "empty": "No posts yet. Be the first!"
+    "empty": "No posts yet."
   },
   "profile": {
     "title": "My Profile",
+    "tabs": {
+      "plan": "My Plan",
+      "personal": "Personal Data",
+      "family": "Family",
+      "work": "Work",
+      "childcare": "Childcare",
+      "children": "Children",
+      "ki": "AI Preferences",
+      "notifications": "Notifications",
+      "privacy": "Privacy"
+    },
+    "consent": {
+      "active": "Privacy consent granted \u2013 AI data processing active.",
+      "revoke": "Revoke consent",
+      "pending": "You have provided extended data. A privacy consent will be requested when saving.",
+      "required_hint": "These fields require a privacy consent \u2013 requested when saving.",
+      "sensitive_hint": "Work data is sensitive \u2013 a privacy consent will be requested when saving."
+    },
+    "plan": {
+      "title": "My Plan",
+      "searches_remaining": "{remaining} of 10 searches remaining this month",
+      "upgrade_link": "Upgrade to Pro \u2192",
+      "admin_area": "Admin area"
+    },
+    "personal": {
+      "title": "Personal Data",
+      "desc": "Basic contact information",
+      "full_name": "Full name",
+      "phone": "Phone number",
+      "phone_placeholder": "+49 123 456789",
+      "role": "My role",
+      "partner": "Partner / co-guardian name",
+      "partner_placeholder": "Optional",
+      "save": "Save personal data"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "mother": "Mother",
+      "father": "Father",
+      "parent": "Parent"
+    },
+    "family": {
+      "title": "Family situation",
+      "desc": "Helps the AI recommend suitable care models",
+      "situation": "Family situation",
+      "home_language": "Main language at home",
+      "additional_languages": "Additional languages at home",
+      "additional_hint": "Helps AI prioritise bilingual Kitas",
+      "save": "Save family situation",
+      "gdpr_hint": "These fields require a privacy consent \u2013 requested when saving."
+    },
+    "family_situations": {
+      "none": "No information",
+      "two_parent": "Both parents in household",
+      "single_parent": "Single parent",
+      "shared_custody": "Alternating custody / Shared parental responsibility",
+      "patchwork": "Patchwork family",
+      "grandparent": "Grandparents as primary carer"
+    },
+    "languages": {
+      "none": "No information",
+      "deutsch": "German",
+      "tuerkisch": "Turkish",
+      "arabisch": "Arabic",
+      "russisch": "Russian",
+      "englisch": "English",
+      "polnisch": "Polish",
+      "rumaenisch": "Romanian",
+      "sonstige": "Other"
+    },
+    "work": {
+      "title": "Work & Hours",
+      "desc": "Optimises Kita recommendations by location and opening hours",
+      "job_title": "Job title",
+      "job_placeholder": "e.g. Software engineer",
+      "employer": "Employer (optional)",
+      "employer_placeholder": "e.g. WAMOCON GmbH",
+      "district": "Work location / district",
+      "district_placeholder": "e.g. Frankfurt-Sachsenhausen",
+      "district_hint": "Helps find Kitas on the commute",
+      "hours_type": "Working hours model",
+      "start_time": "Work start (earliest drop-off)",
+      "end_time": "Work end (latest pick-up)",
+      "save": "Save work data",
+      "gdpr_hint": "Work data is sensitive \u2013 a privacy consent will be requested when saving."
+    },
+    "work_hours": {
+      "none": "No information",
+      "full_time": "Full-time",
+      "part_time": "Part-time",
+      "flex": "Flexi / Flexible",
+      "shift": "Shift work",
+      "home_office": "Home office",
+      "parental_leave": "Parental leave"
+    },
+    "childcare": {
+      "title": "Care needs",
+      "desc": "Desired care start date and maximum budget",
+      "needed_from": "Care needed from",
+      "needed_from_hint": "Desired care start date",
+      "max_fee": "Max. monthly Kita fee (\u20ac)",
+      "max_fee_placeholder": "e.g. 500",
+      "max_fee_hint": "Prioritises fee-free Kitas",
+      "save": "Save care needs"
+    },
+    "children": {
+      "title": "My children",
+      "desc": "Create a profile for each Kita place needed",
+      "new_child": "Add a new child",
+      "child_name_placeholder": "Child's name",
+      "birth_month": "Month",
+      "birth_year": "Year",
+      "special_needs_placeholder": "Special needs / notes (optional)",
+      "add_btn": "Add child",
+      "born_label": "Born:"
+    },
+    "ki": {
+      "title": "AI preferences",
+      "desc": "Improves AI Kita recommendations and cover letters",
+      "pedagogy": "Preferred pedagogy",
+      "kita_type": "Preferred operator",
+      "languages": "Languages / Bilingualism",
+      "languages_placeholder": "e.g. German-English",
+      "hours": "Desired care hours",
+      "save": "Save AI preferences",
+      "info": "This information feeds into AI-based Kita recommendations and automatic application generation."
+    },
+    "pedagogy": {
+      "none": "No preference",
+      "montessori": "Montessori",
+      "waldorf": "Waldorf / Steiner",
+      "reggio": "Reggio pedagogy",
+      "situationsansatz": "Situational approach",
+      "pikler": "Pikler pedagogy",
+      "sonstige": "Other"
+    },
+    "kita_type_pref": {
+      "none": "No preference",
+      "public": "Municipal",
+      "church": "Church / Denominational",
+      "private": "Private",
+      "free": "Free operators (AWO, DRK etc.)"
+    },
+    "care_hours": {
+      "none": "No preference",
+      "halbtags": "Half-day (until 12\u202fpm)",
+      "nachmittags": "Afternoon (until 3\u202fpm)",
+      "ganztags": "Full-day (until 5\u202fpm)",
+      "erweitert": "Extended (until 7\u202fpm)"
+    },
+    "search_settings": {
+      "title": "Default search settings",
+      "city": "Default search location",
+      "city_placeholder": "e.g. Frankfurt am Main",
+      "radius": "Default search radius ({radius}\u202fkm)",
+      "save": "Save search settings"
+    },
+    "notifications_tab": {
+      "title": "Notifications",
+      "email_label": "Email notifications",
+      "email_desc": "Information about applications and Kita replies",
+      "save": "Save notification settings"
+    },
+    "privacy_tab": {
+      "title": "Privacy & Account",
+      "export": "Export data (GDPR)",
+      "delete": "Delete account",
+      "delete_confirm_text": "Really delete? All data (incl. children, applications) will be permanently deleted.",
+      "delete_final": "Yes, permanently delete",
+      "cancel": "Cancel",
+      "consent_info": "Your privacy consent: You have consented to AI-based processing of your extended profile data (Art.\u202f6 para.\u202f1 lit.\u202fa GDPR). This consent can be revoked at any time using the green banner above."
+    },
+    "save_success": "Profile saved successfully.",
+    "save_error": "Error saving. Please try again.",
+    "no_preference": "No preference",
+    "no_info": "No information",
     "section_personal": "Personal data",
     "section_children": "Children",
     "section_preferences": "Search preferences",
@@ -263,6 +486,8 @@
     "subtitle": "Your responses and feed updates",
     "empty": "No new notifications.",
     "mark_all_read": "Mark all as read",
+    "loading": "Loading...",
+    "see_all": "View all notifications →",
     "types": {
       "application_response": "Response to application",
       "feed_update": "New community post"
