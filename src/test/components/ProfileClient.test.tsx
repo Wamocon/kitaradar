@@ -161,4 +161,100 @@ describe("ProfileClient", () => {
     fireEvent.click(screen.getByText("privacy_tab.cancel"));
     expect(screen.queryByText("privacy_tab.delete_confirm_text")).toBeNull();
   });
+
+  // ──────────── Additional tab coverage ────────────
+
+  it("renders family tab section header when navigated to", () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.family");
+    expect(screen.getByText("family.title")).toBeTruthy();
+  });
+
+  it("saves family data on button click", async () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.family");
+    fireEvent.click(screen.getByRole("button", { name: "family.save" }));
+    await waitFor(() => {
+      expect(screen.getByText("save_success")).toBeTruthy();
+    });
+  });
+
+  it("renders work tab section header when navigated to", () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.work");
+    expect(screen.getByText("work.title")).toBeTruthy();
+  });
+
+  it("saves work data on button click", async () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.work");
+    fireEvent.click(screen.getByRole("button", { name: "work.save" }));
+    await waitFor(() => {
+      expect(screen.getByText("save_success")).toBeTruthy();
+    });
+  });
+
+  it("renders childcare tab section when navigated to", () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.childcare");
+    expect(screen.getByText("childcare.title")).toBeTruthy();
+  });
+
+  it("saves childcare data on button click", async () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.childcare");
+    fireEvent.click(screen.getByRole("button", { name: "childcare.save" }));
+    await waitFor(() => {
+      expect(screen.getByText("save_success")).toBeTruthy();
+    });
+  });
+
+  it("renders KI tab section when navigated to", () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.ki");
+    expect(screen.getByText("ki.title")).toBeTruthy();
+  });
+
+  it("saves KI preferences on button click", async () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.ki");
+    fireEvent.click(screen.getByRole("button", { name: "ki.save" }));
+    await waitFor(() => {
+      expect(screen.getByText("save_success")).toBeTruthy();
+    });
+  });
+
+  it("renders notifications tab section when navigated to", () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.notifications");
+    expect(screen.getByText("notifications_tab.title")).toBeTruthy();
+  });
+
+  it("saves notification settings on button click", async () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.notifications");
+    fireEvent.click(screen.getByRole("button", { name: "notifications_tab.save" }));
+    await waitFor(() => {
+      expect(screen.getByText("save_success")).toBeTruthy();
+    });
+  });
+
+  it("toggles email notification switch", () => {
+    render(<ProfileClient {...defaultProps} notificationEmail={true} />);
+    goToTab("tabs.notifications");
+    const toggle = screen.getByRole("switch");
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(toggle);
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+  });
+
+  it("saves search settings on button click", async () => {
+    render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.notifications");
+    const saveButtons = screen.getAllByRole("button", { name: "search_settings.save" });
+    fireEvent.click(saveButtons[0]);
+    await waitFor(() => {
+      expect(screen.getByText("save_success")).toBeTruthy();
+    });
+  });
 });
