@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
   // Pro-gate: only Pro users can post
   const { data: profile } = await supabase
     .from("profiles")
-    .select("tier")
+    .select("subscription_tier")
     .eq("id", user.id)
     .single();
 
-  if (!profile || profile.tier !== "pro") {
+  if (!profile || profile.subscription_tier !== "pro") {
     return NextResponse.json({ error: "pro_required" }, { status: 403 });
   }
 

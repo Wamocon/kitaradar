@@ -5,13 +5,13 @@ async function getStats() {
   const supabase = await createClient();
   const [usersRes, proRes, searchesTodayRes, applicationsRes] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("tier", "pro"),
-    supabase.from("profiles").select("search_count").gte("updated_at", new Date(Date.now() - 86400000).toISOString()),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("subscription_tier", "pro"),
+    supabase.from("profiles").select("search_count_month").gte("updated_at", new Date(Date.now() - 86400000).toISOString()),
     supabase.from("applications").select("id", { count: "exact", head: true }),
   ]);
 
   const totalSearchesToday = (searchesTodayRes.data ?? []).reduce(
-    (sum, p: { search_count: number }) => sum + (p.search_count ?? 0),
+    (sum, p: { search_count_month: number }) => sum + (p.search_count_month ?? 0),
     0
   );
 

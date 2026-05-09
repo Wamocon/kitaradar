@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Shield, Users, CreditCard, LayoutDashboard, ChevronRight } from "lucide-react";
+import { Shield, Users, CreditCard, LayoutDashboard, ChevronRight, BarChart2 } from "lucide-react";
 
 export default async function AdminLayout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -23,6 +23,7 @@ export default async function AdminLayout({ children, params }: { children: Reac
     { href: `/${locale}/admin`, label: "Übersicht", icon: LayoutDashboard },
     { href: `/${locale}/admin/users`, label: "Nutzerverwaltung", icon: Users },
     { href: `/${locale}/admin/subscriptions`, label: "Aboverwaltung", icon: CreditCard },
+    { href: `/${locale}/admin/statistics`, label: "Statistiken & Daten", icon: BarChart2 },
   ];
 
   return (
