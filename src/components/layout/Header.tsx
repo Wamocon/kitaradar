@@ -20,14 +20,20 @@ export function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-          <Link href="/search" className="text-muted hover:text-foreground transition-colors">
+          <Link href="/search" className="text-muted-foreground hover:text-foreground transition-colors">
             {t("search")}
           </Link>
-          <Link href="/feed" className="text-muted hover:text-foreground transition-colors">
+          <Link href="/feed" className="text-muted-foreground hover:text-foreground transition-colors">
             {t("feed")}
           </Link>
-          <Link href="/pricing" className="text-muted hover:text-foreground transition-colors">
+          <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+            {t("dashboard")}
+          </Link>
+          <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
             {t("pricing")}
+          </Link>
+          <Link href="/recommendations" className="flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors">
+            ✨ {t("recommendations")}
           </Link>
         </nav>
 

@@ -13,7 +13,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 
   const { userId } = await params;
-  const body: { role?: string; tier?: string } = await request.json();
+  const body: { role?: string; subscription_tier?: string } = await request.json();
 
   // Validate inputs
   const validRoles = ["admin", "mother", "father", "parent"];
@@ -22,13 +22,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   if (body.role !== undefined && !validRoles.includes(body.role)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
-  if (body.tier !== undefined && !validTiers.includes(body.tier)) {
+  if (body.subscription_tier !== undefined && !validTiers.includes(body.subscription_tier)) {
     return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
   }
 
   const update: Record<string, string> = {};
   if (body.role !== undefined) update.role = body.role;
-  if (body.tier !== undefined) update.tier = body.tier;
+  if (body.subscription_tier !== undefined) update.subscription_tier = body.subscription_tier;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
@@ -57,7 +57,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, tier, search_count, created_at, phone, partner_name")
+    .select("id, email, full_name, role, subscription_tier, search_count_month, created_at, phone, partner_name")
     .eq("id", userId)
     .single();
 

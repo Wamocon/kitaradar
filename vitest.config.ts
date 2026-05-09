@@ -26,6 +26,8 @@ export default defineConfig({
         "src/**/*.d.ts",
         // Leaflet map requires real browser (canvas, DOM measurements)
         "src/components/search/KitaMap.tsx",
+        // MapLibre GL map requires real browser (WebGL, canvas)
+        "src/components/search/KitaMapGL.tsx",
         // Server components — cannot be rendered in jsdom
         "src/components/layout/UserNav.tsx",
         "src/components/layout/Footer.tsx",

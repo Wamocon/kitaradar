@@ -8,6 +8,8 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
+
 const defaultProps = {
   initialName: "Anna Muster",
   initialChildren: [
@@ -16,6 +18,11 @@ const defaultProps = {
   tier: "free",
   searchCount: 4,
 };
+
+/** Navigate to a tab by its display label */
+function goToTab(label: string) {
+  fireEvent.click(screen.getByRole("button", { name: label }));
+}
 
 describe("ProfileClient", () => {
   beforeEach(() => {
@@ -27,36 +34,43 @@ describe("ProfileClient", () => {
 
   it("renders the name input with initial value", () => {
     render(<ProfileClient {...defaultProps} />);
+    // Default tab is "Persönliche Daten"
     const input = screen.getByDisplayValue("Anna Muster") as HTMLInputElement;
     expect(input).toBeTruthy();
   });
 
   it("shows remaining searches for free tier", () => {
     render(<ProfileClient {...defaultProps} />);
-    expect(screen.getByText(/6 von 10 Suchen übrig/)).toBeTruthy();
+    goToTab("tabs.plan");
+    expect(screen.getByText("plan.searches_remaining")).toBeTruthy();
   });
 
   it("shows upgrade link for free users", () => {
     render(<ProfileClient {...defaultProps} />);
-    expect(screen.getByText(/Auf Pro upgraden/)).toBeTruthy();
+    goToTab("tabs.plan");
+    expect(screen.getByText("plan.upgrade_link")).toBeTruthy();
   });
 
   it("shows Pro badge for Pro users", () => {
     render(<ProfileClient {...defaultProps} tier="pro" />);
+    goToTab("tabs.plan");
     expect(screen.getByText("Pro")).toBeTruthy();
-    expect(screen.queryByText(/Auf Pro upgraden/)).toBeNull();
+    expect(screen.queryByText("plan.upgrade_link")).toBeNull();
   });
 
   it("renders existing children", () => {
     render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.children");
     expect(screen.getByText("Lena")).toBeTruthy();
   });
 
   it("saves profile on button click and shows success message", async () => {
     render(<ProfileClient {...defaultProps} />);
-    fireEvent.click(screen.getByText("Speichern"));
+    // Default tab is "personal" — save button is visible
+    const saveButtons = screen.getAllByRole("button", { name: "personal.save" });
+    fireEvent.click(saveButtons[0]);
     await waitFor(() => {
-      expect(screen.getByText(/Profil gespeichert/)).toBeTruthy();
+      expect(screen.getByText("save_success")).toBeTruthy();
     });
   });
 
@@ -66,9 +80,10 @@ describe("ProfileClient", () => {
       vi.fn().mockResolvedValue({ ok: false, json: async () => ({ error: "fail" }) })
     );
     render(<ProfileClient {...defaultProps} />);
-    fireEvent.click(screen.getByText("Speichern"));
+    const saveButtons = screen.getAllByRole("button", { name: "personal.save" });
+    fireEvent.click(saveButtons[0]);
     await waitFor(() => {
-      expect(screen.getByText(/Fehler beim Speichern/)).toBeTruthy();
+      expect(screen.getByText("save_error")).toBeTruthy();
     });
   });
 
@@ -84,8 +99,9 @@ describe("ProfileClient", () => {
       })
     );
     render(<ProfileClient {...defaultProps} />);
-    fireEvent.change(screen.getByPlaceholderText("Name des Kindes"), { target: { value: "Tim" } });
-    fireEvent.click(screen.getByText("Kind hinzufügen"));
+    goToTab("tabs.children");
+    fireEvent.change(screen.getByPlaceholderText("children.child_name_placeholder"), { target: { value: "Tim" } });
+    fireEvent.click(screen.getByText("children.add_btn"));
     await waitFor(() => {
       expect(screen.getByText("Tim")).toBeTruthy();
     });
@@ -95,7 +111,8 @@ describe("ProfileClient", () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
     render(<ProfileClient {...defaultProps} />);
-    fireEvent.click(screen.getByText("Kind hinzufügen"));
+    goToTab("tabs.children");
+    fireEvent.click(screen.getByText("children.add_btn"));
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -105,8 +122,8 @@ describe("ProfileClient", () => {
       vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true }) })
     );
     render(<ProfileClient {...defaultProps} />);
+    goToTab("tabs.children");
     expect(screen.getByText("Lena")).toBeTruthy();
-    // The trash button is inside the child item containing "Lena"
     const childItem = screen.getByText("Lena").closest("div")!.parentElement as HTMLElement;
     const trashBtn = within(childItem).getByRole("button");
     fireEvent.click(trashBtn);
@@ -122,7 +139,8 @@ describe("ProfileClient", () => {
       vi.fn().mockResolvedValue({ ok: true, blob: async () => blobMock })
     );
     render(<ProfileClient {...defaultProps} />);
-    fireEvent.click(screen.getByText("Daten exportieren"));
+    goToTab("tabs.privacy");
+    fireEvent.click(screen.getByText("privacy_tab.export"));
     await waitFor(() => {
       expect(URL.createObjectURL).toHaveBeenCalled();
     });
@@ -130,15 +148,17 @@ describe("ProfileClient", () => {
 
   it("shows delete confirmation when 'Konto löschen' is first clicked", () => {
     render(<ProfileClient {...defaultProps} />);
-    fireEvent.click(screen.getByText("Konto löschen"));
-    expect(screen.getByText(/Wirklich löschen/)).toBeTruthy();
-    expect(screen.getByText("Abbrechen")).toBeTruthy();
+    goToTab("tabs.privacy");
+    fireEvent.click(screen.getByText("privacy_tab.delete"));
+    expect(screen.getByText("privacy_tab.delete_confirm_text")).toBeTruthy();
+    expect(screen.getByText("privacy_tab.cancel")).toBeTruthy();
   });
 
   it("cancels account deletion when 'Abbrechen' is clicked", () => {
     render(<ProfileClient {...defaultProps} />);
-    fireEvent.click(screen.getByText("Konto löschen"));
-    fireEvent.click(screen.getByText("Abbrechen"));
-    expect(screen.queryByText(/Wirklich löschen/)).toBeNull();
+    goToTab("tabs.privacy");
+    fireEvent.click(screen.getByText("privacy_tab.delete"));
+    fireEvent.click(screen.getByText("privacy_tab.cancel"));
+    expect(screen.queryByText("privacy_tab.delete_confirm_text")).toBeNull();
   });
 });

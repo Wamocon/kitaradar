@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { PostCard, NewPostForm } from "@/components/feed/PostCard";
 
-vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
 
 const basePost = {
   id: "post-1",
@@ -27,7 +27,7 @@ describe("PostCard", () => {
 
   it("renders the tag label", () => {
     render(<PostCard post={basePost} />);
-    expect(screen.getByText("Tipp")).toBeTruthy();
+    expect(screen.getByText("tag_labels.tip")).toBeTruthy();
   });
 
   it("renders the author name", () => {
@@ -37,7 +37,7 @@ describe("PostCard", () => {
 
   it("renders 'Anonym' when profiles is null", () => {
     render(<PostCard post={{ ...basePost, profiles: null }} />);
-    expect(screen.getByText(/Anonym/)).toBeTruthy();
+    expect(screen.getByText(/anon/)).toBeTruthy();
   });
 
   it("renders formatted date (year visible)", () => {
@@ -70,9 +70,9 @@ describe("PostCard", () => {
 
   it("changes report label to 'Gemeldet' after clicking", async () => {
     render(<PostCard post={basePost} />);
-    fireEvent.click(screen.getByText("Melden"));
+    fireEvent.click(screen.getByText("report"));
     await waitFor(() => {
-      expect(screen.getByText("Gemeldet")).toBeTruthy();
+      expect(screen.getByText("reported")).toBeTruthy();
     });
   });
 
@@ -97,21 +97,21 @@ describe("NewPostForm", () => {
 
   it("renders form fields", () => {
     render(<NewPostForm onPosted={vi.fn()} />);
-    expect(screen.getByPlaceholderText("Titel...")).toBeTruthy();
-    expect(screen.getByPlaceholderText("Ihr Beitrag...")).toBeTruthy();
+    expect(screen.getByPlaceholderText("new_post")).toBeTruthy();
+    expect(screen.getByPlaceholderText("post_placeholder")).toBeTruthy();
   });
 
   it("renders submit button", () => {
     render(<NewPostForm onPosted={vi.fn()} />);
-    expect(screen.getByText("Veröffentlichen")).toBeTruthy();
+    expect(screen.getByText("post_submit")).toBeTruthy();
   });
 
   it("calls onPosted after successful submit", async () => {
     const onPosted = vi.fn();
     render(<NewPostForm onPosted={onPosted} />);
-    fireEvent.change(screen.getByPlaceholderText("Titel..."), { target: { value: "Test" } });
-    fireEvent.change(screen.getByPlaceholderText("Ihr Beitrag..."), { target: { value: "Inhalt" } });
-    fireEvent.click(screen.getByText("Veröffentlichen"));
+    fireEvent.change(screen.getByPlaceholderText("new_post"), { target: { value: "Test" } });
+    fireEvent.change(screen.getByPlaceholderText("post_placeholder"), { target: { value: "Inhalt" } });
+    fireEvent.click(screen.getByText("post_submit"));
     await waitFor(() => {
       expect(onPosted).toHaveBeenCalledTimes(1);
     });
@@ -123,11 +123,11 @@ describe("NewPostForm", () => {
       vi.fn().mockResolvedValue({ ok: false, status: 403, json: async () => ({}) })
     );
     render(<NewPostForm onPosted={vi.fn()} />);
-    fireEvent.change(screen.getByPlaceholderText("Titel..."), { target: { value: "T" } });
-    fireEvent.change(screen.getByPlaceholderText("Ihr Beitrag..."), { target: { value: "C" } });
-    fireEvent.click(screen.getByText("Veröffentlichen"));
+    fireEvent.change(screen.getByPlaceholderText("new_post"), { target: { value: "T" } });
+    fireEvent.change(screen.getByPlaceholderText("post_placeholder"), { target: { value: "C" } });
+    fireEvent.click(screen.getByText("post_submit"));
     await waitFor(() => {
-      expect(screen.getByText(/Pro-Mitglieder/)).toBeTruthy();
+      expect(screen.getByText("pro_required")).toBeTruthy();
     });
   });
 
@@ -135,7 +135,7 @@ describe("NewPostForm", () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
     render(<NewPostForm onPosted={vi.fn()} />);
-    fireEvent.click(screen.getByText("Veröffentlichen"));
+    fireEvent.click(screen.getByText("post_submit"));
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

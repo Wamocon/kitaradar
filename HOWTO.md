@@ -558,6 +558,130 @@ git commit --no-verify -m "your message"
 >
 > **Do NOT store test data as local files** (e.g. JSON fixtures, SQL dumps). Insert data directly into your Supabase project — via the Dashboard, an MCP tool, or a migration script.
 
+---
+
+---
+
+## KitaRadar — Projekt-spezifisches Handbuch
+
+---
+
+### Überblick
+
+KitaRadar hilft Eltern in Deutschland, freie Kita-Plätze zu finden. Die App kombiniert:
+- **OSM/Overpass-Daten** für die Kita-Suche
+- **MapLibre GL** für eine WebGL-basierte interaktive Karte mit echten 3D-Gebäuden
+- **OpenAI** für KI-Suchassistenten, Bewerbungsgenerator und Empfehlungen
+- **Supabase** (`kitaradar-dev` Schema) für Profil, Bewerbungen, Feed, Notifications
+- **Stripe** für Free / Pro / Family Abonnements
+
+---
+
+### Karten-Implementierung (MapLibre GL)
+
+Die Karte (`src/components/search/KitaMapGL.tsx`) ersetzt Leaflet vollständig und unterstützt 3 Modi:
+
+| Modus | Kachel-Quelle | Besonderheit |
+|---|---|---|
+| Normal (Hell/Dunkel) | OpenFreeMap Positron / Dark-Matter | Auto-Switch nach Theme, Vektor-Tiles |
+| Satellit | ESRI World Imagery (Raster) | Overlay auf Positron-Basis |
+| 3D-Gebäude | OpenFreeMap Liberty + `fill-extrusion` | Pitch 50°, Bearing -15°, OSM-Gebäudehöhen (`render_height`) |
+
+**Wichtige technische Details:**
+
+- **Fonts:** Umleitung auf `fonts.openmaptiles.org` via `transformRequest` (Open Sans, Noto Sans — kostenlos, kein API-Key). `demotiles.maplibre.org` wurde entfernt (lieferte 404 für OpenMapTiles-Schriften).
+- **SVG-Icons:** `svgToImageData()` via Canvas (MapLibre GL v5 kann SVG-Data-URLs nicht per `fetch()` dekodieren)
+- **Fehlende Sprite-Images:** Liberty-Style referenziert viele POI-Icons (sports_centre, gate, atm …). Ein Catch-all in `styleimagemissing` registriert transparente 1×1-Pixel-Platzhalter, um Browser-Warnungen zu unterdrücken.
+- **Auto-Zoom:** `fitBounds` mit Radius-Bounding-Box + 60px Padding (statt manueller `log2`-Formel)
+
+---
+
+### Erweitertes Elternprofil
+
+Neue Felder seit Migration `20260509000005_extended_parent_profile.sql`:
+
+| Feld | Typ | Beschreibung |
+|---|---|---|
+| `job_title` | text | Berufsbezeichnung |
+| `employer` | text | Arbeitgeber |
+| `work_district` | text | Arbeitsstadtteil |
+| `work_hours_type` | text | Vollzeit / Teilzeit / etc. |
+| `work_start_time` | time | Arbeitsbeginn |
+| `work_end_time` | time | Arbeitsende |
+| `family_situation` | text | Allein erziehend, Paar, etc. |
+| `home_language` | text | Hauptsprache zuhause |
+| `additional_languages` | text | Weitere Sprachen |
+| `max_monthly_fee` | int | Maximales Monatsbudget (€) |
+| `kita_needed_from` | date | Betreuungsbeginn |
+| `ai_consent` | boolean | DSGVO-Einwilligung für KI-Datenverarbeitung |
+
+> ⚠️ **Die Migration muss manuell im Supabase SQL Editor ausgeführt werden:**  
+> https://supabase.com/dashboard/project/xfbbxjbsfsopfxonrbmv/sql/new  
+> Datei: `supabase/migrations/20260509000005_extended_parent_profile.sql`
+
+**DSGVO-Einwilligung:** Beim Speichern von erweiterten Profil-Feldern oder KI-Präferenzen wird der `DataPrivacyConsentDialog` angezeigt (Art. 6 DSGVO, WAMOCON GmbH).
+
+---
+
+### Admin-Bereich
+
+URL: `/de/admin/statistics`
+
+Der Admin-Bereich bietet:
+- **Statistiken:** Live-Daten aus der DB (Nutzer, Kitas, Bewerbungen, Feed-Posts, Notifications, Enrichment-Cache)
+- **Datenquellen:** OSM/Overpass, Google Places, Wikidata — Status und Beschreibung
+- **Cache-Verwaltung:** Veraltete Enrichments erneuern (POST `/api/admin/refresh/enrichments`) oder Cache leeren (DELETE `/api/admin/refresh/enrichments/clear`)
+
+Admin-Zugang: Profil `role = 'admin'` in der `profiles`-Tabelle.
+
+---
+
+### Tests
+
+```bash
+# Alle Tests ausführen
+npx vitest run
+
+# Mit Coverage
+npx vitest run --coverage
+
+# Einzelnen Test-File
+npx vitest run src/test/components/SearchClient.test.tsx
+```
+
+**Aktueller Stand:** 218 Tests in 24 Test-Files, alle grün.
+
+Ausgeschlossen von der Coverage (Browser-only):
+- `KitaMap.tsx` — Leaflet (Canvas/DOM-Messungen)
+- `KitaMapGL.tsx` — MapLibre GL (WebGL)
+- `UserNav.tsx`, `Footer.tsx`, `Header.tsx` — Server Components
+
+---
+
+### Bekannte ausstehende Aufgaben
+
+| Aufgabe | Status | Beschreibung |
+|---|---|---|
+| Migration 005 | ⏳ Manuell ausführen | `supabase/migrations/20260509000005_extended_parent_profile.sql` im Supabase SQL Editor |
+| Überprüfen Profil-Felder | ⏳ Nach Migration | ProfileClient prüfen ob alle neuen Spalten korrekt gespeichert werden |
+
+---
+
+### Wichtige Dateipfade
+
+| Datei / Ordner | Zweck |
+|---|---|
+| `src/components/search/KitaMapGL.tsx` | MapLibre GL Karte (ersetzt KitaMap/Leaflet) |
+| `src/components/search/SearchClient.tsx` | Such-UI mit Floating-Popup, Wizard, AI-Assist |
+| `src/components/profile/ProfileClient.tsx` | Erweitertes Elternprofil (8 Sektionen) |
+| `src/components/profile/DataPrivacyConsentDialog.tsx` | DSGVO Art. 6 Einwilligungs-Dialog |
+| `src/app/[locale]/admin/statistics/page.tsx` | Admin-Statistiken (Live-DB-Daten) |
+| `src/components/admin/AdminRefreshButtons.tsx` | Cache-Verwaltung (Client Component) |
+| `src/app/api/admin/refresh/enrichments/route.ts` | POST: Veraltete Enrichments erneuern |
+| `src/app/api/admin/refresh/enrichments/clear/route.ts` | DELETE: Cache leeren |
+| `messages/de.json` + `messages/en.json` | Alle UI-Texte (synchron, keine fehlenden Keys) |
+| `supabase/migrations/` | Versionierte DB-Migrationen |
+
 **Steps:**
 
 1. Go to [supabase.com](https://supabase.com) and create a new project.

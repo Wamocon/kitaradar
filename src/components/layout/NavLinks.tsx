@@ -28,8 +28,14 @@ export function NavLinks() {
             <Link href="/feed" onClick={() => setOpen(false)} className="text-muted hover:text-foreground">
               {t("feed")}
             </Link>
+            <Link href="/dashboard" onClick={() => setOpen(false)} className="text-muted hover:text-foreground">
+              {t("dashboard")}
+            </Link>
             <Link href="/pricing" onClick={() => setOpen(false)} className="text-muted hover:text-foreground">
               {t("pricing")}
+            </Link>
+            <Link href="/recommendations" onClick={() => setOpen(false)} className="flex items-center gap-1.5 text-primary font-medium">
+              ✨ {t("recommendations")}
             </Link>
             <Link href="/auth/login" onClick={() => setOpen(false)} className="text-muted hover:text-foreground">
               {t("login")}

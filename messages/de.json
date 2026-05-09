@@ -8,7 +8,8 @@
     "register": "Registrieren",
     "logout": "Abmelden",
     "profile": "Profil",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "recommendations": "KI-Empfehlungen"
   },
   "home": {
     "hero": {
@@ -99,6 +100,17 @@
     }
   },
   "auth": {
+    "branding": {
+      "tagline": "Kita-Suche & Bewerbung",
+      "headline_line1": "Den perfekten Kita-Platz",
+      "headline_line2": "schnell und einfach finden.",
+      "subline": "KitaRadar bündelt alle Kitas auf einer interaktiven Karte – mit KI-Suchassistenz und automatisch generiertem Bewerbungsschreiben.",
+      "trust_line": "Kostenlos starten · Keine Kreditkarte · DSGVO-konform",
+      "feature_map": "Alle Kitas im Umkreis auf einer interaktiven Karte",
+      "feature_ai": "KI-Suchassistent findet die passenden Einrichtungen",
+      "feature_apply": "Individuelle Bewerbung in Sekunden generieren",
+      "feature_track": "Bewerbungen tracken – alles an einem Ort"
+    },
     "login": {
       "title": "Willkommen zurück",
       "subtitle": "Melden Sie sich bei KitaRadar an",
@@ -138,6 +150,7 @@
   "dashboard": {
     "title": "Mein Dashboard",
     "welcome": "Hallo, {name}!",
+    "see_all": "Alle anzeigen →",
     "stats": {
       "searches": "Suchanfragen",
       "applications": "Bewerbungen",
@@ -189,16 +202,50 @@
     "apply_btn": "Bewerbung erstellen",
     "free_limit_warning": "Sie haben das Limit von 10 kostenlosen Suchanfragen erreicht.",
     "upgrade_link": "Pro upgraden",
-    "error_generic": "Fehler bei der Suche. Bitte versuchen Sie es erneut."
+    "error_generic": "Fehler bei der Suche. Bitte versuchen Sie es erneut.",
+    "type_labels": {
+      "all": "Alle",
+      "public": "Kommunal",
+      "church": "Kirchlich",
+      "private": "Privat",
+      "free": "Frei"
+    },
+    "tile_labels": {
+      "normal": "Normal",
+      "satellite": "Satellit",
+      "terrain3d": "3D-Gebäude"
+    }
   },
   "feed": {
     "title": "Community-Feed",
-    "subtitle": "Aktuelle Erfahrungen und Hinweise von Eltern",
+    "subtitle": "Tipps und Erfahrungen von Eltern",
     "new_post": "Beitrag verfassen",
+    "new_post_btn": "Neuer Beitrag",
+    "cancel_btn": "Abbrechen",
+    "pro_notice_strong": "Pro-Funktion:",
+    "pro_notice_text": "Als Pro-Mitglied können Sie eigene Beiträge verfassen und die Community aktiv mitgestalten.",
+    "upgrade_now": "Jetzt upgraden →",
     "post_placeholder": "Teilen Sie Ihre Erfahrung mit einer Kita...",
     "post_submit": "Veröffentlichen",
     "pro_required": "Pro-Mitglieder können Beiträge verfassen.",
     "upgrade_link": "Jetzt upgraden",
+    "anon": "Anonym",
+    "reported": "Gemeldet",
+    "tag_filters": {
+      "all": "Alle",
+      "general": "Allgemein",
+      "tip": "Tipps",
+      "experience": "Erfahrungen",
+      "question": "Fragen",
+      "news": "News"
+    },
+    "tag_labels": {
+      "general": "Allgemein",
+      "tip": "Tipp",
+      "experience": "Erfahrung",
+      "question": "Frage",
+      "news": "News"
+    },
     "tags": {
       "tip": "Tipp",
       "experience": "Erfahrung",
@@ -206,10 +253,186 @@
       "warning": "Warnung"
     },
     "report": "Melden",
-    "empty": "Noch keine Beiträge. Seien Sie der Erste!"
+    "empty": "Noch keine Beiträge vorhanden."
   },
   "profile": {
     "title": "Mein Profil",
+    "tabs": {
+      "plan": "Mein Plan",
+      "personal": "Persönliche Daten",
+      "family": "Familie",
+      "work": "Beruf",
+      "childcare": "Betreuung",
+      "children": "Kinder",
+      "ki": "KI-Präferenzen",
+      "notifications": "Benachrichtigungen",
+      "privacy": "Datenschutz"
+    },
+    "consent": {
+      "active": "Datenschutz-Einwilligung erteilt – KI-Datenverarbeitung aktiv.",
+      "revoke": "Einwilligung widerrufen",
+      "pending": "Sie haben erweiterte Daten angegeben. Beim Speichern wird eine Datenschutz-Einwilligung eingeholt.",
+      "required_hint": "Diese Felder erfordern eine Datenschutz-Einwilligung – wird beim Speichern abgefragt.",
+      "sensitive_hint": "Berufliche Daten sind sensibel – eine Datenschutz-Einwilligung wird beim Speichern abgefragt."
+    },
+    "plan": {
+      "title": "Mein Plan",
+      "searches_remaining": "{remaining} von 10 Suchen übrig diesen Monat",
+      "upgrade_link": "Auf Pro upgraden →",
+      "admin_area": "Admin-Bereich"
+    },
+    "personal": {
+      "title": "Persönliche Daten",
+      "desc": "Grundlegende Kontaktinformationen",
+      "full_name": "Vollständiger Name",
+      "phone": "Telefonnummer",
+      "phone_placeholder": "+49 123 456789",
+      "role": "Meine Rolle",
+      "partner": "Name Partner / Mitsorgeberechtigte",
+      "partner_placeholder": "Optional",
+      "save": "Persönliche Daten speichern"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "mother": "Mutter",
+      "father": "Vater",
+      "parent": "Elternteil"
+    },
+    "family": {
+      "title": "Familiensituation",
+      "desc": "Hilft der KI, passende Betreuungsmodelle zu empfehlen",
+      "situation": "Familiensituation",
+      "home_language": "Hauptsprache im Haushalt",
+      "additional_languages": "Weitere Sprachen im Haushalt",
+      "additional_hint": "z.B. Englisch, Französisch (kommagetrennt)",
+      "save": "Familiensituation speichern",
+      "gdpr_hint": "Diese Felder erfordern eine Datenschutz-Einwilligung – wird beim Speichern abgefragt."
+    },
+    "family_situations": {
+      "none": "Keine Angabe",
+      "two_parent": "Beide Elternteile im Haushalt",
+      "single_parent": "Alleinerziehend",
+      "shared_custody": "Wechselmodell / Geteiltes Sorgerecht",
+      "patchwork": "Patchwork-Familie",
+      "grandparent": "Großeltern als Hauptbetreuer"
+    },
+    "languages": {
+      "none": "Keine Angabe",
+      "deutsch": "Deutsch",
+      "tuerkisch": "Türkisch",
+      "arabisch": "Arabisch",
+      "russisch": "Russisch",
+      "englisch": "Englisch",
+      "polnisch": "Polnisch",
+      "rumaenisch": "Rumänisch",
+      "sonstige": "Sonstige"
+    },
+    "work": {
+      "title": "Beruf & Arbeitszeit",
+      "desc": "Optimiert Kita-Empfehlungen nach Lage und Öffnungszeiten",
+      "job_title": "Berufsbezeichnung",
+      "job_placeholder": "z.B. Software-Entwicklerin",
+      "employer": "Arbeitgeber (optional)",
+      "employer_placeholder": "z.B. WAMOCON GmbH",
+      "district": "Arbeitsort / Stadtteil",
+      "district_placeholder": "z.B. Frankfurt-Sachsenhausen",
+      "district_hint": "Hilft Kitas auf dem Arbeitsweg zu finden",
+      "hours_type": "Arbeitszeitmodell",
+      "start_time": "Arbeitsbeginn (frühester Bringzeitpunkt)",
+      "end_time": "Arbeitsende (spätester Abholzeitpunkt)",
+      "save": "Berufsdaten speichern",
+      "gdpr_hint": "Berufliche Daten sind sensibel – eine Datenschutz-Einwilligung wird beim Speichern abgefragt."
+    },
+    "work_hours": {
+      "none": "Keine Angabe",
+      "full_time": "Vollzeit",
+      "part_time": "Teilzeit",
+      "flex": "Gleitzeit / Flexibel",
+      "shift": "Schichtarbeit",
+      "home_office": "Homeoffice",
+      "parental_leave": "Elternzeit"
+    },
+    "childcare": {
+      "title": "Betreuungsbedarf",
+      "desc": "Gewünschter Betreuungsbeginn und maximales Budget",
+      "needed_from": "Betreuung benötigt ab",
+      "needed_from_hint": "Gewünschter Betreuungsbeginn",
+      "max_fee": "Max. monatlicher Kita-Beitrag (€)",
+      "max_fee_placeholder": "z.B. 500",
+      "max_fee_hint": "Priorisiert beitragsfreie Kitas",
+      "save": "Betreuungsbedarf speichern"
+    },
+    "children": {
+      "title": "Meine Kinder",
+      "desc": "Für jeden Kita-Platz-Bedarf ein Profil anlegen",
+      "new_child": "Neues Kind hinzufügen",
+      "child_name_placeholder": "Name des Kindes",
+      "birth_month": "Monat",
+      "birth_year": "Jahr",
+      "special_needs_placeholder": "Besondere Bedürfnisse / Hinweise (optional)",
+      "add_btn": "Kind hinzufügen",
+      "born_label": "Geb.:"
+    },
+    "ki": {
+      "title": "KI-Präferenzen",
+      "desc": "Verbessert KI-Kita-Empfehlungen und Bewerbungsschreiben",
+      "pedagogy": "Bevorzugte Pädagogik",
+      "kita_type": "Bevorzugter Träger",
+      "languages": "Sprachen / Bilingualität",
+      "languages_placeholder": "z.B. Deutsch-Englisch",
+      "hours": "Gewünschte Betreuungszeit",
+      "save": "KI-Präferenzen speichern",
+      "info": "Diese Angaben fließen in die KI-gestützte Kita-Empfehlung und die automatische Bewerbungsgenerierung ein."
+    },
+    "pedagogy": {
+      "none": "Keine Präferenz",
+      "montessori": "Montessori",
+      "waldorf": "Waldorf / Steiner",
+      "reggio": "Reggio-Pädagogik",
+      "situationsansatz": "Situationsansatz",
+      "pikler": "Pikler-Pädagogik",
+      "sonstige": "Sonstige"
+    },
+    "kita_type_pref": {
+      "none": "Keine Präferenz",
+      "public": "Kommunal",
+      "church": "Kirchlich / Konfessionell",
+      "private": "Privat",
+      "free": "Freie Träger (AWO, DRK etc.)"
+    },
+    "care_hours": {
+      "none": "Keine Präferenz",
+      "halbtags": "Halbtags (bis 12 Uhr)",
+      "nachmittags": "Nachmittags (bis 15 Uhr)",
+      "ganztags": "Ganztags (bis 17 Uhr)",
+      "erweitert": "Erweitert (bis 19 Uhr)"
+    },
+    "search_settings": {
+      "title": "Standard-Sucheinstellungen",
+      "city": "Standard-Suchort",
+      "city_placeholder": "z.B. Frankfurt am Main",
+      "radius": "Standard-Suchradius ({radius} km)",
+      "save": "Sucheinstellungen speichern"
+    },
+    "notifications_tab": {
+      "title": "Benachrichtigungen",
+      "email_label": "E-Mail-Benachrichtigungen",
+      "email_desc": "Informationen zu Bewerbungen und Kita-Antworten",
+      "save": "Benachrichtigungen speichern"
+    },
+    "privacy_tab": {
+      "title": "Datenschutz & Konto",
+      "export": "Daten exportieren (DSGVO)",
+      "delete": "Konto löschen",
+      "delete_confirm_text": "Wirklich löschen? Alle Daten (inkl. Kinder, Bewerbungen) werden unwiderruflich gelöscht.",
+      "delete_final": "Ja, endgültig löschen",
+      "cancel": "Abbrechen",
+      "consent_info": "Ihre Datenschutz-Einwilligung: Sie haben der KI-gestützten Verarbeitung Ihrer erweiterten Profildaten zugestimmt (Art. 6 Abs. 1 lit. a DSGVO). Diese Einwilligung kann jederzeit über den grünen Banner oben widerrufen werden."
+    },
+    "save_success": "Profil erfolgreich gespeichert.",
+    "save_error": "Fehler beim Speichern. Bitte erneut versuchen.",
+    "no_preference": "Keine Präferenz",
+    "no_info": "Keine Angabe",
     "section_personal": "Persönliche Daten",
     "section_children": "Kinderdaten",
     "section_preferences": "Suchpräferenzen",
@@ -263,6 +486,8 @@
     "subtitle": "Ihre Antworten und Feed-Updates",
     "empty": "Keine neuen Benachrichtigungen.",
     "mark_all_read": "Alle als gelesen markieren",
+    "loading": "Lädt...",
+    "see_all": "Alle Benachrichtigungen anzeigen →",
     "types": {
       "application_response": "Antwort auf Bewerbung",
       "feed_update": "Neuer Community-Beitrag"

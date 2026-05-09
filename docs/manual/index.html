@@ -487,6 +487,8 @@
               <thead><tr><th>Funktion</th><th>Beschreibung</th><th>Status</th></tr></thead>
               <tbody>
                 <tr><td>Kartenbasierte Umkreissuche</td><td>Radius- und Trägerfilter (kommunal, kirchlich, frei, privat)</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Karte: 3D-Gebäude</td><td>MapLibre GL, Pitch 50°, echte OSM-Gebäudehöhen, Auto-Zoom via fitBounds</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Karte: Satellit</td><td>ESRI World Imagery über MapLibre GL Raster-Layer</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>KI-Suchassistent</td><td>Priorisierung passender Kitas nach Konzept, Alter, Öffnungszeiten</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>KI-Bewerbungsgenerator</td><td>Individualisiertes Anschreiben pro Kita, mailto:-Link</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>Bewerbungs-Tracking</td><td>Statusverwaltung je Kita (Offen / Versendet / Antwort erhalten)</td><td><span class="badge badge-green">Implementiert</span></td></tr>
@@ -496,7 +498,9 @@
                 <tr><td>Dashboard</td><td>Such-, Bewerbungs- und Antwortstatus auf einen Blick</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>Benachrichtigungen</td><td>Feed-Updates, Antworten, System-Ereignisse</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>Free / Pro Abonnement</td><td>Stripe Checkout, Feature-Gates, Self-Service-Kündigung</td><td><span class="badge badge-green">Implementiert</span></td></tr>
-                <tr><td>DSGVO-Funktionen</td><td>Datenexport, Kontolöschung, Einwilligungsverwaltung</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>DSGVO-Funktionen</td><td>Datenexport, Kontolöschung, Einwilligungsverwaltung (Art. 6)</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Erweitertes Elternprofil</td><td>Job, Arbeitgeber, Arbeitsstadtteil, Arbeitszeiten, Familiensituation, Sprachen, Budget, Betreuungsbeginn</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Admin: Statistiken</td><td>Live-DB-Statistiken, Enrichment-Cache-Verwaltung (erneuern / leeren)</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>Mehrsprachigkeit DE / EN</td><td>next-intl, vollständige UI-Übersetzungen</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>Light / Dark Theme</td><td>Systemsynchron, manuell umschaltbar</td><td><span class="badge badge-green">Implementiert</span></td></tr>
                 <tr><td>Admin-Bereich</td><td>Nutzerverwaltung, Feed-Moderation, Statistiken</td><td><span class="badge badge-green">Implementiert</span></td></tr>
@@ -588,12 +592,16 @@
           </ul>
 
           <h3 id="bh-profil">3.7 Profil &amp; Einstellungen</h3>
-          <p>Unter <em>Profil</em> können Eltern die Daten ihres Kindes hinterlegen, die für die KI-Bewerbungsgenerierung verwendet werden.</p>
+          <p>Unter <em>Profil</em> können Eltern ein umfassendes Profil pflegen. Die Daten werden für die KI-Bewerbungsgenerierung und die persönlichen Empfehlungen verwendet. Sensible Felder erfordern eine explizite DSGVO-Einwilligung (Art. 6 DSGVO) — ein Dialog erscheint beim ersten Speichern automatisch.</p>
           <ul>
             <li><strong>Kinderdaten:</strong> Name, Geburtsdatum, gewünschter Betreuungsstart, besondere Bedürfnisse.</li>
+            <li><strong>Persönliche Daten:</strong> Name, Telefon, Elternrolle (Mutter/Vater/Elternteil).</li>
+            <li><strong>Familiensituation:</strong> Allein erziehend, Paar, Patchwork, etc.</li>
+            <li><strong>Beruf &amp; Arbeitszeit:</strong> Berufsbezeichnung, Arbeitgeber, Arbeitsstadtteil, Vollzeit/Teilzeit, Arbeitszeiten.</li>
+            <li><strong>Betreuungsbedarf:</strong> Gewünschter Kita-Start, maximales Monatsbudget.</li>
+            <li><strong>Sprachen:</strong> Haussprache und weitere Sprachen — für die Kita-Passung.</li>
             <li><strong>Suchpräferenzen:</strong> Bevorzugte Träger, pädagogisches Konzept, Radius-Standard.</li>
-            <li><strong>Sprache:</strong> Deutsch / Englisch umschaltbar.</li>
-            <li><strong>Theme:</strong> Hell / Dunkel / System.</li>
+            <li><strong>Sprache / Theme:</strong> Deutsch / Englisch, Hell / Dunkel / System.</li>
             <li><strong>Datenschutz:</strong> Datenabruf (DSGVO-Export) und Kontolöschung.</li>
           </ul>
 
@@ -669,10 +677,11 @@
                 <tr><td>React</td><td>19.x</td><td>UI-Komponentenmodell</td></tr>
                 <tr><td>TypeScript</td><td>5.x (strict)</td><td>Typsicherheit</td></tr>
                 <tr><td>Tailwind CSS</td><td>v4</td><td>Utility-First-Styling</td></tr>
+                <tr><td>MapLibre GL</td><td>5.x</td><td>WebGL-Karte, 3D-Gebäude (kein API-Key)</td></tr>
                 <tr><td>next-intl</td><td>aktuell</td><td>Internationalisierung (DE/EN)</td></tr>
                 <tr><td>next-themes</td><td>aktuell</td><td>Light/Dark-Theme</td></tr>
                 <tr><td>lucide-react</td><td>aktuell</td><td>Icon-Bibliothek</td></tr>
-                <tr><td>Vitest</td><td>aktuell</td><td>Unit- und Komponenten-Tests</td></tr>
+                <tr><td>Vitest</td><td>aktuell</td><td>Unit- und Komponenten-Tests (218 Tests)</td></tr>
               </tbody>
             </table>
           </div>
@@ -705,12 +714,27 @@
 
           <h3 id="ta-geo">4.5 Geodaten &amp; Karten</h3>
           <p>Kita-Daten werden live aus der Overpass API (OpenStreetMap) abgefragt. Nominatim übernimmt die Geokodierung von Adressen. Alle Anfragen werden serverseitig gestellt und gecacht.</p>
+          <p>Die interaktive Karte basiert auf <strong>MapLibre GL</strong> (WebGL, kein API-Key erforderlich). Sie unterstützt drei Ansichtsmodi:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Modus</th><th>Kachel-Quelle</th><th>Besonderheit</th></tr></thead>
+              <tbody>
+                <tr><td>Normal (Hell/Dunkel)</td><td>OpenFreeMap Positron / Dark-Matter</td><td>Vektor-Tiles, auto Dark/Light nach Theme</td></tr>
+                <tr><td>Satellit</td><td>ESRI World Imagery (Raster)</td><td>Echte Satellitenfotos als Overlay</td></tr>
+                <tr><td>3D-Gebäude</td><td>OpenFreeMap Liberty + <code>fill-extrusion</code></td><td>OSM-Gebäudehöhen, Pitch 50°, Bearing −15°</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Der Auto-Zoom nutzt <code>fitBounds</code> mit dem Radius-Bounding-Box + 60 px Padding — der Suchkreis füllt damit immer präzise den sichtbaren Kartenbereich, unabhängig von Viewport-Größe und gewähltem Radius.</p>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Dienst</th><th>Kosten</th><th>Nutzung</th></tr></thead>
               <tbody>
                 <tr><td>OpenStreetMap / Overpass API</td><td>0 €</td><td>Kita-Stammdaten, Umkreisabfragen</td></tr>
                 <tr><td>Nominatim</td><td>0 €</td><td>Geokodierung, Adress-zu-Koordinaten</td></tr>
+                <tr><td>OpenFreeMap</td><td>0 €</td><td>Vektor-Kartenkacheln (Positron, Dark-Matter, Liberty)</td></tr>
+                <tr><td>ESRI World Imagery</td><td>0 €</td><td>Satelliten-Raster-Kacheln</td></tr>
+                <tr><td>fonts.openmaptiles.org</td><td>0 €</td><td>Kartenschriften (Open Sans, Noto Sans)</td></tr>
                 <tr><td>GovData CKAN API</td><td>0 €</td><td>Ergänzende offene Verwaltungsdaten</td></tr>
               </tbody>
             </table>
@@ -725,8 +749,8 @@
             <table>
               <thead><tr><th>Tabelle</th><th>Beschreibung</th></tr></thead>
               <tbody>
-                <tr><td><code>profiles</code></td><td>Nutzerprofil, Kinderdaten, Präferenzen, Subscription-Status</td></tr>
-                <tr><td><code>kitas</code></td><td>Kita-Stammdaten (aus OSM gecacht), Adresse, Öffnungszeiten, Kontakt</td></tr>
+                <tr><td><code>profiles</code></td><td>Nutzerprofil, Kinderdaten, Präferenzen, Subscription-Status, erweitertes Elternprofil (Job, Familie, Sprachen, Budget, DSGVO-Einwilligung)</td></tr>
+                <tr><td><code>kitas</code></td><td>Kita-Stammdaten (aus OSM gecacht), Adresse, Öffnungszeiten, Kontakt, Enrichment-Cache</td></tr>
                 <tr><td><code>applications</code></td><td>Bewerbungen: Kita-Referenz, generierter Text, Status, Zeitstempel</td></tr>
                 <tr><td><code>feed_posts</code></td><td>Community-Beiträge, Autor, Kita-Referenz, Bewertungen</td></tr>
                 <tr><td><code>notifications</code></td><td>Benachrichtigungen, Typ, Gelesen-Status, Zeitstempel</td></tr>
@@ -734,6 +758,7 @@
               </tbody>
             </table>
           </div>
+          <p>Seit Migration <code>20260509000005_extended_parent_profile.sql</code> enthält <code>profiles</code> zusätzlich: <code>job_title</code>, <code>employer</code>, <code>work_district</code>, <code>work_hours_type</code>, <code>work_start_time</code>, <code>work_end_time</code>, <code>family_situation</code>, <code>home_language</code>, <code>additional_languages</code>, <code>max_monthly_fee</code>, <code>kita_needed_from</code>, <code>ai_consent</code>.</p>
 
           <h3 id="ta-i18n">4.8 Mehrsprachigkeit</h3>
           <p>Internationalisierung erfolgt über <strong>next-intl</strong> mit App-Router-Konfiguration. Übersetzungen liegen in <code>messages/de.json</code> und <code>messages/en.json</code>. Die Sprachauswahl ist über einen Switcher im Header zugänglich und wird per Cookie persistiert.</p>

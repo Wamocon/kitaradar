@@ -63,7 +63,7 @@ describe("POST /api/feed/posts", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({
         user: { id: "u1" },
-        singleData: { tier: "free" },
+        singleData: { subscription_tier: "free" },
       }) as never
     );
     const req = new NextRequest("http://localhost/api/feed/posts", {
@@ -79,7 +79,7 @@ describe("POST /api/feed/posts", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({
         user: { id: "u1" },
-        singleData: { tier: "pro" },
+        singleData: { subscription_tier: "pro" },
         insertData: mockPost,
       }) as never
     );

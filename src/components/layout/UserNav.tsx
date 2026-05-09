@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getTranslations } from "next-intl/server";
-import { Bell, User, LogOut, Shield } from "lucide-react";
+import { User, LogOut, Shield } from "lucide-react";
+import { NotificationBell } from "./NotificationBell";
 
 export async function UserNav() {
   const supabase = await createClient();
@@ -51,17 +52,11 @@ export async function UserNav() {
           Admin
         </Link>
       )}
+      <NotificationBell />
       <Link
-        href="/notifications"
+        href="/profile"
         className="rounded-md p-2 text-muted hover:bg-border hover:text-foreground transition-colors"
-        aria-label={t("notifications" as never) ?? "Benachrichtigungen"}
-      >
-        <Bell className="h-4 w-4" />
-      </Link>
-      <Link
-        href="/dashboard"
-        className="rounded-md p-2 text-muted hover:bg-border hover:text-foreground transition-colors"
-        aria-label={t("dashboard")}
+        aria-label="Mein Profil"
       >
         <User className="h-4 w-4" />
       </Link>
