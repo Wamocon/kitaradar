@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KitaRadar – Produkthandbuch | WAMOCON</title>
+    <style>
+      /* ── Reset & Base ───────────────────────────────────────── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --primary:      #10b981;
+        --primary-dark: #059669;
+        --primary-glow: rgba(16,185,129,0.18);
+        --amber:        #f59e0b;
+        --blue:         #60a5fa;
+        --red:          #f87171;
+        --purple:       #c084fc;
+        --bg-page:      #030d09;
+        --bg-card:      rgba(10, 26, 18, 0.92);
+        --bg-code:      #071a10;
+        --border:       rgba(255,255,255,0.07);
+        --text:         #e2f0ea;
+        --text-muted:   #7ba896;
+        --text-dim:     rgba(255,255,255,0.3);
+        --wmc-grad:     linear-gradient(135deg, #030d09 0%, #071a10 40%, #0d2e1b 75%, #e2f0ea 100%);
+      }
+
+      html { scroll-behavior: smooth; font-size: 15px; }
+
+      body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: var(--bg-page);
+        color: var(--text);
+        line-height: 1.65;
+      }
+
+      /* ── Print ─────────────────────────────────────────────── */
+      @media print {
+        body { background: #fff; color: #111; font-size: 11pt; }
+        .no-print, nav, #toc-sidebar { display: none !important; }
+        .page-header { background: var(--primary-dark) !important; -webkit-print-color-adjust: exact; }
+        a { color: inherit; text-decoration: none; }
+        .card { border: 1px solid #ccc; background: #fff !important; color: #111 !important; box-shadow: none; }
+        table { page-break-inside: avoid; }
+        h2, h3 { page-break-after: avoid; }
+      }
+
+      /* ── Page Header ──────────────────────────────────────── */
+      .page-header {
+        background: var(--wmc-grad);
+        border-bottom: 2px solid var(--primary);
+        box-shadow: 0 2px 32px rgba(16,185,129,0.15);
+        padding: 0 2rem;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .page-header .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+      .logo-mark {
+        width: 42px; height: 42px; border-radius: 12px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; font-weight: 900; color: #fff;
+        box-shadow: 0 3px 14px rgba(16,185,129,0.45);
+        flex-shrink: 0;
+      }
+      .brand-name { color: #fff; font-weight: 700; font-size: 1rem; line-height: 1.2; }
+      .brand-sub  { color: rgba(255,255,255,0.45); font-size: 0.65rem; letter-spacing: 0.06em; }
+      .header-meta { color: rgba(255,255,255,0.4); font-size: 0.7rem; text-align: right; }
+      .header-meta strong { color: rgba(255,255,255,0.7); }
+
+      /* ── Layout ──────────────────────────────────────────── */
+      .layout {
+        display: grid;
+        grid-template-columns: 270px 1fr;
+        min-height: calc(100vh - 64px);
+        max-width: 1320px;
+        margin: 0 auto;
+      }
+
+      /* ── Sidebar / TOC ──────────────────────────────────── */
+      #toc-sidebar {
+        position: sticky;
+        top: 64px;
+        height: calc(100vh - 64px);
+        overflow-y: auto;
+        padding: 1.5rem 0 2rem;
+        border-right: 1px solid var(--border);
+        background: rgba(3,13,9,0.6);
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-dark) transparent;
+      }
+      #toc-sidebar::-webkit-scrollbar { width: 4px; }
+      #toc-sidebar::-webkit-scrollbar-track { background: transparent; }
+      #toc-sidebar::-webkit-scrollbar-thumb { background: var(--primary-dark); border-radius: 2px; }
+
+      .toc-title {
+        font-size: 0.6rem; font-weight: 800; letter-spacing: 0.14em;
+        color: rgba(255,255,255,0.2); text-transform: uppercase;
+        padding: 0 1.4rem 0.5rem; margin-bottom: 0.25rem;
+      }
+      .toc-link {
+        display: block; padding: 0.32rem 1.4rem;
+        color: var(--text-muted); text-decoration: none;
+        font-size: 0.78rem; border-left: 2px solid transparent;
+        transition: all 0.15s; line-height: 1.4;
+      }
+      .toc-link:hover { color: #fff; border-left-color: var(--primary); background: var(--primary-glow); }
+      .toc-link.l1 { font-weight: 700; color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-top: 0.6rem; }
+      .toc-link.l2 { padding-left: 2.2rem; }
+      .toc-link.l3 { padding-left: 3rem; font-size: 0.72rem; }
+      .toc-link.active { color: #fff; border-left-color: var(--primary); background: var(--primary-glow); }
+      .toc-divider { height: 1px; background: var(--border); margin: 0.6rem 1.4rem; }
+
+      /* ── Main Content ─────────────────────────────────────── */
+      main { padding: 2.5rem 3.5rem 5rem; max-width: 980px; }
+
+      /* ── Cover ──────────────────────────────────────────── */
+      .cover {
+        border: 1px solid rgba(16,185,129,0.3);
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(5,25,15,0.85) 0%, rgba(3,13,9,0.97) 100%);
+        padding: 3.5rem;
+        margin-bottom: 3.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .cover::before {
+        content: '';
+        position: absolute; top: 0; right: 0;
+        width: 360px; height: 360px;
+        background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .doc-type {
+        font-size: 0.65rem; font-weight: 800; letter-spacing: 0.18em;
+        text-transform: uppercase; color: var(--primary);
+        margin-bottom: 0.8rem;
+      }
+      .cover h1 { font-size: 2.6rem; font-weight: 950; color: #fff; line-height: 1.12; margin-bottom: 0.5rem; }
+      .cover-sub { font-size: 1.1rem; color: rgba(255,255,255,0.48); margin-bottom: 2.5rem; }
+      .cover-meta {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 1.1rem;
+      }
+      .meta-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 0.2rem; }
+      .meta-value { font-size: 0.9rem; color: rgba(255,255,255,0.82); font-weight: 600; }
+
+      /* ── Headings ─────────────────────────────────────────── */
+      h2 {
+        font-size: 1.55rem; font-weight: 900; color: #fff;
+        margin: 3.5rem 0 1.1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(16,185,129,0.3);
+        display: flex; align-items: center; gap: 0.65rem;
+      }
+      h2 .ch-num { color: var(--primary); font-size: 1rem; font-weight: 600; min-width: 2.2rem; }
+      h3 { font-size: 1.1rem; font-weight: 700; color: rgba(255,255,255,0.88); margin: 2rem 0 0.75rem; }
+      h4 { font-size: 0.88rem; font-weight: 700; color: var(--text-muted); margin: 1.25rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+      /* ── Paragraphs & Lists ─────────────────────────────── */
+      p  { margin-bottom: 0.85rem; color: rgba(255,255,255,0.73); }
+      ul, ol { padding-left: 1.4rem; margin-bottom: 0.85rem; }
+      li { margin-bottom: 0.3rem; color: rgba(255,255,255,0.73); }
+      li::marker { color: var(--primary); }
+
+      /* ── Cards ──────────────────────────────────────────── */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.4rem;
+        margin-bottom: 1rem;
+      }
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .kpi {
+        background: var(--bg-card); border: 1px solid var(--border);
+        border-radius: 10px; padding: 1rem 1.2rem; text-align: center;
+      }
+      .kpi-val  { font-size: 1.8rem; font-weight: 900; line-height: 1; margin-bottom: 0.3rem; }
+      .kpi-lab  { font-size: 0.68rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+
+      /* ── Tables ─────────────────────────────────────────── */
+      .table-wrap { overflow-x: auto; margin: 1rem 0 1.4rem; border-radius: 10px; border: 1px solid var(--border); }
+      table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+      thead tr { background: rgba(16,185,129,0.1); }
+      thead th { padding: 0.65rem 1rem; text-align: left; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.48); border-bottom: 1px solid rgba(16,185,129,0.2); }
+      tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+      tbody tr:last-child { border-bottom: none; }
+      tbody tr:hover { background: rgba(16,185,129,0.04); }
+      tbody td { padding: 0.6rem 1rem; color: rgba(255,255,255,0.73); vertical-align: top; }
+      tbody td:first-child { font-weight: 600; color: rgba(255,255,255,0.9); }
+
+      /* ── Badges ─────────────────────────────────────────── */
+      .badge {
+        display: inline-block; padding: 0.2rem 0.55rem;
+        border-radius: 20px; font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .badge-green  { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+      .badge-amber  { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+      .badge-blue   { background: rgba(96,165,250,0.15); color: #93c5fd; border: 1px solid rgba(96,165,250,0.3); }
+      .badge-red    { background: rgba(248,113,113,0.15); color: #fca5a5; border: 1px solid rgba(248,113,113,0.3); }
+      .badge-purple { background: rgba(192,132,252,0.15); color: #d8b4fe; border: 1px solid rgba(192,132,252,0.3); }
+      .badge-gray   { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.42); border: 1px solid rgba(255,255,255,0.1); }
+
+      /* ── Info Box ────────────────────────────────────────── */
+      .info-box {
+        border-radius: 10px; padding: 1rem 1.25rem;
+        margin-bottom: 1rem; border-left: 3px solid;
+      }
+      .info-box.green  { background: rgba(16,185,129,0.08); border-color: var(--primary); }
+      .info-box.amber  { background: rgba(245,158,11,0.08); border-color: var(--amber); }
+      .info-box.blue   { background: rgba(96,165,250,0.08); border-color: var(--blue); }
+      .info-box.red    { background: rgba(248,113,113,0.08); border-color: var(--red); }
+      .info-box-title { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+      .info-box.green  .info-box-title { color: var(--primary); }
+      .info-box.amber  .info-box-title { color: var(--amber); }
+      .info-box.blue   .info-box-title { color: var(--blue); }
+      .info-box.red    .info-box-title { color: var(--red); }
+      .info-box p { margin-bottom: 0; font-size: 0.87rem; }
+
+      /* ── Code ──────────────────────────────────────────── */
+      code {
+        font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+        font-size: 0.8em;
+        background: rgba(16,185,129,0.1);
+        color: #6ee7b7;
+        padding: 0.1em 0.38em;
+        border-radius: 4px;
+      }
+      pre {
+        background: var(--bg-code);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        overflow-x: auto;
+        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        line-height: 1.55;
+      }
+      pre code { background: none; color: #a7f3d0; padding: 0; font-size: 1em; }
+
+      /* ── Step List ───────────────────────────────────────── */
+      .step-list { list-style: none; padding: 0; counter-reset: steps; }
+      .step-list li {
+        counter-increment: steps;
+        display: flex; gap: 1rem; align-items: flex-start;
+        padding: 0.75rem 0; border-bottom: 1px solid var(--border);
+      }
+      .step-list li:last-child { border-bottom: none; }
+      .step-list li::before {
+        content: counter(steps);
+        min-width: 26px; height: 26px;
+        background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 0.72rem; font-weight: 800; color: var(--primary);
+        flex-shrink: 0; margin-top: 0.05rem;
+      }
+
+      /* ── Feature Grid ─────────────────────────────────────── */
+      .feat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.65rem; margin: 1rem 0 1.4rem; }
+      .feat-item {
+        background: var(--bg-card); border: 1px solid var(--border);
+        border-radius: 10px; padding: 0.75rem 0.9rem;
+      }
+      .feat-icon { font-size: 1.2rem; margin-bottom: 0.3rem; }
+      .feat-name { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.85); }
+      .feat-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+      /* ── Arch Diagram ─────────────────────────────────────── */
+      .arch-diagram { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin: 1rem 0 1.4rem; }
+      .arch-layer { border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1rem; background: var(--bg-card); text-align: center; }
+      .arch-layer-title { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.5rem; }
+      .arch-layer-item  { font-size: 0.78rem; color: rgba(255,255,255,0.68); padding: 0.18rem 0; }
+
+      /* ── Footer ─────────────────────────────────────────── */
+      .page-footer {
+        background: rgba(3,13,9,0.8);
+        border-top: 1px solid var(--border);
+        padding: 1.5rem 2rem;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 0.72rem;
+      }
+      .page-footer a { color: var(--text-muted); text-decoration: none; margin: 0 0.4rem; }
+      .page-footer a:hover { color: var(--primary); }
+
+      /* ── Responsive ──────────────────────────────────────── */
+      @media (max-width: 920px) {
+        .layout { grid-template-columns: 1fr; }
+        #toc-sidebar { display: none; }
+        main { padding: 1.5rem 1.25rem 3rem; }
+        .arch-diagram { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ── PAGE HEADER ─────────────────────────────────────────── -->
+    <header class="page-header">
+      <a class="brand" href="#">
+        <div class="logo-mark">K</div>
+        <div>
+          <div class="brand-name">KitaRadar</div>
+          <div class="brand-sub">Kita-Suche &amp; Bewerbung für Eltern in Deutschland</div>
+        </div>
+      </a>
+      <div class="header-meta">
+        <strong>Produkthandbuch</strong><br>
+        Version 1.0 · Mai 2026 · WAMOCON
+      </div>
+    </header>
+
+    <!-- ── MAIN LAYOUT ─────────────────────────────────────────── -->
+    <div class="layout">
+
+      <!-- ── SIDEBAR TOC ──────────────────────────────────────── -->
+      <nav id="toc-sidebar" aria-label="Inhaltsverzeichnis">
+        <div class="toc-title">Inhalt</div>
+
+        <a class="toc-link l1" href="#executive-summary">1&nbsp; Executive Summary</a>
+
+        <a class="toc-link l1" href="#produktuebersicht">2&nbsp; Produktübersicht</a>
+        <a class="toc-link l2" href="#pu-beschreibung">2.1 Produktbeschreibung</a>
+        <a class="toc-link l2" href="#pu-zielgruppen">2.2 Zielgruppen</a>
+        <a class="toc-link l2" href="#pu-features">2.3 Funktionsübersicht</a>
+
+        <a class="toc-link l1" href="#benutzerhandbuch">3&nbsp; Benutzerhandbuch</a>
+        <a class="toc-link l2" href="#bh-auth">3.1 Authentifizierung</a>
+        <a class="toc-link l2" href="#bh-suche">3.2 Kita-Suche</a>
+        <a class="toc-link l2" href="#bh-ki-assistent">3.3 KI-Suchassistent</a>
+        <a class="toc-link l2" href="#bh-bewerbung">3.4 Bewerbungsgenerator</a>
+        <a class="toc-link l2" href="#bh-dashboard">3.5 Dashboard &amp; Tracking</a>
+        <a class="toc-link l2" href="#bh-feed">3.6 Community-Feed</a>
+        <a class="toc-link l2" href="#bh-profil">3.7 Profil &amp; Einstellungen</a>
+        <a class="toc-link l2" href="#bh-benachrichtigungen">3.8 Benachrichtigungen</a>
+        <a class="toc-link l2" href="#bh-pro">3.9 Free vs. Pro</a>
+
+        <a class="toc-link l1" href="#technische-architektur">4&nbsp; Technische Architektur</a>
+        <a class="toc-link l2" href="#ta-uebersicht">4.1 Systemübersicht</a>
+        <a class="toc-link l2" href="#ta-frontend">4.2 Frontend</a>
+        <a class="toc-link l2" href="#ta-backend">4.3 Backend / Datenbank</a>
+        <a class="toc-link l2" href="#ta-ki">4.4 KI-Integration</a>
+        <a class="toc-link l2" href="#ta-geo">4.5 Geodaten &amp; Karten</a>
+        <a class="toc-link l2" href="#ta-auth">4.6 Authentifizierung &amp; RLS</a>
+        <a class="toc-link l2" href="#ta-schema">4.7 Datenbankschema</a>
+        <a class="toc-link l2" href="#ta-i18n">4.8 Mehrsprachigkeit</a>
+        <a class="toc-link l2" href="#ta-stripe">4.9 Zahlungsabwicklung</a>
+
+        <a class="toc-link l1" href="#ki-engine">5&nbsp; KI-Engine</a>
+        <a class="toc-link l2" href="#ki-assistent">5.1 Suchassistent</a>
+        <a class="toc-link l2" href="#ki-generator">5.2 Bewerbungsgenerator</a>
+        <a class="toc-link l2" href="#ki-prompt">5.3 Prompt-Architektur</a>
+
+        <a class="toc-link l1" href="#deployment">6&nbsp; Deployment &amp; CI/CD</a>
+        <a class="toc-link l2" href="#dep-cicd">6.1 GitHub Actions</a>
+        <a class="toc-link l2" href="#dep-vercel">6.2 Vercel</a>
+        <a class="toc-link l2" href="#dep-local">6.3 Lokale Entwicklung</a>
+
+        <a class="toc-link l1" href="#sicherheit">7&nbsp; Sicherheit &amp; Datenschutz</a>
+        <a class="toc-link l2" href="#sec-rls">7.1 Row Level Security</a>
+        <a class="toc-link l2" href="#sec-dsgvo">7.2 DSGVO-Konformität</a>
+        <a class="toc-link l2" href="#sec-owasp">7.3 OWASP-Maßnahmen</a>
+
+        <a class="toc-link l1" href="#anforderungen">8&nbsp; Anforderungen V1</a>
+        <a class="toc-link l1" href="#businessmodell">9&nbsp; Businessmodell</a>
+        <a class="toc-link l1" href="#marktposition">10 Markt &amp; Wettbewerb</a>
+        <a class="toc-link l1" href="#management-fazit">11 Management-Fazit</a>
+
+        <div class="toc-divider"></div>
+        <a class="toc-link" href="../coverage/index.html" target="_blank">📊 Coverage Report →</a>
+      </nav>
+
+      <!-- ── MAIN ─────────────────────────────────────────────── -->
+      <main>
+
+        <!-- ── COVER ─────────────────────────────────────────── -->
+        <div class="cover">
+          <div class="doc-type">Produkthandbuch · Vertraulich · WAMOCON GmbH</div>
+          <h1>KitaRadar</h1>
+          <div class="cover-sub">Die erste KI-gestützte Kita-Such- und Bewerbungsplattform in Deutschland</div>
+          <div class="cover-meta">
+            <div><div class="meta-label">Version</div><div class="meta-value">1.0.0</div></div>
+            <div><div class="meta-label">Datum</div><div class="meta-value">Mai 2026</div></div>
+            <div><div class="meta-label">Herausgeber</div><div class="meta-value">WAMOCON GmbH</div></div>
+            <div><div class="meta-label">Status</div><div class="meta-value"><span class="badge badge-green">Produktiv</span></div></div>
+            <div><div class="meta-label">Tech-Basis</div><div class="meta-value">Next.js 16 · Supabase · OpenAI</div></div>
+            <div><div class="meta-label">Dokumenttyp</div><div class="meta-value">Produkt- &amp; Technische Dokumentation</div></div>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════
+             1. EXECUTIVE SUMMARY
+        ════════════════════════════════════════════════════ -->
+        <section id="executive-summary">
+          <h2><span class="ch-num">1</span> Executive Summary</h2>
+
+          <p>In Deutschland fehlen rund <strong>306.000 Kita-Plätze</strong>. Eltern suchen heute über Google, telefonieren Dutzende Einrichtungen ab und schreiben jede Bewerbung manuell. Es gibt keine zentrale, anbieterübergreifende Suche und keine Möglichkeit, sich mit wenigen Klicks bei mehreren Kitas zu bewerben.</p>
+
+          <p><strong>KitaRadar</strong> ist die erste App in Deutschland, die freie Kita-Plätze im Umkreis sichtbar macht und die Bewerbung KI-gestützt direkt aus der App heraus unterstützt. Version 1 bündelt vier Kernbausteine in einem durchgängigen Workflow:</p>
+
+          <div class="card-grid">
+            <div class="kpi"><div class="kpi-val" style="color:var(--primary)">4</div><div class="kpi-lab">Kernbausteine</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--blue)">2</div><div class="kpi-lab">KI-Workflows</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--amber)">306k</div><div class="kpi-lab">Fehlende Kita-Plätze</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--purple)">1,2M</div><div class="kpi-lab">Suchdende Eltern/Jahr</div></div>
+          </div>
+
+          <ul>
+            <li><strong>Kartenbasierte Umkreissuche</strong> freier Kita-Plätze über alle Träger hinweg</li>
+            <li><strong>KI-Suchassistent</strong> zur Eingrenzung passender Einrichtungen nach Konzept, Alter, Öffnungszeiten und Träger</li>
+            <li><strong>KI-Bewerbungsgenerator</strong> mit direktem <code>mailto:</code>-Versand – kein serverseitiger E-Mail-Dienst erforderlich</li>
+            <li><strong>Community-Feed</strong> mit aktuellen Erfahrungen und Kapazitätshinweisen anderer Eltern</li>
+          </ul>
+
+          <div class="info-box green">
+            <div class="info-box-title">Produktstatus</div>
+            <p>KitaRadar befindet sich im produktiven Betrieb (Version 1.0.0). Alle Kernfunktionen sind implementiert und getestet. CI/CD via GitHub Actions ist aktiv; Tests und Coverage-Berichte werden automatisch auf GitHub Pages publiziert.</p>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             2. PRODUKTÜBERSICHT
+        ════════════════════════════════════════════════════ -->
+        <section id="produktuebersicht">
+          <h2><span class="ch-num">2</span> Produktübersicht</h2>
+
+          <h3 id="pu-beschreibung">2.1 Produktbeschreibung</h3>
+          <p>KitaRadar adressiert das strukturelle Problem der fragmentierten Kita-Suche in Deutschland. Die Plattform macht aus einem aufwendigen Einzelprozess – Recherche, Priorisierung, Texterstellung, Versand, Statusverfolgung – einen durchgängigen, KI-gestützten Workflow in einer Oberfläche.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Attribut</th><th>Wert</th></tr></thead>
+              <tbody>
+                <tr><td>Produktname</td><td>KitaRadar</td></tr>
+                <tr><td>Produktart</td><td>Web-Applikation (Server-Side Rendering + Client-Side Interaktion)</td></tr>
+                <tr><td>Herausgeber</td><td>WAMOCON GmbH, Eschborn</td></tr>
+                <tr><td>Version</td><td>1.0.0</td></tr>
+                <tr><td>Lizenz</td><td>Proprietär / WAMOCON</td></tr>
+                <tr><td>Deployment</td><td>Vercel (Produktiv + Preview), lokal via Supabase CLI</td></tr>
+                <tr><td>Plattform</td><td>Browser-basiert, kein nativer App-Download erforderlich</td></tr>
+                <tr><td>Sprachen</td><td>Deutsch (DE) und Englisch (EN)</td></tr>
+                <tr><td>Themen</td><td>Hell (Light) und Dunkel (Dark)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="pu-zielgruppen">2.2 Zielgruppen</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Segment</th><th>Typische Situation</th><th>Relevanz für V1</th></tr></thead>
+              <tbody>
+                <tr><td>Erstsuchende Eltern</td><td>Erste Kita-Suche ohne Vorerfahrung, hoher Informationsaufwand</td><td><span class="badge badge-green">Sehr hoch</span></td></tr>
+                <tr><td>Eltern mit Wiedereinstiegsdruck</td><td>Zeitkritische Platzsuche mit direktem finanziellem Risiko</td><td><span class="badge badge-green">Sehr hoch</span></td></tr>
+                <tr><td>Mehrverdiener-Haushalte</td><td>Fokus auf schnelle Treffer, private und bilinguale Kitas</td><td><span class="badge badge-green">Sehr hoch</span></td></tr>
+                <tr><td>Umzugsbedingte Zweitsuchende</td><td>Suche in neuer Region unter Zeitdruck, fehlendem Ortsüberblick</td><td><span class="badge badge-blue">Hoch</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="pu-features">2.3 Funktionsübersicht</h3>
+          <div class="feat-grid">
+            <div class="feat-item"><div class="feat-icon">🗺️</div><div class="feat-name">Umkreissuche</div><div class="feat-desc">Kartenbasiert, Radius- und Trägerfilter</div></div>
+            <div class="feat-item"><div class="feat-icon">🤖</div><div class="feat-name">KI-Suchassistent</div><div class="feat-desc">Priorisierung nach Präferenzen via OpenAI</div></div>
+            <div class="feat-item"><div class="feat-icon">✉️</div><div class="feat-name">Bewerbungsgenerator</div><div class="feat-desc">KI-Anschreiben + mailto:-Versand</div></div>
+            <div class="feat-item"><div class="feat-icon">📋</div><div class="feat-name">Bewerbungs-Tracking</div><div class="feat-desc">Status je Kita im Dashboard</div></div>
+            <div class="feat-item"><div class="feat-icon">💬</div><div class="feat-name">Community-Feed</div><div class="feat-desc">Erfahrungen und Kapazitätshinweise</div></div>
+            <div class="feat-item"><div class="feat-icon">🔔</div><div class="feat-name">Benachrichtigungen</div><div class="feat-desc">Antworten und relevante Feed-Updates</div></div>
+            <div class="feat-item"><div class="feat-icon">👤</div><div class="feat-name">Profilverwaltung</div><div class="feat-desc">Kinderdaten und Präferenzen</div></div>
+            <div class="feat-item"><div class="feat-icon">💳</div><div class="feat-name">Free / Pro</div><div class="feat-desc">Stripe-basiertes Abonnement (7,99 €/Monat)</div></div>
+            <div class="feat-item"><div class="feat-icon">🛡️</div><div class="feat-name">Datenschutz</div><div class="feat-desc">DSGVO: Export, Löschung, Einwilligung</div></div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Funktion</th><th>Beschreibung</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Kartenbasierte Umkreissuche</td><td>Radius- und Trägerfilter (kommunal, kirchlich, frei, privat)</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>KI-Suchassistent</td><td>Priorisierung passender Kitas nach Konzept, Alter, Öffnungszeiten</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>KI-Bewerbungsgenerator</td><td>Individualisiertes Anschreiben pro Kita, mailto:-Link</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Bewerbungs-Tracking</td><td>Statusverwaltung je Kita (Offen / Versendet / Antwort erhalten)</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Community-Feed</td><td>Beiträge, Bewertung, Moderation und Meldefunktion</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Registrierung / Login</td><td>E-Mail + Passwort, Social OAuth (Supabase Auth)</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Profilverwaltung</td><td>Kinderdaten (Name, Alter, Wunschstart) und Suchpräferenzen</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Dashboard</td><td>Such-, Bewerbungs- und Antwortstatus auf einen Blick</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Benachrichtigungen</td><td>Feed-Updates, Antworten, System-Ereignisse</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Free / Pro Abonnement</td><td>Stripe Checkout, Feature-Gates, Self-Service-Kündigung</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>DSGVO-Funktionen</td><td>Datenexport, Kontolöschung, Einwilligungsverwaltung</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Mehrsprachigkeit DE / EN</td><td>next-intl, vollständige UI-Übersetzungen</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Light / Dark Theme</td><td>Systemsynchron, manuell umschaltbar</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+                <tr><td>Admin-Bereich</td><td>Nutzerverwaltung, Feed-Moderation, Statistiken</td><td><span class="badge badge-green">Implementiert</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             3. BENUTZERHANDBUCH
+        ════════════════════════════════════════════════════ -->
+        <section id="benutzerhandbuch">
+          <h2><span class="ch-num">3</span> Benutzerhandbuch</h2>
+
+          <h3 id="bh-auth">3.1 Authentifizierung</h3>
+          <p>KitaRadar verwendet Supabase Auth für die Nutzerverwaltung. Registrierung und Login sind per E-Mail + Passwort sowie über OAuth-Provider (z. B. Google) möglich.</p>
+          <ol class="step-list">
+            <li><strong>Registrieren:</strong> E-Mail-Adresse und Passwort eingeben → Bestätigungs-E-Mail öffnen → Link klicken.</li>
+            <li><strong>Anmelden:</strong> E-Mail und Passwort eingeben. Bei vergesstem Passwort: „Passwort vergessen" → Reset-E-Mail anfordern.</li>
+            <li><strong>Abmelden:</strong> Avatar-Menü oben rechts → „Abmelden".</li>
+          </ol>
+
+          <h3 id="bh-suche">3.2 Kita-Suche</h3>
+          <p>Die Suche ist der zentrale Einstiegspunkt. Die Karte zeigt alle Kitas im gewählten Radius basierend auf OpenStreetMap-Daten.</p>
+          <ul>
+            <li><strong>Adresseingabe:</strong> Eigene Adresse oder PLZ eingeben – Nominatim geokodiert den Standort automatisch.</li>
+            <li><strong>Radius:</strong> 500 m bis 10 km in der Filterpanel einstellbar.</li>
+            <li><strong>Trägerfilter:</strong> Kommunal, evangelisch, katholisch, AWO, privat – frei kombinierbar.</li>
+            <li><strong>Kita-Karte anklicken:</strong> Detailansicht mit Adresse, Öffnungszeiten, Kontaktdaten und verfügbaren Altersgruppen.</li>
+            <li><strong>Favoriten:</strong> Kitas mit dem Herz-Symbol zur Merkliste hinzufügen (Pro-Funktion).</li>
+          </ul>
+
+          <div class="info-box blue">
+            <div class="info-box-title">Hinweis zur Datenlage</div>
+            <p>Kita-Daten stammen aus OpenStreetMap und der Overpass API. Öffnungszeiten und Platzverfügbarkeit können abweichen. Stets aktuelle Informationen direkt bei der Einrichtung erfragen.</p>
+          </div>
+
+          <h3 id="bh-ki-assistent">3.3 KI-Suchassistent</h3>
+          <p>Der KI-Assistent hilft, aus den Suchergebnissen die wirklich passenden Kitas herauszufiltern. Er berücksichtigt Konzept (Montessori, waldorfpädagogisch, religionsneutral usw.), Alter des Kindes, Wunsch-Betreuungszeit und bevorzugte Träger.</p>
+          <ol class="step-list">
+            <li>Button „KI-Assistent" in der Suchergebnisleiste öffnen.</li>
+            <li>Freitexteingabe: z. B. „Montessori, Kleinkind 1,5 Jahre, Halbtagsbetreuung, kein konfessioneller Träger".</li>
+            <li>KI analysiert die Treffer und sortiert sie nach Passgenauigkeit. Begründung wird je Kita angezeigt.</li>
+            <li>Direkter Wechsel zur Bewerbung aus dem priorisierten Ergebnis.</li>
+          </ol>
+
+          <div class="info-box amber">
+            <div class="info-box-title">Pro-Funktion</div>
+            <p>Der KI-Suchassistent ist ausschließlich im Pro-Abonnement verfügbar. Free-Nutzer erhalten eine Vorschau mit der Aufforderung zum Upgrade.</p>
+          </div>
+
+          <h3 id="bh-bewerbung">3.4 Bewerbungsgenerator</h3>
+          <p>Der Generator erstellt ein individuelles, professionelles Anschreiben für jede ausgewählte Kita – basierend auf den Profildaten des Kindes und den Eigenschaften der Einrichtung.</p>
+          <ol class="step-list">
+            <li>Kita in der Suchergebnis- oder Detailansicht auswählen → „Bewerben".</li>
+            <li>KI generiert ein personalisiertes Anschreiben (Name des Kindes, Wunschalter, ggf. besondere Wünsche).</li>
+            <li>Text im Editor prüfen und optional anpassen.</li>
+            <li>„E-Mail senden" klicken: Der <code>mailto:</code>-Link öffnet den E-Mail-Client des Nutzers mit vorausgefülltem Empfänger, Betreff und Anschreiben.</li>
+            <li>E-Mail im eigenen Client absenden → Status wird in der App auf „Versendet" gesetzt.</li>
+          </ol>
+
+          <div class="info-box green">
+            <div class="info-box-title">Datenschutz: kein serverseitiger Versand</div>
+            <p>KitaRadar sendet keine E-Mails über eigene Server. Der <code>mailto:</code>-Link übergibt die Daten ausschließlich an den lokalen E-Mail-Client des Nutzers. Es werden keine Bewerbungsinhalte auf WAMOCON-Servern gespeichert.</p>
+          </div>
+
+          <h3 id="bh-dashboard">3.5 Dashboard &amp; Tracking</h3>
+          <p>Das Dashboard gibt einen Überblick über alle laufenden Bewerbungen und deren aktuellen Status.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Status</th><th>Bedeutung</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-gray">Entwurf</span></td><td>Anschreiben generiert, noch nicht versendet</td></tr>
+                <tr><td><span class="badge badge-blue">Versendet</span></td><td>E-Mail im Client abgesendet, Antwort ausstehend</td></tr>
+                <tr><td><span class="badge badge-green">Antwort erhalten</span></td><td>Rückmeldung von der Einrichtung eingegangen</td></tr>
+                <tr><td><span class="badge badge-red">Abgelehnt</span></td><td>Kein freier Platz oder Absage erhalten</td></tr>
+                <tr><td><span class="badge badge-purple">Platz zugesagt</span></td><td>Einrichtung hat einen Platz angeboten</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="bh-feed">3.6 Community-Feed</h3>
+          <p>Im Community-Feed teilen Eltern aktuelle Erfahrungen, Verfügbarkeitshinweise und Tipps zu einzelnen Kitas. Beiträge sind kita-spezifisch oder allgemein verfassbar.</p>
+          <ul>
+            <li><strong>Beitrag erstellen:</strong> „+" Button → Text eingeben → optional Kita verknüpfen → Veröffentlichen.</li>
+            <li><strong>Bewerten:</strong> Hilfreiche Beiträge mit 👍 markieren.</li>
+            <li><strong>Melden:</strong> Unangemessene Inhalte über das „…" Menü melden.</li>
+            <li><strong>Moderation:</strong> Gemeldete Beiträge werden vom Admin-Team geprüft.</li>
+          </ul>
+
+          <h3 id="bh-profil">3.7 Profil &amp; Einstellungen</h3>
+          <p>Unter <em>Profil</em> können Eltern die Daten ihres Kindes hinterlegen, die für die KI-Bewerbungsgenerierung verwendet werden.</p>
+          <ul>
+            <li><strong>Kinderdaten:</strong> Name, Geburtsdatum, gewünschter Betreuungsstart, besondere Bedürfnisse.</li>
+            <li><strong>Suchpräferenzen:</strong> Bevorzugte Träger, pädagogisches Konzept, Radius-Standard.</li>
+            <li><strong>Sprache:</strong> Deutsch / Englisch umschaltbar.</li>
+            <li><strong>Theme:</strong> Hell / Dunkel / System.</li>
+            <li><strong>Datenschutz:</strong> Datenabruf (DSGVO-Export) und Kontolöschung.</li>
+          </ul>
+
+          <h3 id="bh-benachrichtigungen">3.8 Benachrichtigungen</h3>
+          <p>Das Glockensymbol in der Navigation zeigt neue Benachrichtigungen an. Benachrichtigungen werden für folgende Ereignisse erzeugt:</p>
+          <ul>
+            <li>Neue Antwort auf einen Feed-Beitrag</li>
+            <li>Kita im Umkreis mit neuem Community-Hinweis</li>
+            <li>System-Ereignisse (Abo-Verlängerung, Profilaktualisierung)</li>
+          </ul>
+
+          <h3 id="bh-pro">3.9 Free vs. Pro</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Funktion</th><th>Free</th><th>Pro (7,99 €/Monat)</th></tr></thead>
+              <tbody>
+                <tr><td>Kita-Suche (Kartenansicht)</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td></tr>
+                <tr><td>Suchabfragen pro Monat</td><td>max. 10</td><td>unbegrenzt</td></tr>
+                <tr><td>KI-Suchassistent</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-green">✓</span></td></tr>
+                <tr><td>KI-Bewerbungsgenerator</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-green">✓</span></td></tr>
+                <tr><td>Bewerbungs-Tracking</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-green">✓</span></td></tr>
+                <tr><td>Community-Feed lesen</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td></tr>
+                <tr><td>Community-Beiträge erstellen</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-green">✓</span></td></tr>
+                <tr><td>Benachrichtigungen</td><td><span class="badge badge-amber">eingeschränkt</span></td><td><span class="badge badge-green">vollständig</span></td></tr>
+                <tr><td>Self-Service-Kündigung</td><td>–</td><td><span class="badge badge-green">✓</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Das Pro-Upgrade ist über <em>Einstellungen → Abonnement</em> oder über den Upgrade-Banner in jeder gesperrten Funktion zugänglich. Die Zahlung erfolgt über Stripe Checkout (Kreditkarte, SEPA-Lastschrift).</p>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             4. TECHNISCHE ARCHITEKTUR
+        ════════════════════════════════════════════════════ -->
+        <section id="technische-architektur">
+          <h2><span class="ch-num">4</span> Technische Architektur</h2>
+
+          <h3 id="ta-uebersicht">4.1 Systemübersicht</h3>
+          <div class="arch-diagram">
+            <div class="arch-layer">
+              <div class="arch-layer-title">Frontend</div>
+              <div class="arch-layer-item">Next.js 16 (App Router)</div>
+              <div class="arch-layer-item">React 19 Server Components</div>
+              <div class="arch-layer-item">Tailwind CSS v4</div>
+              <div class="arch-layer-item">next-intl (DE / EN)</div>
+              <div class="arch-layer-item">next-themes</div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-title">Backend / Datenbank</div>
+              <div class="arch-layer-item">Supabase (PostgreSQL)</div>
+              <div class="arch-layer-item">Row Level Security</div>
+              <div class="arch-layer-item">3 Schemas (dev/test/prod)</div>
+              <div class="arch-layer-item">Realtime Subscriptions</div>
+              <div class="arch-layer-item">Supabase Auth</div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-title">Externe Dienste</div>
+              <div class="arch-layer-item">OpenAI API (KI-Engine)</div>
+              <div class="arch-layer-item">Overpass API (Geo)</div>
+              <div class="arch-layer-item">Nominatim (Geokodierung)</div>
+              <div class="arch-layer-item">Stripe (Zahlungen)</div>
+              <div class="arch-layer-item">Vercel (Hosting/CDN)</div>
+            </div>
+          </div>
+
+          <h3 id="ta-frontend">4.2 Frontend</h3>
+          <p>Das Frontend ist als Next.js 16 App Router Anwendung implementiert. Server Components werden standardmäßig verwendet; Client Components (<code>"use client"</code>) nur für interaktive Elemente wie Karten, Formulare und den Theme-Toggle.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Technologie</th><th>Version</th><th>Zweck</th></tr></thead>
+              <tbody>
+                <tr><td>Next.js</td><td>16.x</td><td>Framework, App Router, SSR/RSC</td></tr>
+                <tr><td>React</td><td>19.x</td><td>UI-Komponentenmodell</td></tr>
+                <tr><td>TypeScript</td><td>5.x (strict)</td><td>Typsicherheit</td></tr>
+                <tr><td>Tailwind CSS</td><td>v4</td><td>Utility-First-Styling</td></tr>
+                <tr><td>next-intl</td><td>aktuell</td><td>Internationalisierung (DE/EN)</td></tr>
+                <tr><td>next-themes</td><td>aktuell</td><td>Light/Dark-Theme</td></tr>
+                <tr><td>lucide-react</td><td>aktuell</td><td>Icon-Bibliothek</td></tr>
+                <tr><td>Vitest</td><td>aktuell</td><td>Unit- und Komponenten-Tests</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="info-box blue">
+            <div class="info-box-title">Wichtig: Next.js 16 Async APIs</div>
+            <p>In Next.js 16 sind <code>params</code>, <code>searchParams</code>, <code>cookies()</code> und <code>headers()</code> asynchron – immer <code>await</code> verwenden. Die Datei <code>src/proxy.ts</code> ersetzt <code>middleware.ts</code> (deprecated).</p>
+          </div>
+
+          <h3 id="ta-backend">4.3 Backend / Datenbank</h3>
+          <p>KitaRadar nutzt Supabase als Backend-as-a-Service. Die Datenbank läuft auf PostgreSQL in der EU-Region Frankfurt (DSGVO-konform).</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Schema</th><th>Umgebung</th><th>Env-Variable</th></tr></thead>
+              <tbody>
+                <tr><td><code>kitaradar-dev</code></td><td>Lokale Entwicklung</td><td><code>NEXT_PUBLIC_SUPABASE_SCHEMA=kitaradar-dev</code></td></tr>
+                <tr><td><code>kitaradar-test</code></td><td>Vercel Preview (PR)</td><td><code>NEXT_PUBLIC_SUPABASE_SCHEMA=kitaradar-test</code></td></tr>
+                <tr><td><code>kitaradar-prod</code></td><td>Vercel Produktion</td><td><code>NEXT_PUBLIC_SUPABASE_SCHEMA=kitaradar-prod</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="ta-ki">4.4 KI-Integration</h3>
+          <p>Alle KI-Funktionen laufen über die OpenAI API (EU-Region), angebunden über Next.js API-Routen. Der API-Key wird serverseitig verwaltet (<code>OPENAI_API_KEY</code>) und ist nie im Browser sichtbar.</p>
+          <ul>
+            <li><code>src/lib/openai.ts</code> – Shared OpenAI-Client mit Rate-Limiting-Logik</li>
+            <li><code>src/app/api/search/</code> – KI-Suchassistent-Endpunkt</li>
+            <li><code>src/app/api/apply/</code> – Bewerbungsgenerator-Endpunkt</li>
+          </ul>
+
+          <h3 id="ta-geo">4.5 Geodaten &amp; Karten</h3>
+          <p>Kita-Daten werden live aus der Overpass API (OpenStreetMap) abgefragt. Nominatim übernimmt die Geokodierung von Adressen. Alle Anfragen werden serverseitig gestellt und gecacht.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Dienst</th><th>Kosten</th><th>Nutzung</th></tr></thead>
+              <tbody>
+                <tr><td>OpenStreetMap / Overpass API</td><td>0 €</td><td>Kita-Stammdaten, Umkreisabfragen</td></tr>
+                <tr><td>Nominatim</td><td>0 €</td><td>Geokodierung, Adress-zu-Koordinaten</td></tr>
+                <tr><td>GovData CKAN API</td><td>0 €</td><td>Ergänzende offene Verwaltungsdaten</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="ta-auth">4.6 Authentifizierung &amp; RLS</h3>
+          <p>Supabase Auth verwaltet alle Nutzer-Sessions. Row Level Security (RLS) ist auf allen Tabellen aktiviert: Nutzer können ausschließlich ihre eigenen Daten lesen und schreiben. Admin-Zugriff ist über eine separate Rolle gesichert.</p>
+
+          <h3 id="ta-schema">4.7 Datenbankschema</h3>
+          <p>Die Datenbank enthält folgende Kerntabellen:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tabelle</th><th>Beschreibung</th></tr></thead>
+              <tbody>
+                <tr><td><code>profiles</code></td><td>Nutzerprofil, Kinderdaten, Präferenzen, Subscription-Status</td></tr>
+                <tr><td><code>kitas</code></td><td>Kita-Stammdaten (aus OSM gecacht), Adresse, Öffnungszeiten, Kontakt</td></tr>
+                <tr><td><code>applications</code></td><td>Bewerbungen: Kita-Referenz, generierter Text, Status, Zeitstempel</td></tr>
+                <tr><td><code>feed_posts</code></td><td>Community-Beiträge, Autor, Kita-Referenz, Bewertungen</td></tr>
+                <tr><td><code>notifications</code></td><td>Benachrichtigungen, Typ, Gelesen-Status, Zeitstempel</td></tr>
+                <tr><td><code>subscriptions</code></td><td>Stripe-Abo-Daten, Plan, Status, Verlängerungsdatum</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="ta-i18n">4.8 Mehrsprachigkeit</h3>
+          <p>Internationalisierung erfolgt über <strong>next-intl</strong> mit App-Router-Konfiguration. Übersetzungen liegen in <code>messages/de.json</code> und <code>messages/en.json</code>. Die Sprachauswahl ist über einen Switcher im Header zugänglich und wird per Cookie persistiert.</p>
+          <pre><code>src/
+  i18n/
+    request.ts     ← next-intl Request-Konfiguration
+    routing.ts     ← Locale-Routing (de, en)
+messages/
+  de.json          ← Deutsche Übersetzungen
+  en.json          ← Englische Übersetzungen</code></pre>
+
+          <h3 id="ta-stripe">4.9 Zahlungsabwicklung</h3>
+          <p>Stripe Checkout übernimmt die Zahlungsabwicklung für das Pro-Abonnement. Stripe-Webhooks aktualisieren den Subscription-Status in Supabase. Der Stripe-Secret-Key ist ausschließlich serverseitig verfügbar (<code>STRIPE_SECRET_KEY</code>).</p>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             5. KI-ENGINE
+        ════════════════════════════════════════════════════ -->
+        <section id="ki-engine">
+          <h2><span class="ch-num">5</span> KI-Engine</h2>
+
+          <h3 id="ki-assistent">5.1 Suchassistent</h3>
+          <p>Der Suchassistent analysiert die Suchergebnisse der Overpass API und sortiert sie nach Passgenauigkeit zu den Elternpräferenzen. Der Prozess läuft in drei Phasen:</p>
+          <ol class="step-list">
+            <li><strong>Kontext aufbauen:</strong> Kita-Daten (Name, Konzept, Öffnungszeiten, Träger) und Elternpräferenzen werden als strukturierter Kontext zusammengestellt.</li>
+            <li><strong>KI-Analyse:</strong> OpenAI bewertet jede Kita anhand der Präferenzen und gibt einen Matching-Score sowie eine Begründung zurück.</li>
+            <li><strong>Sortierung:</strong> Kitas werden nach Score absteigend angezeigt. Begründungen sind einzeln ausklappbar.</li>
+          </ol>
+
+          <h3 id="ki-generator">5.2 Bewerbungsgenerator</h3>
+          <p>Der Generator erstellt ein individualisiertes Anschreiben in drei Schritten:</p>
+          <ol class="step-list">
+            <li><strong>Datenzusammenführung:</strong> Kindname, Alter, Wunschstart, besondere Bedürfnisse aus dem Profil + Kita-Details (Name, Ansprechpartner, Konzept).</li>
+            <li><strong>Generierung:</strong> OpenAI erzeugt ein professionelles, warmherziges Anschreiben in deutscher Sprache (~250 Wörter).</li>
+            <li><strong>Übergabe:</strong> Text wird editierbar im Editor angezeigt; bei „Senden" wird ein <code>mailto:</code>-Link aufgerufen, der Empfänger, Betreff und Body vorausfüllt.</li>
+          </ol>
+
+          <h3 id="ki-prompt">5.3 Prompt-Architektur</h3>
+          <p>Beide KI-Workflows folgen einem strukturierten System-Prompt-Muster:</p>
+          <pre><code>System: Du bist ein spezialisierter Assistent für die Kita-Bewerbung in Deutschland.
+        Antworte immer auf Deutsch, professionell und einfühlsam.
+        Halte dich strikt an die bereitgestellten Fakten.
+
+User:   [Strukturierte Daten: Elternpräferenzen + Kita-Details]
+
+Aufgabe: [Scoring / Anschreiben generieren]</code></pre>
+          <p>Rate-Limiting: Pro Free-Nutzer maximal 10 KI-Anfragen pro Monat; für Pro-Nutzer kein Limit (Serverseitige Prüfung via Supabase).</p>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             6. DEPLOYMENT & CI/CD
+        ════════════════════════════════════════════════════ -->
+        <section id="deployment">
+          <h2><span class="ch-num">6</span> Deployment &amp; CI/CD</h2>
+
+          <h3 id="dep-cicd">6.1 GitHub Actions Workflows</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Workflow</th><th>Auslöser</th><th>Zweck</th></tr></thead>
+              <tbody>
+                <tr><td><code>unittest.yml</code></td><td>Push (alle Branches)</td><td>Vitest Unit-Tests, Coverage-Report</td></tr>
+                <tr><td><code>typecheck.yml</code></td><td>Push (alle Branches)</td><td>TypeScript-Prüfung (strict)</td></tr>
+                <tr><td><code>lint.yml</code></td><td>Push (alle Branches)</td><td>ESLint-Prüfung</td></tr>
+                <tr><td><code>security.yml</code></td><td>Push (alle Branches)</td><td>OWASP-Dependency-Check, npm audit</td></tr>
+                <tr><td><code>pr-pipeline.yml</code></td><td>Pull Request → main</td><td>Vollständige Validierung vor Merge</td></tr>
+                <tr><td><code>deploy-test.yml</code></td><td>Pull Request → main</td><td>Vercel Preview Deployment (kitaradar-test Schema)</td></tr>
+                <tr><td><code>deploy-prod.yml</code></td><td>Push → main</td><td>Vercel Produktion (kitaradar-prod Schema)</td></tr>
+                <tr><td><code>pages.yml</code></td><td>Push → main</td><td>Produkthandbuch auf GitHub Pages publizieren</td></tr>
+                <tr><td><code>lp-generator.yml</code></td><td>Manuell (workflow_dispatch)</td><td>Landing-Page-Generator via Copilot</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="dep-vercel">6.2 Vercel</h3>
+          <p>Vercel übernimmt Hosting und globales CDN. Umgebungsvariablen werden im Vercel Dashboard pro Umgebung (Preview / Production) konfiguriert. Das Next.js-Output-Modell ist <code>standalone</code> für optimierte Container-Deployments.</p>
+
+          <h3 id="dep-local">6.3 Lokale Entwicklung</h3>
+          <pre><code># 1. Abhängigkeiten installieren
+npm install
+
+# 2. Umgebungsvariablen
+cp .env.example .env.local
+# NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+# NEXT_PUBLIC_SUPABASE_SCHEMA=kitaradar-dev,
+# OPENAI_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+
+# 3. Supabase lokal starten (Docker erforderlich)
+npx supabase start
+npx supabase db push
+
+# 4. Entwicklungsserver starten
+npm run dev
+
+# 5. Tests ausführen
+npm test
+
+# 6. Vollständige Verifikation
+npm run verify   # typecheck + lint + build</code></pre>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             7. SICHERHEIT & DATENSCHUTZ
+        ════════════════════════════════════════════════════ -->
+        <section id="sicherheit">
+          <h2><span class="ch-num">7</span> Sicherheit &amp; Datenschutz</h2>
+
+          <h3 id="sec-rls">7.1 Row Level Security</h3>
+          <p>RLS ist auf allen Supabase-Tabellen aktiviert. Nutzer können ausschließlich auf eigene Datensätze zugreifen. Admin-Operationen erfordern den <code>SUPABASE_SERVICE_ROLE_KEY</code>, der ausschließlich serverseitig vorgehalten wird.</p>
+
+          <h3 id="sec-dsgvo">7.2 DSGVO-Konformität</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Anforderung</th><th>Umsetzung</th></tr></thead>
+              <tbody>
+                <tr><td>Datenminimierung</td><td>Nur für den Bewerbungsworkflow notwendige Daten werden gespeichert</td></tr>
+                <tr><td>Auskunftsrecht (Art. 15)</td><td>DSGVO-Export unter Einstellungen → Datenschutz</td></tr>
+                <tr><td>Löschrecht (Art. 17)</td><td>Vollständige Kontolöschung inkl. aller Daten per Self-Service</td></tr>
+                <tr><td>Einwilligungsverwaltung</td><td>Einwilligung bei Registrierung; Widerruf jederzeit möglich</td></tr>
+                <tr><td>Datenspeicherort</td><td>Supabase EU-Region Frankfurt; Stripe EU-Region</td></tr>
+                <tr><td>E-Mail-Versand</td><td>Kein serverseitiger Versand; mailto:-Link, kein Datentransfer an Dritte</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 id="sec-owasp">7.3 OWASP-Maßnahmen</h3>
+          <ul>
+            <li><strong>Injection:</strong> Supabase Prepared Statements; kein Raw-SQL aus Nutzereingaben.</li>
+            <li><strong>Broken Access Control:</strong> RLS auf Datenbankebene; serverseitige Rollenprüfung.</li>
+            <li><strong>XSS:</strong> React escapt Inhalte standardmäßig; kein <code>dangerouslySetInnerHTML</code>.</li>
+            <li><strong>CSRF:</strong> Next.js Server Actions mit Origin-Prüfung; Supabase CSRF-Token.</li>
+            <li><strong>Secrets:</strong> Server-Only-Keys nie mit <code>NEXT_PUBLIC_</code>-Prefix; <code>.env.local</code> in <code>.gitignore</code>.</li>
+            <li><strong>Dependency-Check:</strong> <code>npm audit</code> im <code>security.yml</code> Workflow bei jedem Push.</li>
+          </ul>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             8. ANFORDERUNGEN V1
+        ════════════════════════════════════════════════════ -->
+        <section id="anforderungen">
+          <h2><span class="ch-num">8</span> Anforderungen Version 1</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Bereich</th><th>Anforderung</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>H-01</td><td>Hauptprozess</td><td>Umkreissuche mit Radius- und Trägerfiltern</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>H-02</td><td>Hauptprozess</td><td>KI-Suchassistenz zur Priorisierung passender Kitas</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>H-03</td><td>Hauptprozess</td><td>KI-Bewerbungsgenerator für individualisierte Anschreiben</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>H-04</td><td>Hauptprozess</td><td>E-Mail-Versand per mailto:-Link inkl. Status-Tracking</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>H-05</td><td>Hauptprozess</td><td>Community-Feed mit Beiträgen, Bewertung und Moderation</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>B-01</td><td>Basisfunktion</td><td>Registrierung, Login und Passwort-Reset</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>B-02</td><td>Basisfunktion</td><td>Profilverwaltung mit Kinderdaten und Präferenzen</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>B-03</td><td>Basisfunktion</td><td>Dashboard mit Such-, Bewerbungs- und Antwortstatus</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>B-04</td><td>Basisfunktion</td><td>Benachrichtigungen zu Antworten und Feed-Updates</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>B-05</td><td>Basisfunktion</td><td>Datenschutzfunktionen (Datenexport, Kontolöschung, Einwilligung)</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>M-01</td><td>Businessmodell</td><td>Free-Limit von 10 Suchabfragen pro Monat serverseitig erzwingen</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>M-02</td><td>Businessmodell</td><td>Pro-Upgrade zu 7,99 € monatlich über Stripe Checkout</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>M-03</td><td>Businessmodell</td><td>Self-Service-Kündigung ohne Supportkontakt</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+                <tr><td>M-04</td><td>Businessmodell</td><td>Sichtbare Feature-Abgrenzung Free vs. Pro in der UI</td><td><span class="badge badge-green">Erfüllt</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             9. BUSINESSMODELL
+        ════════════════════════════════════════════════════ -->
+        <section id="businessmodell">
+          <h2><span class="ch-num">9</span> Businessmodell</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Stufe</th><th>Funktionsumfang</th><th>Preis</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Free</strong></td><td>Basis-Suche mit max. 10 Suchabfragen pro Monat; Community-Feed lesen; keine KI-Unterstützung; keine Bewerbungsfunktion</td><td>0 €</td></tr>
+                <tr><td><strong>Pro</strong></td><td>Unbegrenzte Suche; KI-Suchassistenz; KI-Bewerbungsgenerator; E-Mail-Direktversand; Tracking; Community-Beiträge erstellen</td><td>7,99 €/Monat</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Der stark limitierte Free-Plan erzeugt gezielten Upgrade-Druck an den zwei stärksten Zahlungsmotivationen der Zielgruppe: bessere Trefferqualität und sofortiger Bewerbungsversand. Die Monetarisierung erfolgt ausschließlich über das monatliche Pro-Abonnement – kein Werbemodell, keine Datenweitergabe.</p>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             10. MARKT & WETTBEWERB
+        ════════════════════════════════════════════════════ -->
+        <section id="marktposition">
+          <h2><span class="ch-num">10</span> Markt &amp; Wettbewerb</h2>
+
+          <div class="card-grid">
+            <div class="kpi"><div class="kpi-val" style="color:var(--primary)">306k</div><div class="kpi-lab">Fehlende Kita-Plätze (DE)</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--blue)">1,2M</div><div class="kpi-lab">Suchdende Familien/Jahr</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--amber)">60 %</div><div class="kpi-lab">Mehrfachbewerbungen (5+)</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--red)">50 %</div><div class="kpi-lab">Empfinden Prozess als unübersichtlich</div></div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Kriterium</th><th>Kommunale Portale</th><th>Trägerportale</th><th>Manuelle Suche</th><th>KitaRadar V1</th></tr></thead>
+              <tbody>
+                <tr><td>Einheitliche Umkreissuche (alle Träger)</td><td>Teilweise</td><td>Nein</td><td>Teilweise</td><td><span class="badge badge-green">Ja</span></td></tr>
+                <tr><td>KI-Unterstützung bei Suchpriorisierung</td><td>Nein</td><td>Nein</td><td>Nein</td><td><span class="badge badge-green">Ja</span></td></tr>
+                <tr><td>KI-Unterstützung beim Bewerbungstext</td><td>Nein</td><td>Nein</td><td>Nein</td><td><span class="badge badge-green">Ja</span></td></tr>
+                <tr><td>Direktversand aus einem Workflow</td><td>Teilweise</td><td>Nein</td><td>Nein</td><td><span class="badge badge-green">Ja</span></td></tr>
+                <tr><td>Bewerbungsstatus je Kita (Dashboard)</td><td>Selten</td><td>Nein</td><td>Nein</td><td><span class="badge badge-green">Ja</span></td></tr>
+                <tr><td>Community-Hinweise zu Erfahrungen</td><td>Nein</td><td>Nein</td><td>Nein</td><td><span class="badge badge-green">Ja</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="info-box green">
+            <div class="info-box-title">Wettbewerbsfazit</div>
+            <p>Kein relevanter Anbieter deckt heute Suche, KI-Priorisierung, Bewerbung und Tracking in einer durchgängigen Nutzerführung ab. KitaRadar besetzt diese Lücke als erster Anbieter bundesweit.</p>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════
+             11. MANAGEMENT-FAZIT
+        ════════════════════════════════════════════════════ -->
+        <section id="management-fazit">
+          <h2><span class="ch-num">11</span> Management-Fazit</h2>
+
+          <p>KitaRadar Version 1 ist vollständig implementiert und produktiv. Alle 14 Anforderungen aus dem Anforderungsdokument (Welle 9) sind erfüllt. Die Kombination aus kostenfreier Datenbasis (OSM, Overpass, Nominatim), KI-gestützten Workflows und direktem mailto:-Versand ermöglicht einen Start ohne externe Abhängigkeiten oder kommunale Einzelverträge.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Bereich</th><th>Bewertung</th><th>Hinweis</th></tr></thead>
+              <tbody>
+                <tr><td>Kernfunktionen</td><td><span class="badge badge-green">✓ Vollständig</span></td><td>Alle H- und B-Anforderungen erfüllt</td></tr>
+                <tr><td>Businessmodell</td><td><span class="badge badge-green">✓ Vollständig</span></td><td>Stripe-Integration inkl. Self-Service-Kündigung</td></tr>
+                <tr><td>Sicherheit</td><td><span class="badge badge-green">✓ OWASP-konform</span></td><td>RLS, kein dangerouslySetInnerHTML, Secrets serverseitig</td></tr>
+                <tr><td>Datenschutz</td><td><span class="badge badge-green">✓ DSGVO-konform</span></td><td>EU-Hosting, Auskunft und Löschung per Self-Service</td></tr>
+                <tr><td>Qualität</td><td><span class="badge badge-green">✓ CI/CD aktiv</span></td><td>TypeScript strict, ESLint, Vitest, Coverage-Report</td></tr>
+                <tr><td>Marktposition</td><td><span class="badge badge-green">✓ Einzigartig</span></td><td>Kein Wettbewerber mit vergleichbarem Funktionsumfang</td></tr>
+                <tr><td>Skalierbarkeit</td><td><span class="badge badge-amber">⚠ Zu beobachten</span></td><td>OSM-Datenpflege, Overpass-Rate-Limits bei hohem Traffic</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="info-box green">
+            <div class="info-box-title">Empfehlung der Technik</div>
+            <p>KitaRadar V1 ist bereit für den Go-Live. Empfohlen wird, nach dem Launch die Nutzermetriken (Conversion Free→Pro, KI-Nutzungsrate, Absprungrate Bewerbungsflow) für 30 Tage zu beobachten und auf dieser Basis V2-Prioritäten zu setzen.</p>
+          </div>
+        </section>
+
+      </main>
+    </div><!-- /.layout -->
+
+    <!-- ── PAGE FOOTER ─────────────────────────────────────────── -->
+    <footer class="page-footer">
+      <p>
+        <strong>WAMOCON GmbH</strong> &nbsp;·&nbsp;
+        Mergenthalerallee 79–81, 65760 Eschborn &nbsp;·&nbsp;
+        Geschäftsführer: Dipl.-Ing. Waleri Moretz &nbsp;·&nbsp;
+        HRB Eschborn 123666 &nbsp;·&nbsp; USt-IdNr.: DE344930486
+      </p>
+      <p style="margin-top:0.5rem;">
+        <a href="/de/legal/impressum">Impressum</a>
+        <a href="/de/legal/datenschutz">Datenschutz</a>
+        <a href="/de/legal/agb">AGB</a>
+        <a href="https://wamocon.com" target="_blank" rel="noopener">wamocon.com</a>
+      </p>
+      <p style="margin-top:0.5rem; opacity:0.5;">
+        KitaRadar Produkthandbuch · Version 1.0 · Mai 2026 · WAMOCON GmbH · Vertraulich
+      </p>
+    </footer>
+
+    <script>
+      /* ── Active TOC Highlight ───────────────────────────────── */
+      (function () {
+        const links = document.querySelectorAll('.toc-link[href^="#"]');
+        const sections = Array.from(document.querySelectorAll('section[id], div.cover'));
+
+        function activate() {
+          const scrollY = window.scrollY + 100;
+          let current = null;
+          for (const s of sections) {
+            if (s.offsetTop <= scrollY) current = s.id || 'cover';
+          }
+          links.forEach(l => {
+            const href = l.getAttribute('href').slice(1);
+            l.classList.toggle('active', href === current);
+          });
+        }
+
+        window.addEventListener('scroll', activate, { passive: true });
+        activate();
+      })();
+    </script>
+  </body>
+</html>
