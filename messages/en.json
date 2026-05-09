@@ -1,0 +1,290 @@
+{
+  "nav": {
+    "search": "Find Kita",
+    "feed": "Community",
+    "dashboard": "Dashboard",
+    "pricing": "Pricing",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
+    "profile": "Profile",
+    "notifications": "Notifications"
+  },
+  "home": {
+    "hero": {
+      "badge": "New in Germany",
+      "headline": "Find a free Kita spot near you",
+      "subline": "KitaRadar brings all childcare facilities onto one map – with AI-powered search assistance, auto-generated cover letters, and community tips from other parents.",
+      "cta_primary": "Start for free",
+      "cta_secondary": "Learn more"
+    },
+    "stats": {
+      "missing_spots": "missing Kita spots in Germany",
+      "avg_search_time": "months average search duration",
+      "parents_frustrated": "parents find the search process confusing"
+    },
+    "features": {
+      "headline": "Everything you need for your Kita search",
+      "subline": "From radius search to a finished application – in one seamless workflow.",
+      "map": {
+        "title": "Map-based radius search",
+        "desc": "All Kitas near you on one map – across all providers and operators. Filter by radius, operator type, and concept."
+      },
+      "ai_search": {
+        "title": "AI search assistant",
+        "desc": "The AI prioritises the most suitable facilities based on your preferences: concept, age, opening hours, distance."
+      },
+      "ai_apply": {
+        "title": "AI application generator",
+        "desc": "Personalised cover letter at the click of a button. Your email client opens with recipient and text pre-filled."
+      },
+      "community": {
+        "title": "Community feed",
+        "desc": "Real-time experiences and capacity hints from other parents. Always current, never outdated."
+      },
+      "tracking": {
+        "title": "Application tracking",
+        "desc": "Keep track: which Kita has an active application and what is the current status?"
+      },
+      "free": {
+        "title": "Start for free",
+        "desc": "10 searches per month free. Pro upgrade for unlimited use and AI features from €7.99/month."
+      }
+    },
+    "how_it_works": {
+      "headline": "How KitaRadar works",
+      "step1": { "title": "Set your area", "desc": "Enter an address, choose a radius and see the first results." },
+      "step2": { "title": "AI filters for you", "desc": "The assistant narrows the selection to your preferences." },
+      "step3": { "title": "Generate application", "desc": "AI creates an individual cover letter for each Kita." },
+      "step4": { "title": "Send email", "desc": "One click – your email client opens with everything pre-filled." }
+    },
+    "cta_section": {
+      "headline": "Start your Kita search today",
+      "subline": "Register for free – in 2 minutes.",
+      "btn": "Register for free"
+    }
+  },
+  "pricing": {
+    "headline": "Simple, fair pricing",
+    "subline": "Start for free. Upgrade when you need more.",
+    "free": {
+      "name": "Free",
+      "price": "€0",
+      "period": "/month",
+      "features": [
+        "Basic radius search",
+        "10 searches/month",
+        "Kita detail view",
+        "Read community feed"
+      ],
+      "cta": "Start for free",
+      "note": "No credit card required"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "€7.99",
+      "period": "/month",
+      "badge": "Recommended",
+      "features": [
+        "Unlimited searches",
+        "AI search assistant",
+        "AI application generator",
+        "Email direct send",
+        "Application tracking",
+        "Post to community feed",
+        "Priority support"
+      ],
+      "cta": "Try Pro now",
+      "note": "Cancel anytime"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to KitaRadar",
+      "email": "Email address",
+      "password": "Password",
+      "forgot_password": "Forgot password?",
+      "submit": "Sign in",
+      "no_account": "Don't have an account?",
+      "register_link": "Sign up now",
+      "or": "or"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Start your Kita search",
+      "name": "Full name",
+      "email": "Email address",
+      "password": "Password",
+      "confirm_password": "Confirm password",
+      "submit": "Register",
+      "has_account": "Already have an account?",
+      "login_link": "Sign in",
+      "terms_agree": "I agree to the",
+      "terms_link": "Terms & Conditions",
+      "and": "and the",
+      "privacy_link": "Privacy Policy",
+      "terms_agree_end": "."
+    },
+    "reset": {
+      "title": "Reset password",
+      "subtitle": "We'll send you a reset link",
+      "email": "Email address",
+      "submit": "Send reset link",
+      "back_to_login": "Back to sign in",
+      "success": "Email sent! Please check your inbox."
+    }
+  },
+  "dashboard": {
+    "title": "My Dashboard",
+    "welcome": "Hello, {name}!",
+    "stats": {
+      "searches": "Searches",
+      "applications": "Applications",
+      "responses": "Responses"
+    },
+    "applications": {
+      "title": "My Applications",
+      "empty": "No applications yet. Start your search!",
+      "status": {
+        "sent": "Sent",
+        "waiting": "Waiting",
+        "positive": "Positive",
+        "negative": "Rejected"
+      }
+    },
+    "upgrade_banner": {
+      "title": "Upgrade to Pro",
+      "desc": "You have {remaining} of 10 free searches remaining.",
+      "cta": "Unlock Pro"
+    }
+  },
+  "search": {
+    "title": "Search Kitas",
+    "placeholder": "Enter address or postcode",
+    "radius_label": "Search radius",
+    "radius_options": {
+      "1km": "1 km",
+      "2km": "2 km",
+      "5km": "5 km",
+      "10km": "10 km"
+    },
+    "filters": {
+      "title": "Filters",
+      "type": "Operator",
+      "type_all": "All operators",
+      "type_public": "Municipal",
+      "type_church": "Church-run",
+      "type_private": "Private"  ,
+      "age": "Age group",
+      "age_0_3": "Nursery (0–3 yrs)",
+      "age_3_6": "Kindergarten (3–6 yrs)",
+      "age_mixed": "Mixed age"
+    },
+    "results": "Results",
+    "no_results": "No Kitas found. Try increasing the search radius.",
+    "ai_assistant": "AI Assistant",
+    "ai_placeholder": "Describe what matters to you (e.g. Montessori, full-day, under 2 km)...",
+    "ai_search_btn": "Start AI search",
+    "apply_btn": "Create application",
+    "free_limit_warning": "You have reached the limit of 10 free searches.",
+    "upgrade_link": "Upgrade to Pro",
+    "error_generic": "Search failed. Please try again."
+  },
+  "feed": {
+    "title": "Community Feed",
+    "subtitle": "Real experiences and tips from parents",
+    "new_post": "Write a post",
+    "post_placeholder": "Share your experience with a Kita...",
+    "post_submit": "Publish",
+    "pro_required": "Pro members can write posts.",
+    "upgrade_link": "Upgrade now",
+    "tags": {
+      "tip": "Tip",
+      "experience": "Experience",
+      "availability": "Capacity",
+      "warning": "Warning"
+    },
+    "report": "Report",
+    "empty": "No posts yet. Be the first!"
+  },
+  "profile": {
+    "title": "My Profile",
+    "section_personal": "Personal data",
+    "section_children": "Children",
+    "section_preferences": "Search preferences",
+    "section_subscription": "Subscription",
+    "section_privacy": "Privacy",
+    "name": "Name",
+    "email": "Email",
+    "save": "Save",
+    "child_name": "Child's name",
+    "child_dob": "Date of birth",
+    "child_add": "Add child",
+    "pref_concept": "Preferred concept",
+    "pref_schedule": "Desired care hours",
+    "pref_radius": "Maximum radius",
+    "export_data": "Export my data",
+    "delete_account": "Delete account",
+    "delete_confirm": "Are you sure? This action cannot be undone.",
+    "cancel_subscription": "Cancel subscription"
+  },
+  "legal": {
+    "imprint": "Imprint",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions"
+  },
+  "footer": {
+    "tagline": "Find free Kita spots – simple, fast, AI-powered.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "rights": "All rights reserved."
+  },
+  "application": {
+    "modal_title": "Apply to {kita}",
+    "select_child": "Select child (optional)",
+    "no_child": "No child selected",
+    "cover_letter": "Cover letter",
+    "cover_letter_placeholder": "Your cover letter to the Kita...",
+    "ai_generate": "Generate AI cover letter",
+    "ai_generating": "Generating...",
+    "ai_hint": "The AI creates a personalised cover letter based on your child's data.",
+    "send_email": "Open email & send",
+    "mailto_hint": "Your email client opens with pre-filled recipient and cover letter.",
+    "mark_sent": "Mark as sent",
+    "save_draft": "Save draft",
+    "status_sent": "Application saved as sent.",
+    "no_email": "No email address known for this Kita. Please contact the facility directly.",
+    "error": "Error saving application."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Your responses and feed updates",
+    "empty": "No new notifications.",
+    "mark_all_read": "Mark all as read",
+    "types": {
+      "application_response": "Response to application",
+      "feed_update": "New community post"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred.",
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "learn_more": "Learn more",
+    "free_badge": "Free",
+    "pro_badge": "Pro",
+    "notifications": "Notifications",
+    "pro_feature": "Pro members only",
+    "upgrade_to_pro": "Upgrade to Pro",
+    "km_away": "{distance} km away",
+    "search_limit_reached": "10 free searches per month reached.",
+    "success": "Saved successfully."
+  }
+}
