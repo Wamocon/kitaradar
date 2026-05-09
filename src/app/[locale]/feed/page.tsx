@@ -18,10 +18,10 @@ export default async function FeedPage() {
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("tier")
+      .select("subscription_tier")
       .eq("id", user.id)
       .single();
-    isPro = profile?.tier === "pro";
+    isPro = profile?.subscription_tier === "pro";
   }
 
   return (

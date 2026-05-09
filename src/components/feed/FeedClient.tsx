@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { PostCard, NewPostForm } from "@/components/feed/PostCard";
 import { Loader2, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface FeedPost {
   id: string;
@@ -16,16 +17,9 @@ interface FeedPost {
 }
 
 const TAG_FILTERS = ["all", "general", "tip", "experience", "question", "news"] as const;
-const TAG_LABELS: Record<string, string> = {
-  all: "Alle",
-  general: "Allgemein",
-  tip: "Tipps",
-  experience: "Erfahrungen",
-  question: "Fragen",
-  news: "News",
-};
 
 export function FeedClient({ isPro }: { isPro: boolean }) {
+  const t = useTranslations("feed");
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [tag, setTag] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -53,14 +47,14 @@ export function FeedClient({ isPro }: { isPro: boolean }) {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Community</h1>
-          <p className="text-sm text-muted">Tipps und Erfahrungen von Eltern</p>
+          <p className="text-sm text-muted">{t("subtitle")}</p>
         </div>
         {isPro && (
           <button
             onClick={() => setShowForm((v) => !v)}
             className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
           >
-            {showForm ? "Abbrechen" : "Neuer Beitrag"}
+            {showForm ? t("cancel_btn") : t("new_post_btn")}
           </button>
         )}
       </div>
@@ -68,8 +62,8 @@ export function FeedClient({ isPro }: { isPro: boolean }) {
       {/* Pro gate notice */}
       {!isPro && (
         <div className="mb-6 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-foreground">
-          <strong>Pro-Funktion:</strong> Als Pro-Mitglied können Sie eigene Beiträge verfassen und die Community aktiv mitgestalten.{" "}
-          <Link href="/pricing" className="text-primary hover:underline font-medium">Jetzt upgraden →</Link>
+          <strong>{t("pro_notice_strong")}</strong> {t("pro_notice_text")}{" "}
+          <Link href="/pricing" className="text-primary hover:underline font-medium">{t("upgrade_now")}</Link>
         </div>
       )}
 
@@ -82,17 +76,17 @@ export function FeedClient({ isPro }: { isPro: boolean }) {
 
       {/* Tag filter */}
       <div className="mb-4 flex flex-wrap gap-2">
-        {TAG_FILTERS.map((t) => (
+        {TAG_FILTERS.map((f) => (
           <button
-            key={t}
-            onClick={() => setTag(t)}
+            key={f}
+            onClick={() => setTag(f)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              tag === t
+              tag === f
                 ? "bg-primary text-white"
                 : "border border-border text-muted hover:border-primary/50"
             }`}
           >
-            {TAG_LABELS[t]}
+            {t(`tag_filters.${f}`)}
           </button>
         ))}
       </div>
@@ -105,7 +99,7 @@ export function FeedClient({ isPro }: { isPro: boolean }) {
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-muted">
           <Users className="h-12 w-12 opacity-20" />
-          <p className="text-sm">Noch keine Beiträge vorhanden.</p>
+          <p className="text-sm">{t("empty")}</p>
         </div>
       ) : (
         <div className="space-y-4">

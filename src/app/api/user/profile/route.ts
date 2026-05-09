@@ -15,6 +15,23 @@ export async function PATCH(request: NextRequest) {
     notification_email?: boolean;
     default_search_city?: string | null;
     default_search_radius?: number;
+    preferred_pedagogy?: string | null;
+    preferred_kita_type?: string | null;
+    preferred_languages?: string | null;
+    preferred_hours?: string | null;
+    // Extended parent fields
+    job_title?: string | null;
+    employer?: string | null;
+    work_district?: string | null;
+    work_hours_type?: string | null;
+    work_start_time?: string | null;
+    work_end_time?: string | null;
+    family_situation?: string | null;
+    home_language?: string | null;
+    additional_languages?: string | null;
+    max_monthly_fee?: number | null;
+    kita_needed_from?: string | null;
+    ai_consent?: boolean;
   } = await request.json();
 
   // Users cannot self-assign admin role
@@ -30,6 +47,33 @@ export async function PATCH(request: NextRequest) {
   if (body.default_search_radius !== undefined) {
     const r = Number(body.default_search_radius);
     if (r >= 1 && r <= 100) update.default_search_radius = r;
+  }
+  // AI Preferences
+  if (body.preferred_pedagogy !== undefined) update.preferred_pedagogy = body.preferred_pedagogy;
+  if (body.preferred_kita_type !== undefined) update.preferred_kita_type = body.preferred_kita_type;
+  if (body.preferred_languages !== undefined) update.preferred_languages = body.preferred_languages;
+  if (body.preferred_hours !== undefined) update.preferred_hours = body.preferred_hours;
+  // Extended parent profile
+  if (body.job_title !== undefined) update.job_title = body.job_title;
+  if (body.employer !== undefined) update.employer = body.employer;
+  if (body.work_district !== undefined) update.work_district = body.work_district;
+  if (body.work_hours_type !== undefined) update.work_hours_type = body.work_hours_type;
+  if (body.work_start_time !== undefined) update.work_start_time = body.work_start_time;
+  if (body.work_end_time !== undefined) update.work_end_time = body.work_start_time;
+  if (body.family_situation !== undefined) update.family_situation = body.family_situation;
+  if (body.home_language !== undefined) update.home_language = body.home_language;
+  if (body.additional_languages !== undefined) update.additional_languages = body.additional_languages;
+  if (body.max_monthly_fee !== undefined) {
+    update.max_monthly_fee = body.max_monthly_fee != null ? Math.max(0, Number(body.max_monthly_fee)) : null;
+  }
+  if (body.kita_needed_from !== undefined) update.kita_needed_from = body.kita_needed_from;
+  // GDPR consent — once set to true, record timestamp
+  if (body.ai_consent === true) {
+    update.ai_consent = true;
+    update.ai_consent_at = new Date().toISOString();
+  } else if (body.ai_consent === false) {
+    update.ai_consent = false;
+    update.ai_consent_at = null;
   }
 
   const { error } = await supabase

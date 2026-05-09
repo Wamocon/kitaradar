@@ -9,27 +9,19 @@ import { KitaDetailModal } from "./KitaDetailModal";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { AutocompleteResult } from "@/app/api/geocode/autocomplete/route";
 import { useTranslations } from "next-intl";
-import { Search, Loader2, Filter, Sparkles, LocateFixed } from "lucide-react";
-import "leaflet/dist/leaflet.css";
+import { Search, Loader2, Filter, Sparkles, LocateFixed, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 
-// Dynamically load map to avoid SSR issues with Leaflet
-const KitaMap = dynamic(() => import("./KitaMap").then((m) => m.KitaMap), {
+// MapLibre GL — vollständige Implementierung (Normal, Satellit, 3D-Gebäude)
+const KitaMapGL = dynamic(() => import("./KitaMapGL").then((m) => ({ default: m.KitaMapGL })), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full items-center justify-center bg-card rounded-lg">
-      <Loader2 className="h-6 w-6 animate-spin text-muted" />
+    <div className="flex h-full items-center justify-center bg-card">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   ),
 });
 
 const KITA_TYPES = ["all", "public", "church", "private", "free"] as const;
-const TYPE_LABELS: Record<string, string> = {
-  all: "Alle",
-  public: "Kommunal",
-  church: "Kirchlich",
-  private: "Privat",
-  free: "Frei",
-};
 
 export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const t = useTranslations("search");
@@ -49,7 +41,21 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [aiQuery, setAiQuery] = useState("");
   const [aiRanking, setAiRanking] = useState("");
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [isDark, setIsDark] = useState(false);
+  const [tileType, setTileType] = useState<"normal" | "satellite" | "terrain">("normal");
+  const [wizardOpen, setWizardOpen] = useState(false);
   const geoSearchedRef = useRef(false);
+
+  // Detect dark mode
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.classList.contains("dark"));
+    check();
+    const obs = new MutationObserver(check);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
 
   const searchWithCoords = useCallback(async (lat: number, lng: number, addressLabel: string, searchRadius = radius) => {
     setIsLoading(true);
@@ -96,6 +102,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
           const label = addr.city ?? addr.town ?? addr.village ?? addr.suburb ?? "Mein Standort";
           setAddress(label);
           setSelectedCoords({ lat: latitude, lng: longitude });
+          setUserPos([latitude, longitude]);
           await searchWithCoords(latitude, longitude, label, radius);
         } catch {
           // Ignore reverse geocode errors
@@ -261,7 +268,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                     : "border border-border text-muted hover:border-primary/50"
                 }`}
               >
-                {TYPE_LABELS[type]}
+                {t(`type_labels.${type}`)}
               </button>
             ))}
           </div>
@@ -283,88 +290,163 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         )}
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: kita list */}
-        <div className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-border">
-          {/* AI assist */}
-          {isLoggedIn && kitas.length > 0 && (
-            <div className="border-b border-border bg-primary/5 p-3">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={aiQuery}
-                  onChange={(e) => setAiQuery(e.target.value)}
-                  placeholder="KI: z.B. 'Nähe zur Arbeit, bio-Ernährung'..."
-                  className="flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-xs focus:border-primary focus:outline-none"
-                />
-                <button
-                  onClick={handleAiAssist}
-                  disabled={isAiLoading}
-                  className="flex items-center gap-1 rounded-md bg-primary px-2 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {isAiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                  KI
-                </button>
-              </div>
-              {aiRanking && (
-                <div className="mt-2 rounded-md bg-background p-2 text-xs text-foreground whitespace-pre-wrap">
-                  {aiRanking}
+      {/* Main content — Karte füllt immer den gesamten Bereich */}
+      <div className="relative flex-1 overflow-hidden">
+        {/* Karte — immer volle Breite */}
+        {center ? (
+          <KitaMapGL
+            kitas={kitas}
+            center={center}
+            radiusKm={radius}
+            selectedId={selectedKita?.id}
+            userPos={userPos}
+            isDark={isDark}
+            tileType={tileType}
+            onSelect={(kita) => { setSelectedKita(kita); setDetailKita(kita); }}
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-3 bg-zinc-50 dark:bg-zinc-900 text-muted-foreground">
+            <Search className="h-12 w-12 opacity-20" />
+            <p className="text-sm font-medium">Karte erscheint nach der Suche</p>
+            <p className="text-xs opacity-60">Adresse eingeben → Suchen</p>
+          </div>
+        )}
+
+        {/* ── Schwebender Kita-Listen-Popup (oben links) ── */}
+        <div
+          className={`absolute top-3 left-3 z-[1000] flex flex-col rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md transition-all duration-300 ${
+            panelOpen
+              ? "max-h-[calc(100vh-10rem)] w-80 overflow-hidden"
+              : "overflow-hidden"
+          }`}
+        >
+          {/* Popup-Kopfzeile */}
+          <div className="flex shrink-0 items-center gap-2 p-2">
+            {panelOpen && (
+              <span className="flex-1 truncate pl-1 text-xs font-semibold text-foreground">
+                {kitas.length > 0 ? `${kitas.length} Einrichtungen` : "Suchergebnisse"}
+                {total !== null && total > kitas.length && (
+                  <span className="font-normal text-muted-foreground"> · top {kitas.length}/{total}</span>
+                )}
+              </span>
+            )}
+            <button
+              onClick={() => setPanelOpen((o) => !o)}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              aria-label={panelOpen ? "Liste einklappen" : "Liste ausklappen"}
+            >
+              {panelOpen ? (
+                <ChevronLeft className="h-3.5 w-3.5" />
+              ) : (
+                <>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                  <span>Kitas</span>
+                  {kitas.length > 0 && (
+                    <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white leading-tight">
+                      {kitas.length}
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
+          </div>
+
+          {panelOpen && (
+            <>
+              {/* KI-Assist */}
+              {isLoggedIn && kitas.length > 0 && (
+                <div className="shrink-0 border-t border-border/50 bg-primary/5 p-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={aiQuery}
+                      onChange={(e) => setAiQuery(e.target.value)}
+                      placeholder="KI: z.B. 'Nähe zur Arbeit'..."
+                      className="flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-xs focus:border-primary focus:outline-none"
+                    />
+                    <button
+                      onClick={handleAiAssist}
+                      disabled={isAiLoading}
+                      className="flex items-center gap-1 rounded-md bg-primary px-2 py-1.5 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                    >
+                      {isAiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      KI
+                    </button>
+                  </div>
+                  {aiRanking && (
+                    <div className="mt-2 rounded-md bg-background p-2 text-xs text-foreground whitespace-pre-wrap">
+                      {aiRanking}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Results count */}
-          {kitas.length > 0 && (
-            <div className="border-b border-border bg-card px-3 py-2 text-xs text-muted">
-              {kitas.length} Einrichtungen
-              {total !== null && total > kitas.length && (
-                <span> (von {total} – nach Entfernung sortiert)</span>
-              )}
-            </div>
-          )}
-
-          {/* List */}
-          <div className="flex-1 overflow-y-auto">
-          {kitas.length === 0 && !isLoading && (
-              <div className="flex flex-col items-center justify-center gap-2 p-8 text-center text-sm text-muted">
-                <Search className="h-8 w-8 opacity-30" />
-                {isGeoLoading
-                  ? <p>Standort wird ermittelt…</p>
-                  : <p>Geben Sie eine Adresse ein und klicken Sie auf &quot;Suchen&quot;.</p>
-                }
+              {/* Kita-Liste */}
+              <div className="flex-1 overflow-y-auto border-t border-border/50">
+                {kitas.length === 0 && !isLoading && (
+                  <div className="flex flex-col items-center justify-center gap-2 p-8 text-center text-sm text-muted-foreground">
+                    <Search className="h-8 w-8 opacity-30" />
+                    {isGeoLoading ? (
+                      <p>Standort wird ermittelt…</p>
+                    ) : (
+                      <p>Adresse eingeben und Suche starten.</p>
+                    )}
+                  </div>
+                )}
+                <div className="space-y-1.5 p-2">
+                  {kitas.map((kita) => (
+                    <KitaCard
+                      key={kita.id}
+                      kita={kita}
+                      selected={selectedKita?.id === kita.id}
+                      onSelect={() => { setSelectedKita(kita); setDetailKita(kita); }}
+                      onApply={() => setApplyKita(kita)}
+                    />
+                  ))}
+                </div>
               </div>
-            )}
-            <div className="space-y-2 p-3">
-              {kitas.map((kita) => (
-                <KitaCard
-                  key={kita.id}
-                  kita={kita}
-                  selected={selectedKita?.id === kita.id}
-                  onSelect={() => { setSelectedKita(kita); setDetailKita(kita); }}
-                  onApply={() => setApplyKita(kita)}
-                />
-              ))}
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
-        {/* Right: Map */}
-        <div className="flex-1 p-2">
-          {center ? (
-            <KitaMap
-              kitas={kitas}
-              center={center}
-              selectedId={selectedKita?.id}
-              onSelect={(kita) => { setSelectedKita(kita); setDetailKita(kita); }}
-            />
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-3 rounded-lg bg-card text-muted">
-              <Search className="h-12 w-12 opacity-20" />
-              <p className="text-sm">Karte erscheint nach der Suche</p>
+        {/* ── Kartentyp-Wizard (unten rechts, zuklappbar) ── */}
+        <div className="absolute bottom-8 right-2 z-[900] flex flex-col items-end gap-1.5">
+          {wizardOpen && (
+            <div className="overflow-hidden rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md">
+              {(
+                [
+                  { id: "normal", label: "Normal", emoji: "🗺️" },
+                  { id: "satellite", label: "Satellit", emoji: "🛰️" },
+                  { id: "terrain", label: "3D-Gebäude", emoji: "🏙️" },
+                ] as const
+              ).map(({ id, emoji }) => (
+                <button
+                  key={id}
+                  onClick={() => { setTileType(id); setWizardOpen(false); }}
+                  className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
+                    tileType === id
+                      ? "bg-primary text-white"
+                      : "text-foreground hover:bg-accent"
+                  }`}
+                >
+                  <span className="text-base">{emoji}</span>
+                  <span className="font-medium">{t(`tile_labels.${id === "terrain" ? "terrain3d" : id}`)}</span>
+                </button>
+              ))}
             </div>
           )}
+          <button
+            onClick={() => setWizardOpen((o) => !o)}
+            title="Kartenansicht wählen"
+            className={`flex h-10 w-10 items-center justify-center rounded-xl border shadow-lg backdrop-blur-md transition-colors ${
+              wizardOpen
+                ? "border-primary bg-primary text-white"
+                : "border-border bg-background/95 text-foreground hover:bg-accent"
+            }`}
+            aria-label="Kartenansicht wählen"
+          >
+            <Layers className="h-4 w-4" />
+          </button>
         </div>
       </div>
 

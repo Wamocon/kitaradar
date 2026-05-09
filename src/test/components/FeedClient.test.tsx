@@ -8,7 +8,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
 
 const mockPosts = [
   {
@@ -43,45 +43,45 @@ describe("FeedClient", () => {
   it("shows the Pro-gate notice when not Pro", async () => {
     render(<FeedClient isPro={false} />);
     await waitFor(() => {
-      expect(screen.getByText(/Pro-Funktion/)).toBeTruthy();
+      expect(screen.getByText(/pro_notice_strong/)).toBeTruthy();
     });
   });
 
   it("hides the Pro-gate notice for Pro users", async () => {
     render(<FeedClient isPro={true} />);
     await waitFor(() => {
-      expect(screen.queryByText(/Pro-Funktion/)).toBeNull();
+      expect(screen.queryByText(/pro_notice_strong/)).toBeNull();
     });
   });
 
   it("shows 'Neuer Beitrag' button for Pro users", async () => {
     render(<FeedClient isPro={true} />);
     await waitFor(() => {
-      expect(screen.getByText("Neuer Beitrag")).toBeTruthy();
+      expect(screen.getByText("new_post_btn")).toBeTruthy();
     });
   });
 
   it("does not show 'Neuer Beitrag' button for free users", async () => {
     render(<FeedClient isPro={false} />);
     await waitFor(() => {
-      expect(screen.queryByText("Neuer Beitrag")).toBeNull();
+      expect(screen.queryByText("new_post_btn")).toBeNull();
     });
   });
 
   it("toggles the new post form when 'Neuer Beitrag' is clicked", async () => {
     render(<FeedClient isPro={true} />);
-    await waitFor(() => screen.getByText("Neuer Beitrag"));
-    fireEvent.click(screen.getByText("Neuer Beitrag"));
-    expect(screen.getByText("Abbrechen")).toBeTruthy();
-    expect(screen.getByPlaceholderText("Titel...")).toBeTruthy();
+    await waitFor(() => screen.getByText("new_post_btn"));
+    fireEvent.click(screen.getByText("new_post_btn"));
+    expect(screen.getByText("cancel_btn")).toBeTruthy();
+    expect(screen.getByPlaceholderText("new_post")).toBeTruthy();
   });
 
   it("renders tag filter buttons", async () => {
     render(<FeedClient isPro={false} />);
     await waitFor(() => {
-      expect(screen.getByText("Alle")).toBeTruthy();
-      expect(screen.getByText("Tipps")).toBeTruthy();
-      expect(screen.getByText("Fragen")).toBeTruthy();
+      expect(screen.getByText("tag_filters.all")).toBeTruthy();
+      expect(screen.getByText("tag_filters.tip")).toBeTruthy();
+      expect(screen.getByText("tag_filters.question")).toBeTruthy();
     });
   });
 
@@ -92,7 +92,7 @@ describe("FeedClient", () => {
     );
     render(<FeedClient isPro={false} />);
     await waitFor(() => {
-      expect(screen.getByText(/Noch keine Beiträge/)).toBeTruthy();
+      expect(screen.getByText("empty")).toBeTruthy();
     });
   });
 
@@ -102,8 +102,8 @@ describe("FeedClient", () => {
       .mockResolvedValue({ ok: true, json: async () => ({ posts: mockPosts }) });
     vi.stubGlobal("fetch", fetchSpy);
     render(<FeedClient isPro={false} />);
-    await waitFor(() => screen.getByText("Tipps"));
-    fireEvent.click(screen.getByText("Tipps"));
+    await waitFor(() => screen.getByText("tag_filters.tip"));
+    fireEvent.click(screen.getByText("tag_filters.tip"));
     await waitFor(() => {
       // Called at least twice: initial load + after tag change
       expect(fetchSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
