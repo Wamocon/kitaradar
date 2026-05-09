@@ -18,9 +18,13 @@ on:
         default: "Analyze files in the parent directory (../) there is handbook where all the information is mention and more information you can find in the code scan it and user it to build this landing page. Create a bilingual landing page (EN/DE). Include buttons for App(https://REPO_NAME.vercel.app), Imprint, T&C, and Privacy Policy."
         required: true
 
+# Restrict default GITHUB_TOKEN permissions — actual operations use ORG_PAT / COPILOT_PAT.
+permissions: {}
+
 jobs:
   run-automation:
     # IMPORTANT: Path to the central workflow. Format: OrgName/RepoName/.github/...@Branch
+    permissions: {}
     uses: Wamocon/github_workflow/.github/workflows/lp-generator.yml@main
     with:
       template_repo: ${{ github.event.inputs.custom_template }}

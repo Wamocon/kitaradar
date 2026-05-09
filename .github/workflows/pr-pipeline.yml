@@ -44,4 +44,7 @@ jobs:
   validate:
     name: PR Checks
     needs: autofix
+    # Restrict GITHUB_TOKEN — only read access needed for checkout/checks.
+    permissions:
+      contents: read
     uses: Wamocon/github_workflow/.github/workflows/pr-checks.yml@main

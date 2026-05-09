@@ -39,9 +39,14 @@ on:
         type: string
         default: ""
 
+# Restrict default GITHUB_TOKEN permissions to the minimum required.
+# The actual deployment is done via VERCEL_TOKEN (org secret), not GITHUB_TOKEN.
+permissions: {}
+
 jobs:
   deploy:
     name: Deploy — ${{ inputs.environment }}
+    permissions: {}
     uses: Wamocon/github_workflow/.github/workflows/deploy.yml@main
     with:
       vercel_env: ${{ inputs.environment }}
