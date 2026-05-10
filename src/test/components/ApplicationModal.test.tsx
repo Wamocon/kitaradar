@@ -81,9 +81,9 @@ describe("ApplicationModal", () => {
     );
     render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
     fireEvent.click(screen.getByText("ai_generate"));
+    // After generation, editMode is set to false → formatted preview is shown instead of textarea
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText("cover_letter_placeholder") as HTMLTextAreaElement;
-      expect(textarea.value).toBe("KI-generiertes Anschreiben");
+      expect(screen.getByText("KI-generiertes Anschreiben")).toBeTruthy();
     });
   });
 
