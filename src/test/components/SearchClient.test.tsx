@@ -13,37 +13,6 @@ vi.mock("next-intl", () => ({
     params ? `${key}` : key,
 }));
 
-// Mock AiProgressProvider — ApplicationModal uses useAiProgress() hook
-vi.mock("@/components/providers/AiProgressProvider", () => ({
-  useAiProgress: () => ({
-    showProgress: vi.fn(),
-    markComplete: vi.fn(),
-    dismiss: vi.fn(),
-    getLetterResult: vi.fn().mockReturnValue(null),
-    storeLetterResult: vi.fn(),
-    registerExpand: vi.fn(),
-    getExpandKey: vi.fn().mockReturnValue(null),
-  }),
-}));
-
-// Mock Supabase client — ApplicationModal (rendered inside SearchClient) fetches profile
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
-    },
-    schema: () => ({
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: null }),
-          }),
-        }),
-      }),
-    }),
-  }),
-}));
-
 const mockKitas = [
   {
     id: "osm-1",

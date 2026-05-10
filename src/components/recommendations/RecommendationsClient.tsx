@@ -15,7 +15,7 @@ import {
   Heart,
   ChevronRight,
 } from "lucide-react";
-import { useAiProgress } from "@/components/providers/AiProgressProvider";
+import { AiProgressToast } from "@/components/ui/AiProgressToast";
 
 interface Child {
   id: string;
@@ -92,9 +92,9 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   const [searchCity, setSearchCity] = useState(profile?.default_search_city ?? "");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isToastComplete, setIsToastComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
-  const { showProgress, markComplete } = useAiProgress();
 
   const hasPreferences =
     profile?.preferred_pedagogy ||
@@ -108,9 +108,8 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
       return;
     }
     setLoading(true);
+    setIsToastComplete(false);
     setError(null);
-    // Show global toast — persists when user navigates away from this page
-    showProgress("KI analysiert Kitas…", "Empfehlungen fertig!");
     try {
       const res = await fetch("/api/ai/recommendations", {
         method: "POST",
@@ -137,7 +136,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler");
     } finally {
-      markComplete();
+      setIsToastComplete(true);
       setLoading(false);
     }
   }
@@ -383,6 +382,13 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
       )}
     </div>
 
+      <AiProgressToast
+        visible={loading || isToastComplete}
+        isComplete={isToastComplete}
+        label="KI analysiert Kitas…"
+        completeLabel="Empfehlungen fertig!"
+        onDismiss={() => setIsToastComplete(false)}
+      />
     </>
   );
 }

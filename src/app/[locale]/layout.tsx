@@ -5,7 +5,6 @@ import { getMessages, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { AiProgressProvider } from "@/components/providers/AiProgressProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,9 +64,7 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
-            <AiProgressProvider>
-              {children}
-            </AiProgressProvider>
+            {children}
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

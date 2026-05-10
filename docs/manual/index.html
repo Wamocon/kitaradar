@@ -318,7 +318,7 @@
       </a>
       <div class="header-meta">
         <strong>Produkthandbuch</strong><br>
-        Version 1.0 · Mai 2026 · WAMOCON
+        Version 1.1 · Mai 2026 · WAMOCON
       </div>
     </header>
 
@@ -391,11 +391,11 @@
           <h1>KitaRadar</h1>
           <div class="cover-sub">Die erste KI-gestützte Kita-Such- und Bewerbungsplattform in Deutschland</div>
           <div class="cover-meta">
-            <div><div class="meta-label">Version</div><div class="meta-value">1.0.0</div></div>
+            <div><div class="meta-label">Version</div><div class="meta-value">1.1.0</div></div>
             <div><div class="meta-label">Datum</div><div class="meta-value">Mai 2026</div></div>
             <div><div class="meta-label">Herausgeber</div><div class="meta-value">WAMOCON GmbH</div></div>
             <div><div class="meta-label">Status</div><div class="meta-value"><span class="badge badge-green">Produktiv</span></div></div>
-            <div><div class="meta-label">Tech-Basis</div><div class="meta-value">Next.js 16 · Supabase · OpenAI</div></div>
+            <div><div class="meta-label">Tech-Basis</div><div class="meta-value">Next.js 16 · Supabase · MAX AI</div></div>
             <div><div class="meta-label">Dokumenttyp</div><div class="meta-value">Produkt- &amp; Technische Dokumentation</div></div>
           </div>
         </div>
@@ -412,7 +412,7 @@
 
           <div class="card-grid">
             <div class="kpi"><div class="kpi-val" style="color:var(--primary)">4</div><div class="kpi-lab">Kernbausteine</div></div>
-            <div class="kpi"><div class="kpi-val" style="color:var(--blue)">2</div><div class="kpi-lab">KI-Workflows</div></div>
+            <div class="kpi"><div class="kpi-val" style="color:var(--blue)">3</div><div class="kpi-lab">KI-Workflows</div></div>
             <div class="kpi"><div class="kpi-val" style="color:var(--amber)">306k</div><div class="kpi-lab">Fehlende Kita-Plätze</div></div>
             <div class="kpi"><div class="kpi-val" style="color:var(--purple)">1,2M</div><div class="kpi-lab">Suchdende Eltern/Jahr</div></div>
           </div>
@@ -426,7 +426,7 @@
 
           <div class="info-box green">
             <div class="info-box-title">Produktstatus</div>
-            <p>KitaRadar befindet sich im produktiven Betrieb (Version 1.0.0). Alle Kernfunktionen sind implementiert und getestet. CI/CD via GitHub Actions ist aktiv; Tests und Coverage-Berichte werden automatisch auf GitHub Pages publiziert.</p>
+            <p>KitaRadar befindet sich im produktiven Betrieb (Version 1.1.0). Alle Kernfunktionen sind implementiert und getestet. Mit Version 1.1 wurde die KI-Engine auf das selbst-gehostete MAX AI umgestellt, der Bewerbungsworkflow um einen persistenten Hintergrund-Toast erweitert und die Suche auf bis zu 100 km Radius ausgebaut. CI/CD via GitHub Actions ist aktiv; Tests und Coverage-Berichte werden automatisch auf GitHub Pages publiziert.</p>
           </div>
         </section>
 
@@ -446,7 +446,7 @@
                 <tr><td>Produktname</td><td>KitaRadar</td></tr>
                 <tr><td>Produktart</td><td>Web-Applikation (Server-Side Rendering + Client-Side Interaktion)</td></tr>
                 <tr><td>Herausgeber</td><td>WAMOCON GmbH, Eschborn</td></tr>
-                <tr><td>Version</td><td>1.0.0</td></tr>
+                <tr><td>Version</td><td>1.1.0</td></tr>
                 <tr><td>Lizenz</td><td>Proprietär / WAMOCON</td></tr>
                 <tr><td>Deployment</td><td>Vercel (Produktiv + Preview), lokal via Supabase CLI</td></tr>
                 <tr><td>Plattform</td><td>Browser-basiert, kein nativer App-Download erforderlich</td></tr>
@@ -472,8 +472,8 @@
           <h3 id="pu-features">2.3 Funktionsübersicht</h3>
           <div class="feat-grid">
             <div class="feat-item"><div class="feat-icon">🗺️</div><div class="feat-name">Umkreissuche</div><div class="feat-desc">Kartenbasiert, Radius- und Trägerfilter</div></div>
-            <div class="feat-item"><div class="feat-icon">🤖</div><div class="feat-name">KI-Suchassistent</div><div class="feat-desc">Priorisierung nach Präferenzen via OpenAI</div></div>
-            <div class="feat-item"><div class="feat-icon">✉️</div><div class="feat-name">Bewerbungsgenerator</div><div class="feat-desc">KI-Anschreiben + mailto:-Versand</div></div>
+            <div class="feat-item"><div class="feat-icon">🤖</div><div class="feat-name">KI-Suchassistent</div><div class="feat-desc">Parallele Priorisierung nach Präferenzen via MAX AI</div></div>
+            <div class="feat-item"><div class="feat-icon">✉️</div><div class="feat-name">Bewerbungsgenerator</div><div class="feat-desc">KI-Anschreiben (MAX AI, Hintergrundverarbeitung) + mailto:-Versand</div></div>
             <div class="feat-item"><div class="feat-icon">📋</div><div class="feat-name">Bewerbungs-Tracking</div><div class="feat-desc">Status je Kita im Dashboard</div></div>
             <div class="feat-item"><div class="feat-icon">💬</div><div class="feat-name">Community-Feed</div><div class="feat-desc">Erfahrungen und Kapazitätshinweise</div></div>
             <div class="feat-item"><div class="feat-icon">🔔</div><div class="feat-name">Benachrichtigungen</div><div class="feat-desc">Antworten und relevante Feed-Updates</div></div>
@@ -526,8 +526,8 @@
           <h3 id="bh-suche">3.2 Kita-Suche</h3>
           <p>Die Suche ist der zentrale Einstiegspunkt. Die Karte zeigt alle Kitas im gewählten Radius basierend auf OpenStreetMap-Daten.</p>
           <ul>
-            <li><strong>Adresseingabe:</strong> Eigene Adresse oder PLZ eingeben – Nominatim geokodiert den Standort automatisch.</li>
-            <li><strong>Radius:</strong> 500 m bis 10 km in der Filterpanel einstellbar.</li>
+            <li><strong>Adresseingabe:</strong> Eigene Adresse oder PLZ eingeben – Adress-Autocomplete schlägt Stadt und PLZ in Echtzeit vor. Alternativ: Geolocation-Button nutzt den GPS-Standort automatisch beim Laden der Seite.</li>
+            <li><strong>Radius:</strong> 500 m bis 100 km — per Schieberegler oder benutzerdefinierter Eingabe einstellbar.</li>
             <li><strong>Trägerfilter:</strong> Kommunal, evangelisch, katholisch, AWO, privat – frei kombinierbar.</li>
             <li><strong>Kita-Karte anklicken:</strong> Detailansicht mit Adresse, Öffnungszeiten, Kontaktdaten und verfügbaren Altersgruppen.</li>
             <li><strong>Favoriten:</strong> Kitas mit dem Herz-Symbol zur Merkliste hinzufügen (Pro-Funktion).</li>
@@ -553,10 +553,11 @@
           </div>
 
           <h3 id="bh-bewerbung">3.4 Bewerbungsgenerator</h3>
-          <p>Der Generator erstellt ein individuelles, professionelles Anschreiben für jede ausgewählte Kita – basierend auf den Profildaten des Kindes und den Eigenschaften der Einrichtung.</p>
+          <p>Der Generator erstellt ein individuelles, professionelles Anschreiben für jede ausgewählte Kita – basierend auf den Profildaten des Kindes und den Eigenschaften der Einrichtung. Die Generierung läuft im Hintergrund: Ein persistenter <strong>AiProgressToast</strong> zeigt den Fortschritt an und bleibt auch bei Navigation und Modal-Schließen sichtbar.</p>
           <ol class="step-list">
             <li>Kita in der Suchergebnis- oder Detailansicht auswählen → „Bewerben".</li>
-            <li>KI generiert ein personalisiertes Anschreiben (Name des Kindes, Wunschalter, ggf. besondere Wünsche).</li>
+            <li>KI generiert ein personalisiertes Anschreiben im Hintergrund (Name des Kindes, Geburtsmonat/-jahr, besondere Bedürfnisse). Der Toast zeigt den Fortschritt an.</li>
+            <li>Nach Abschluss: Toast aufklappen oder ApplicationModal direkt öffnen — formatierte Vorschau des Anschreibens erscheint.</li>
             <li>Text im Editor prüfen und optional anpassen.</li>
             <li>„E-Mail senden" klicken: Der <code>mailto:</code>-Link öffnet den E-Mail-Client des Nutzers mit vorausgefülltem Empfänger, Betreff und Anschreiben.</li>
             <li>E-Mail im eigenen Client absenden → Status wird in der App auf „Versendet" gesetzt.</li>
@@ -619,6 +620,7 @@
               <thead><tr><th>Funktion</th><th>Free</th><th>Pro (7,99 €/Monat)</th></tr></thead>
               <tbody>
                 <tr><td>Kita-Suche (Kartenansicht)</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td></tr>
+                <tr><td>Adress-Autocomplete &amp; Geolocation</td><td><span class="badge badge-green">✓</span></td><td><span class="badge badge-green">✓</span></td></tr>
                 <tr><td>Suchabfragen pro Monat</td><td>max. 10</td><td>unbegrenzt</td></tr>
                 <tr><td>KI-Suchassistent</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-green">✓</span></td></tr>
                 <tr><td>KI-Bewerbungsgenerator</td><td><span class="badge badge-red">✗</span></td><td><span class="badge badge-green">✓</span></td></tr>
@@ -659,7 +661,7 @@
             </div>
             <div class="arch-layer">
               <div class="arch-layer-title">Externe Dienste</div>
-              <div class="arch-layer-item">OpenAI API (KI-Engine)</div>
+              <div class="arch-layer-item">MAX AI / LiteLLM (KI-Engine, self-hosted)</div>
               <div class="arch-layer-item">Overpass API (Geo)</div>
               <div class="arch-layer-item">Nominatim (Geokodierung)</div>
               <div class="arch-layer-item">Stripe (Zahlungen)</div>
@@ -705,11 +707,12 @@
           </div>
 
           <h3 id="ta-ki">4.4 KI-Integration</h3>
-          <p>Alle KI-Funktionen laufen über die OpenAI API (EU-Region), angebunden über Next.js API-Routen. Der API-Key wird serverseitig verwaltet (<code>OPENAI_API_KEY</code>) und ist nie im Browser sichtbar.</p>
+          <p>Alle KI-Funktionen laufen über das selbst-gehostete <strong>MAX AI / LiteLLM-Gateway</strong>, angebunden über Next.js API-Routen mit dem OpenAI-kompatiblen SDK. Die Verbindung wird serverseitig über <code>MAX_AI_BASE_URL</code> und <code>MAX_AI_API_KEY</code> konfiguriert und ist nie im Browser sichtbar.</p>
           <ul>
-            <li><code>src/lib/openai.ts</code> – Shared OpenAI-Client mit Rate-Limiting-Logik</li>
+            <li><code>src/lib/openai.ts</code> – MAX AI-Client mit dynamischem Multi-Model-Routing (<code>getModel(taskType)</code>)</li>
             <li><code>src/app/api/search/</code> – KI-Suchassistent-Endpunkt</li>
             <li><code>src/app/api/apply/</code> – Bewerbungsgenerator-Endpunkt</li>
+            <li><code>src/app/api/recommendations/</code> – KI-Empfehlungen (parallelisiert)</li>
           </ul>
 
           <h3 id="ta-geo">4.5 Geodaten &amp; Karten</h3>
@@ -758,7 +761,7 @@
               </tbody>
             </table>
           </div>
-          <p>Seit Migration <code>20260509000005_extended_parent_profile.sql</code> enthält <code>profiles</code> zusätzlich: <code>job_title</code>, <code>employer</code>, <code>work_district</code>, <code>work_hours_type</code>, <code>work_start_time</code>, <code>work_end_time</code>, <code>family_situation</code>, <code>home_language</code>, <code>additional_languages</code>, <code>max_monthly_fee</code>, <code>kita_needed_from</code>, <code>ai_consent</code>.</p>
+          <p>Seit Migration <code>20260509000005_extended_parent_profile.sql</code> enthält <code>profiles</code> zusätzlich: <code>job_title</code>, <code>employer</code>, <code>work_district</code>, <code>work_hours_type</code>, <code>work_start_time</code>, <code>work_end_time</code>, <code>family_situation</code>, <code>home_language</code>, <code>additional_languages</code>, <code>max_monthly_fee</code>, <code>kita_needed_from</code>, <code>ai_consent</code>. Die Tabelle <code>children</code> wurde um <code>birth_year</code>, <code>birth_month</code> und <code>special_needs</code> ergänzt.</p>
 
           <h3 id="ta-i18n">4.8 Mehrsprachigkeit</h3>
           <p>Internationalisierung erfolgt über <strong>next-intl</strong> mit App-Router-Konfiguration. Übersetzungen liegen in <code>messages/de.json</code> und <code>messages/en.json</code>. Die Sprachauswahl ist über einen Switcher im Header zugänglich und wird per Cookie persistiert.</p>
@@ -781,30 +784,36 @@ messages/
           <h2><span class="ch-num">5</span> KI-Engine</h2>
 
           <h3 id="ki-assistent">5.1 Suchassistent</h3>
-          <p>Der Suchassistent analysiert die Suchergebnisse der Overpass API und sortiert sie nach Passgenauigkeit zu den Elternpräferenzen. Der Prozess läuft in drei Phasen:</p>
+          <p>Der Suchassistent analysiert die Suchergebnisse der Overpass API und sortiert sie nach Passgenauigkeit zu den Elternpräferenzen. Empfehlungen werden <strong>parallelisiert</strong> generiert, was die Antwortzeit bei großen Ergebnismengen deutlich reduziert.</p>
           <ol class="step-list">
             <li><strong>Kontext aufbauen:</strong> Kita-Daten (Name, Konzept, Öffnungszeiten, Träger) und Elternpräferenzen werden als strukturierter Kontext zusammengestellt.</li>
-            <li><strong>KI-Analyse:</strong> OpenAI bewertet jede Kita anhand der Präferenzen und gibt einen Matching-Score sowie eine Begründung zurück.</li>
+            <li><strong>KI-Analyse (parallel):</strong> MAX AI (<code>default</code>-Modell) bewertet Kitas gleichzeitig über parallelisierte API-Aufrufe und gibt Matching-Score sowie Begründung zurück.</li>
             <li><strong>Sortierung:</strong> Kitas werden nach Score absteigend angezeigt. Begründungen sind einzeln ausklappbar.</li>
           </ol>
 
           <h3 id="ki-generator">5.2 Bewerbungsgenerator</h3>
-          <p>Der Generator erstellt ein individualisiertes Anschreiben in drei Schritten:</p>
+          <p>Der Generator erstellt ein individualisiertes Anschreiben und läuft <strong>asynchron im Hintergrund</strong> — der Nutzer kann die App weiter nutzen, während die KI generiert.</p>
           <ol class="step-list">
-            <li><strong>Datenzusammenführung:</strong> Kindname, Alter, Wunschstart, besondere Bedürfnisse aus dem Profil + Kita-Details (Name, Ansprechpartner, Konzept).</li>
-            <li><strong>Generierung:</strong> OpenAI erzeugt ein professionelles, warmherziges Anschreiben in deutscher Sprache (~250 Wörter).</li>
-            <li><strong>Übergabe:</strong> Text wird editierbar im Editor angezeigt; bei „Senden" wird ein <code>mailto:</code>-Link aufgerufen, der Empfänger, Betreff und Body vorausfüllt.</li>
+            <li><strong>Datenzusammenführung:</strong> Kindname, Geburtsmonat/-jahr, besondere Bedürfnisse, Wunschstart aus dem Profil + Kita-Details (Name, Ansprechpartner, Konzept).</li>
+            <li><strong>Hintergrundgenerierung:</strong> MAX AI (<code>reasoning</code>-Modell, qwen3.5:122b) erzeugt ein professionelles, warmherziges Anschreiben in deutscher Sprache. Der <strong>AiProgressToast</strong> zeigt den Fortschritt seitenunabhängig an und kann auf- und zugeklappt werden.</li>
+            <li><strong>Vorschau &amp; Übergabe:</strong> Das ApplicationModal zeigt das fertige Anschreiben formatiert an. Text wird editierbar; bei „Senden" wird ein <code>mailto:</code>-Link aufgerufen, der Empfänger, Betreff und Body vorausfüllt.</li>
           </ol>
 
-          <h3 id="ki-prompt">5.3 Prompt-Architektur</h3>
-          <p>Beide KI-Workflows folgen einem strukturierten System-Prompt-Muster:</p>
-          <pre><code>System: Du bist ein spezialisierter Assistent für die Kita-Bewerbung in Deutschland.
-        Antworte immer auf Deutsch, professionell und einfühlsam.
-        Halte dich strikt an die bereitgestellten Fakten.
-
-User:   [Strukturierte Daten: Elternpräferenzen + Kita-Details]
-
-Aufgabe: [Scoring / Anschreiben generieren]</code></pre>
+          <h3 id="ki-prompt">5.3 Prompt-Architektur &amp; Modell-Routing</h3>
+          <p>Alle KI-Workflows nutzen dynamisches Modell-Routing über <code>getModel(taskType)</code>. Jeder Task-Typ verwendet das optimal konfigurierte Modell:</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Task-Typ</th><th>Env-Variable</th><th>Konfiguriertes Modell</th><th>Einsatz</th></tr></thead>
+              <tbody>
+                <tr><td><code>default</code></td><td><code>MAX_AI_MODEL_DEFAULT</code></td><td>qwen3.5:122b</td><td>Empfehlungen, allgemeiner Chat</td></tr>
+                <tr><td><code>reasoning</code></td><td><code>MAX_AI_MODEL_REASONING</code></td><td>qwen3.5:122b</td><td>Bewerbungsanschreiben, komplexe Analyse</td></tr>
+                <tr><td><code>tools</code></td><td><code>MAX_AI_MODEL_TOOLS</code></td><td>glm-4.7-flash</td><td>JSON-Extraktion, Tool-Calling</td></tr>
+                <tr><td><code>vision</code></td><td><code>MAX_AI_MODEL_VISION</code></td><td>gemma4:31b</td><td>Bild-/OCR-Verständnis</td></tr>
+                <tr><td><code>embedding</code></td><td><code>MAX_AI_MODEL_EMBEDDING</code></td><td>—</td><td>Semantische Suche (zukünftig)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>CoT-Modelle (Chain-of-Thought, z. B. qwen3) werden mit <code>enable_thinking: false</code> aufgerufen und liefern ihre Antwort direkt in <code>choices[0].message.content</code>. Robuste Extraktion über <code>extractFinalAnswer()</code> entfernt verbleibende <code>&lt;think&gt;</code>-Blöcke.</p>
           <p>Rate-Limiting: Pro Free-Nutzer maximal 10 KI-Anfragen pro Monat; für Pro-Nutzer kein Limit (Serverseitige Prüfung via Supabase).</p>
         </section>
 
@@ -981,12 +990,13 @@ npm run verify   # typecheck + lint + build</code></pre>
         <section id="management-fazit">
           <h2><span class="ch-num">11</span> Management-Fazit</h2>
 
-          <p>KitaRadar Version 1 ist vollständig implementiert und produktiv. Alle 14 Anforderungen aus dem Anforderungsdokument (Welle 9) sind erfüllt. Die Kombination aus kostenfreier Datenbasis (OSM, Overpass, Nominatim), KI-gestützten Workflows und direktem mailto:-Versand ermöglicht einen Start ohne externe Abhängigkeiten oder kommunale Einzelverträge.</p>
+          <p>KitaRadar Version 1.1 ist vollständig implementiert und produktiv. Alle 14 Anforderungen aus dem Anforderungsdokument (Welle 9) sind erfüllt. Mit Version 1.1 wurde die KI-Engine vollständig auf das selbst-gehostete MAX AI / LiteLLM-Gateway migriert, der Bewerbungsworkflow um einen persistenten Hintergrund-AiProgressToast erweitert und die Suche auf bis zu 100 km Radius mit Adress-Autocomplete und Geolocation-Autoload ausgebaut. Die Kombination aus kostenfreier Datenbasis (OSM, Overpass mit Mirror-Fallback, Nominatim), KI-gestützten Workflows und direktem mailto:-Versand ermöglicht einen souveränen Betrieb ohne externe API-Abhängigkeiten.</p>
 
           <div class="table-wrap">
             <table>
               <thead><tr><th>Bereich</th><th>Bewertung</th><th>Hinweis</th></tr></thead>
               <tbody>
+                <tr><td>KI-Engine</td><td><span class="badge badge-green">✓ MAX AI</span></td><td>Self-hosted LiteLLM-Gateway, dynamisches Multi-Model-Routing</td></tr>
                 <tr><td>Kernfunktionen</td><td><span class="badge badge-green">✓ Vollständig</span></td><td>Alle H- und B-Anforderungen erfüllt</td></tr>
                 <tr><td>Businessmodell</td><td><span class="badge badge-green">✓ Vollständig</span></td><td>Stripe-Integration inkl. Self-Service-Kündigung</td></tr>
                 <tr><td>Sicherheit</td><td><span class="badge badge-green">✓ OWASP-konform</span></td><td>RLS, kein dangerouslySetInnerHTML, Secrets serverseitig</td></tr>
@@ -1000,7 +1010,7 @@ npm run verify   # typecheck + lint + build</code></pre>
 
           <div class="info-box green">
             <div class="info-box-title">Empfehlung der Technik</div>
-            <p>KitaRadar V1 ist bereit für den Go-Live. Empfohlen wird, nach dem Launch die Nutzermetriken (Conversion Free→Pro, KI-Nutzungsrate, Absprungrate Bewerbungsflow) für 30 Tage zu beobachten und auf dieser Basis V2-Prioritäten zu setzen.</p>
+            <p>KitaRadar V1.1 ist im produktiven Betrieb. Empfohlen wird, die Nutzermetriken (Conversion Free→Pro, KI-Nutzungsrate, Toast-Interaktionsrate, Absprungrate Bewerbungsflow) für 30 Tage zu beobachten und auf dieser Basis V2-Prioritäten zu setzen.</p>
           </div>
         </section>
 
@@ -1022,7 +1032,7 @@ npm run verify   # typecheck + lint + build</code></pre>
         <a href="https://wamocon.com" target="_blank" rel="noopener">wamocon.com</a>
       </p>
       <p style="margin-top:0.5rem; opacity:0.5;">
-        KitaRadar Produkthandbuch · Version 1.0 · Mai 2026 · WAMOCON GmbH · Vertraulich
+        KitaRadar Produkthandbuch · Version 1.1 · Mai 2026 · WAMOCON GmbH · Vertraulich
       </p>
     </footer>
 
