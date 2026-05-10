@@ -1,11 +1,11 @@
 ﻿"use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { OverpassKita } from "@/lib/overpass";
 import { useTranslations } from "next-intl";
 import { X, Sparkles, CheckCircle2, Pencil, Eye } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { AiProgressToast } from "@/components/ui/AiProgressToast";
+import { useAiProgress } from "@/components/providers/AiProgressProvider";
 
 interface ProfileData {
   full_name?: string | null;
@@ -31,22 +31,27 @@ interface ApplicationModalProps {
 
 export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
   const t = useTranslations("application");
+  const { showProgress, markComplete, getLetterResult, storeLetterResult } = useAiProgress();
+
   const [coverLetter, setCoverLetter] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isToastComplete, setIsToastComplete] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [justGenerated, setJustGenerated] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(true);
-  const startTimeRef = useRef(0);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [children, setChildren] = useState<ChildData[]>([]);
 
-  const handleToastDismiss = useCallback(() => {
-    setShowToast(false);
-    setIsToastComplete(false);
-  }, []);
+  // Unique key per kita — used to cache generated letters across modal open/close
+  const kitaKey = `${kita.name}|${kita.address ?? ""}`;
+
+  // Restore cached letter if generation completed while modal was closed
+  useEffect(() => {
+    const cached = getLetterResult(kitaKey);
+    if (cached) setCoverLetter(cached);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kitaKey]);
 
   // Load profile + children on mount
   useEffect(() => {
@@ -77,10 +82,10 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
 
   async function generateLetter() {
     setIsGenerating(true);
-    setIsToastComplete(false);
-    setShowToast(true);
+    setJustGenerated(false);
     setError("");
-    startTimeRef.current = Date.now();
+    // Show toast via global context — persists even if this modal is closed
+    showProgress(`Anschreiben für ${kita.name}`, "Anschreiben fertig!");
     try {
       // Build child info from first child in profile
       const firstChild = children[0];
@@ -118,12 +123,16 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
       const data: { letter?: string; error?: string } = await res.json();
       if (data.letter) {
         setCoverLetter(data.letter);
+        // Cache letter in context — survives modal close, restored on next open
+        storeLetterResult(kitaKey, data.letter);
+        setJustGenerated(true);
       }
     } catch {
       setError("Fehler bei der KI-Generierung.");
     } finally {
       setIsGenerating(false);
-      setIsToastComplete(true);
+      // Marks toast complete in layout-level context — stays visible after modal close
+      markComplete();
     }
   }
 
@@ -160,35 +169,21 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
     saveApplication("sent");
   }
 
-  const progressPct = Math.min(((Date.now() - startTimeRef.current) / 1000 / 90) * 100, 95);
-  void progressPct; // used by AiProgressToast internally
-
   return (
-    <>
-      {/* Background progress toast — floats bottom-right, modal stays interactive */}
-      <AiProgressToast
-        visible={showToast}
-        isComplete={isToastComplete}
-        label={`Anschreiben für ${kita.name}`}
-        completeLabel="Anschreiben fertig!"
-        onDismiss={handleToastDismiss}
-      />
-
-      <div
-        className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 p-3 sm:p-6"
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-      >
-        <div className="relative flex h-full max-h-[95vh] w-full max-w-4xl flex-col rounded-2xl bg-card shadow-2xl">
-
-          {/* Done banner */}
-          {isToastComplete && !isGenerating && coverLetter && (
-            <div className="flex items-center gap-2 rounded-t-2xl bg-green-50 px-5 py-2.5 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              Anschreiben erfolgreich generiert – Sie können es unten bearbeiten.
-            </div>
-          )}
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 p-3 sm:p-6"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="relative flex h-full max-h-[95vh] w-full max-w-4xl flex-col rounded-2xl bg-card shadow-2xl">
+        {/* Done banner — visible while modal is open after generation */}
+        {justGenerated && !isGenerating && coverLetter && (
+          <div className="flex items-center gap-2 rounded-t-2xl bg-green-50 px-5 py-2.5 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            Anschreiben erfolgreich generiert – Sie können es unten bearbeiten.
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
@@ -302,6 +297,5 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
         </div>
       </div>
     </div>
-    </>
   );
 }

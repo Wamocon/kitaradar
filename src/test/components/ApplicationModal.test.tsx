@@ -8,6 +8,17 @@ vi.mock("next-intl", () => ({
     params ? `${key}` : key,
 }));
 
+// Mock AiProgressProvider — ApplicationModal uses useAiProgress() hook
+vi.mock("@/components/providers/AiProgressProvider", () => ({
+  useAiProgress: () => ({
+    showProgress: vi.fn(),
+    markComplete: vi.fn(),
+    dismiss: vi.fn(),
+    getLetterResult: vi.fn().mockReturnValue(null),
+    storeLetterResult: vi.fn(),
+  }),
+}));
+
 // Mock Supabase client — ApplicationModal fetches profile data on mount
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
