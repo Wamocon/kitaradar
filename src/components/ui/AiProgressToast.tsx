@@ -9,6 +9,8 @@ interface AiProgressToastProps {
   label: string;
   completeLabel: string;
   onDismiss: () => void;
+  /** Optional: called when the user clicks the toast body to expand / reopen the source dialog. */
+  onExpand?: () => void;
 }
 
 /**
@@ -22,6 +24,7 @@ export function AiProgressToast({
   label,
   completeLabel,
   onDismiss,
+  onExpand,
 }: AiProgressToastProps) {
   const [minimized, setMinimized] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -60,8 +63,27 @@ export function AiProgressToast({
     elapsed < 5
       ? "Starte KI-Analyse..."
       : elapsed < 30
-        ? `Verarbeitung laeuft - ${elapsed}s`
-        : `Komplexe Anfrage - ${elapsed}s - noch einen Moment`;
+        ? `Verarbeitung läuft \u2013 ${elapsed}s`
+        : `Komplexe Anfrage \u2013 ${elapsed}s \u2013 noch einen Moment`;
+
+  // The label row is clickable when onExpand is provided (reopens source modal)
+  const LabelRow = (
+    <div className="flex min-w-0 items-center gap-2.5">
+      {isComplete ? (
+        <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+      ) : (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+      )}
+      <span className="truncate text-sm font-medium text-foreground">
+        {isComplete ? completeLabel : label}
+      </span>
+      {onExpand && !isComplete && (
+        <span className="ml-auto shrink-0 text-xs text-primary underline-offset-2 hover:underline">
+          Öffnen
+        </span>
+      )}
+    </div>
+  );
 
   return (
     <div
@@ -72,16 +94,17 @@ export function AiProgressToast({
       <div
         className={`flex items-center justify-between gap-3 px-4 ${minimized ? "py-3" : "pt-4 pb-2"}`}
       >
-        <div className="flex min-w-0 items-center gap-2.5">
-          {isComplete ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
-          ) : (
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
-          )}
-          <span className="truncate text-sm font-medium text-foreground">
-            {isComplete ? completeLabel : label}
-          </span>
-        </div>
+        {onExpand && !isComplete ? (
+          <button
+            onClick={onExpand}
+            className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+            aria-label="Fenster öffnen"
+          >
+            {LabelRow}
+          </button>
+        ) : (
+          LabelRow
+        )}
         <div className="flex shrink-0 items-center gap-1">
           {!isComplete && (
             <button

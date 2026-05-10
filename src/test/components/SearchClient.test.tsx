@@ -21,6 +21,8 @@ vi.mock("@/components/providers/AiProgressProvider", () => ({
     dismiss: vi.fn(),
     getLetterResult: vi.fn().mockReturnValue(null),
     storeLetterResult: vi.fn(),
+    registerExpand: vi.fn(),
+    getExpandKey: vi.fn().mockReturnValue(null),
   }),
 }));
 

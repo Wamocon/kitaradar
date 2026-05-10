@@ -10,6 +10,7 @@ import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { AutocompleteResult } from "@/app/api/geocode/autocomplete/route";
 import { useTranslations } from "next-intl";
 import { Search, Loader2, Filter, Sparkles, LocateFixed, ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { useAiProgress } from "@/components/providers/AiProgressProvider";
 
 // MapLibre GL — vollständige Implementierung (Normal, Satellit, 3D-Gebäude)
 const KitaMapGL = dynamic(() => import("./KitaMapGL").then((m) => ({ default: m.KitaMapGL })), {
@@ -47,6 +48,25 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [tileType, setTileType] = useState<"normal" | "satellite" | "terrain">("normal");
   const [wizardOpen, setWizardOpen] = useState(false);
   const geoSearchedRef = useRef(false);
+
+  // Stable refs so the expand callback always reads the latest state
+  const kitasRef = useRef<OverpassKita[]>([]);
+  const setApplyKitaRef = useRef(setApplyKita);
+  useEffect(() => { kitasRef.current = kitas; }, [kitas]);
+
+  // Register expand callback: when user clicks "Öffnen" on the toast,
+  // find the kita by key (name|address) and reopen the ApplicationModal
+  const { registerExpand } = useAiProgress();
+  useEffect(() => {
+    registerExpand((expandKey) => {
+      if (!expandKey) return;
+      const [name, address] = expandKey.split("|");
+      const kita = kitasRef.current.find(
+        (k) => k.name === name && (k.address ?? "") === address
+      );
+      if (kita) setApplyKitaRef.current(kita);
+    });
+  }, [registerExpand]);
 
   // Detect dark mode
   useEffect(() => {
