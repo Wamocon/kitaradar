@@ -13,6 +13,24 @@ vi.mock("next-intl", () => ({
     params ? `${key}` : key,
 }));
 
+// Mock Supabase client — ApplicationModal (rendered inside SearchClient) fetches profile
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+    },
+    schema: () => ({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: vi.fn().mockResolvedValue({ data: null }),
+          }),
+        }),
+      }),
+    }),
+  }),
+}));
+
 const mockKitas = [
   {
     id: "osm-1",

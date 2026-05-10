@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
   const childInfo = [
     body.childName ? `Name des Kindes: ${body.childName}` : null,
-    body.childAge ? `Alter: ${body.childAge} Monate` : null,
+    body.childAge ? `Alter: ${body.childAge}` : null,
     body.childNeeds ? `Besonderheiten/Bedürfnisse: ${body.childNeeds}` : null,
   ]
     .filter(Boolean)
@@ -43,7 +43,12 @@ export async function POST(request: NextRequest) {
         {
           role: "system",
           content:
-            "Du schreibst professionelle, herzliche und individuelle Bewerbungsschreiben für Kita-Plätze. Das Schreiben soll 3-4 Absätze lang sein, die Familie kurz vorstellen, das Interesse an der spezifischen Einrichtung begründen und sich höflich bedanken. Antworte NUR mit dem fertigen Anschreiben (ohne Betreff, ohne Datum, ohne Erklärungen). Antworte auf Deutsch.",
+            "Du schreibst professionelle, herzliche und individuelle Bewerbungsschreiben für Kita-Plätze. " +
+            "Das Schreiben soll 3-4 Absätze lang sein, die Familie kurz vorstellen, das Interesse an der spezifischen Einrichtung begründen und sich höflich bedanken. " +
+            "WICHTIG: Verwende ausschließlich die tatsächlich angegebenen Daten (Name des Kindes, Alter, etc.). " +
+            "Wenn ein Name oder Datum bekannt ist, schreibe ihn direkt in den Text — KEINE Platzhalter wie [Name des Kindes]. " +
+            "Wenn eine Information fehlt, formuliere den Satz so, dass kein Platzhalter nötig ist. " +
+            "Antworte NUR mit dem fertigen Anschreiben (ohne Betreff, ohne Datum, ohne Erklärungen). Antworte auf Deutsch.",
         },
         {
           role: "user",

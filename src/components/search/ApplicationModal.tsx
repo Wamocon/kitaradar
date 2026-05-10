@@ -4,6 +4,24 @@ import { useState, useEffect, useRef } from "react";
 import type { OverpassKita } from "@/lib/overpass";
 import { useTranslations } from "next-intl";
 import { X, Sparkles, CheckCircle2, Pencil, Eye } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+interface ProfileData {
+  full_name?: string | null;
+  partner_name?: string | null;
+  kita_needed_from?: string | null;
+  preferred_pedagogy?: string | null;
+  preferred_kita_type?: string | null;
+  preferred_hours?: string | null;
+  max_monthly_fee?: number | null;
+}
+
+interface ChildData {
+  name?: string | null;
+  birth_year?: number | null;
+  birth_month?: number | null;
+  special_needs?: string | null;
+}
 
 interface ApplicationModalProps {
   kita: OverpassKita;
@@ -21,6 +39,24 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
   const [editMode, setEditMode] = useState(true);
   const [elapsed, setElapsed] = useState(0);
   const startTimeRef = useRef(0);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [children, setChildren] = useState<ChildData[]>([]);
+
+  // Load profile + children on mount
+  useEffect(() => {
+    const supabase = createClient();
+    void (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const schema = process.env.NEXT_PUBLIC_SUPABASE_SCHEMA ?? "public";
+      const [{ data: prof }, { data: kids }] = await Promise.all([
+        supabase.schema(schema).from("profiles").select("full_name,partner_name,kita_needed_from,preferred_pedagogy,preferred_kita_type,preferred_hours,max_monthly_fee").eq("id", user.id).single(),
+        supabase.schema(schema).from("children").select("name,birth_year,birth_month,special_needs").eq("user_id", user.id),
+      ]);
+      if (prof) setProfile(prof);
+      if (kids) setChildren(kids);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!isGenerating) return;
@@ -31,18 +67,46 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
     return () => clearInterval(id);
   }, [isGenerating]);
 
+  // Build child age string from birth_year/month
+  function childAgeMonths(child: ChildData): string | null {
+    if (!child.birth_year) return null;
+    const now = new Date();
+    const months = (now.getFullYear() - child.birth_year) * 12 + (now.getMonth() + 1) - (child.birth_month ?? 1);
+    if (months < 12) return `${months} Monate`;
+    const years = Math.floor(months / 12);
+    const rem = months % 12;
+    return rem > 0 ? `${years} Jahre ${rem} Monate` : `${years} Jahre`;
+  }
+
   async function generateLetter() {
     setIsGenerating(true);
     setIsDone(false);
     setElapsed(0);
     setError("");
     try {
+      // Build child info from first child in profile
+      const firstChild = children[0];
+      const childName = firstChild?.name ?? undefined;
+      const childAge = firstChild ? (childAgeMonths(firstChild) ?? undefined) : undefined;
+      const childNeeds = firstChild?.special_needs ?? undefined;
+
+      // Build parent note from profile preferences
+      const notes: string[] = [];
+      if (profile?.kita_needed_from) notes.push(`Betreuung ab: ${profile.kita_needed_from}`);
+      if (profile?.preferred_hours) notes.push(`Gewünschte Betreuungszeiten: ${profile.preferred_hours}`);
+      if (profile?.preferred_pedagogy) notes.push(`Pädagogik-Präferenz: ${profile.preferred_pedagogy}`);
+      if (profile?.max_monthly_fee) notes.push(`Max. Monatsbeitrag: ${profile.max_monthly_fee} €`);
+
       const res = await fetch("/api/ai/generate-letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kitaName: kita.name,
           kitaAddress: `${kita.address} ${kita.city}`.trim(),
+          childName,
+          childAge,
+          childNeeds,
+          parentNote: notes.length > 0 ? notes.join("; ") : undefined,
         }),
       });
       if (res.status === 401) {
