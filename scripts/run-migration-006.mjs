@@ -5,8 +5,11 @@
  */
 import https from "https";
 
-const SERVICE_ROLE_KEY =
-  "REMOVED_SERVICE_ROLE_KEY";
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SERVICE_ROLE_KEY) {
+  console.error("Error: SUPABASE_SERVICE_ROLE_KEY environment variable is not set.");
+  process.exit(1);
+}
 
 function runSQL(sql) {
   return new Promise((resolve, reject) => {
