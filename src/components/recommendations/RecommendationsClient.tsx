@@ -15,6 +15,7 @@ import {
   Heart,
   ChevronRight,
 } from "lucide-react";
+import { AiProgressToast } from "@/components/ui/AiProgressToast";
 
 interface Child {
   id: string;
@@ -91,6 +92,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   const [searchCity, setSearchCity] = useState(profile?.default_search_city ?? "");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isToastComplete, setIsToastComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
 
@@ -106,6 +108,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
       return;
     }
     setLoading(true);
+    setIsToastComplete(false);
     setError(null);
     try {
       const res = await fetch("/api/ai/recommendations", {
@@ -133,6 +136,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler");
     } finally {
+      setIsToastComplete(true);
       setLoading(false);
     }
   }
@@ -160,7 +164,8 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       {/* Configuration Panel */}
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="mb-4 text-sm font-semibold text-foreground">Empfehlungsparameter</h2>
@@ -269,6 +274,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               KI analysiert Kitas…
+              <span className="text-xs font-normal opacity-75">– läuft im Hintergrund</span>
             </>
           ) : (
             <>
@@ -375,5 +381,14 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
         </div>
       )}
     </div>
+
+      <AiProgressToast
+        visible={loading || isToastComplete}
+        isComplete={isToastComplete}
+        label="KI analysiert Kitas…"
+        completeLabel="Empfehlungen fertig!"
+        onDismiss={() => setIsToastComplete(false)}
+      />
+    </>
   );
 }

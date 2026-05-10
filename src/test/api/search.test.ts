@@ -44,7 +44,7 @@ describe("POST /api/search", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({
         user: { id: "u1", email: "t@t.de" },
-        singleData: { search_count: 10, tier: "free" },
+        singleData: { search_count_month: 10, subscription_tier: "free" },
       }) as never
     );
     const req = new NextRequest("http://localhost/api/search", {
@@ -60,7 +60,7 @@ describe("POST /api/search", () => {
     vi.mocked(createClient).mockResolvedValue(
       createSupabaseMock({
         user: { id: "u1", email: "t@t.de" },
-        singleData: { search_count: 99, tier: "pro" },
+        singleData: { search_count_month: 99, subscription_tier: "pro" },
       }) as never
     );
     const req = new NextRequest("http://localhost/api/search", {
