@@ -56,7 +56,6 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
       const data: { letter?: string; error?: string } = await res.json();
       if (data.letter) {
         setCoverLetter(data.letter);
-        setEditMode(false);
       }
     } catch {
       setError("Fehler bei der KI-Generierung.");
