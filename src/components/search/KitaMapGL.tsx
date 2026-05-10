@@ -208,16 +208,52 @@ export function KitaMapGL({
     const rLat = radiusKm / 111.32;
     const rLng = radiusKm / (111.32 * Math.cos((center.lat * Math.PI) / 180));
 
-    const map = new maplibregl.Map({
-      container:   containerRef.current,
-      style:       STYLE_URLS[styleKey],
-      bounds:      [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
-      fitBoundsOptions: { padding: 60 },
-      // No transformRequest — OpenFreeMap styles embed their own working glyph server URLs.
-      // Redirecting to third-party font servers causes "Unimplemented type" PBF format errors.
-    });
+    // Fix map glyph 404s using transformRequest.
+    // OpenFreeMap styles request font stacks as comma-joined strings:
+    //   "Open Sans Regular,Arial Unicode MS Regular/0-255.pbf" → 404
+    // We intercept every glyph request, take only the FIRST font from the
+    // stack, remap it to a Noto Sans variant, and redirect to protomaps CDN.
+    const GLYPH_CDN = "https://protomaps.github.io/basemaps-assets/fonts";
+    function patchGlyphUrl(url: string): string {
+      // Glyph URLs look like: .../fonts/{fontstack}/{range}.pbf
+      const m = url.match(/\/fonts\/(.+?)\/(\d+-\d+\.pbf)$/);
+      if (!m) return url;
+      const firstFont = decodeURIComponent(m[1]).split(",")[0].trim();
+      const noto = firstFont.toLowerCase().includes("bold") ? "Noto Sans Bold" : "Noto Sans Regular";
+      return `${GLYPH_CDN}/${encodeURIComponent(noto)}/${m[2]}`;
+    }
 
-    mapRef.current = map;
+    async function buildStyle(url: string) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return url;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const style: any = await res.json();
+        return style;
+      } catch {
+        return url;
+      }
+    }
+
+    let destroyed = false;
+
+    buildStyle(STYLE_URLS[styleKey]).then((patchedStyle) => {
+      if (destroyed || !containerRef.current) return;
+
+      const map = new maplibregl.Map({
+        container:   containerRef.current,
+        style:       patchedStyle,
+        bounds:      [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
+        fitBoundsOptions: { padding: 60 },
+        transformRequest: (url, resourceType) => {
+          if (resourceType === "Glyphs") {
+            return { url: patchGlyphUrl(url) };
+          }
+          return { url };
+        },
+      });
+
+      mapRef.current = map;
 
     // Add zoom + compass controls
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
@@ -343,6 +379,16 @@ export function KitaMapGL({
     return () => {
       map.remove();
       mapRef.current = null;
+      initialised.current = false;
+    };
+    }); // end buildStyle.then
+
+    return () => {
+      destroyed = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
       initialised.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
