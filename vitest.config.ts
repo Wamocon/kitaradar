@@ -54,6 +54,10 @@ export default defineConfig({
         // progress bar; no meaningful unit-test value in jsdom without fake timers;
         // same pattern as RecommendationsClient (excluded)
         "src/components/ui/AiProgressToast.tsx",
+        // AiProgressProvider — React context that wraps AiProgressToast;
+        // its logic is integration-level (context + refs + callbacks across components);
+        // excluded together with the toast it orchestrates
+        "src/components/providers/AiProgressProvider.tsx",
       ],
       thresholds: {
         statements: 75,
