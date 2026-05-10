@@ -85,7 +85,8 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
     setJustGenerated(false);
     setError("");
     // Show toast via global context — persists even if this modal is closed
-    showProgress(`Anschreiben für ${kita.name}`, "Anschreiben fertig!");
+    // expandKey = kitaKey so SearchClient can reopen the modal for the right kita
+    showProgress(`Anschreiben für ${kita.name}`, "Anschreiben fertig!", kitaKey);
     try {
       // Build child info from first child in profile
       const firstChild = children[0];
