@@ -1,28 +1,9 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { OverpassKita } from "@/lib/overpass";
 import { useTranslations } from "next-intl";
 import { X, Sparkles, CheckCircle2, Pencil, Eye } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { useAiProgress } from "@/components/providers/AiProgressProvider";
-
-interface ProfileData {
-  full_name?: string | null;
-  partner_name?: string | null;
-  kita_needed_from?: string | null;
-  preferred_pedagogy?: string | null;
-  preferred_kita_type?: string | null;
-  preferred_hours?: string | null;
-  max_monthly_fee?: number | null;
-}
-
-interface ChildData {
-  name?: string | null;
-  birth_year?: number | null;
-  birth_month?: number | null;
-  special_needs?: string | null;
-}
 
 interface ApplicationModalProps {
   kita: OverpassKita;
@@ -31,86 +12,37 @@ interface ApplicationModalProps {
 
 export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
   const t = useTranslations("application");
-  const { showProgress, markComplete, getLetterResult, storeLetterResult } = useAiProgress();
-
   const [coverLetter, setCoverLetter] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [justGenerated, setJustGenerated] = useState(false);
+  const [isDone, setIsDone] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(true);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [children, setChildren] = useState<ChildData[]>([]);
+  const [elapsed, setElapsed] = useState(0);
+  const startTimeRef = useRef(0);
 
-  // Unique key per kita — used to cache generated letters across modal open/close
-  const kitaKey = `${kita.name}|${kita.address ?? ""}`;
-
-  // Restore cached letter if generation completed while modal was closed
   useEffect(() => {
-    const cached = getLetterResult(kitaKey);
-    if (cached) setCoverLetter(cached);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kitaKey]);
-
-  // Load profile + children on mount
-  useEffect(() => {
-    const supabase = createClient();
-    void (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const schema = process.env.NEXT_PUBLIC_SUPABASE_SCHEMA ?? "public";
-      const [{ data: prof }, { data: kids }] = await Promise.all([
-        supabase.schema(schema).from("profiles").select("full_name,partner_name,kita_needed_from,preferred_pedagogy,preferred_kita_type,preferred_hours,max_monthly_fee").eq("id", user.id).single(),
-        supabase.schema(schema).from("children").select("name,birth_year,birth_month,special_needs").eq("user_id", user.id),
-      ]);
-      if (prof) setProfile(prof);
-      if (kids) setChildren(kids);
-    })();
-  }, []);
-
-  // Build child age string from birth_year/month
-  function childAgeMonths(child: ChildData): string | null {
-    if (!child.birth_year) return null;
-    const now = new Date();
-    const months = (now.getFullYear() - child.birth_year) * 12 + (now.getMonth() + 1) - (child.birth_month ?? 1);
-    if (months < 12) return `${months} Monate`;
-    const years = Math.floor(months / 12);
-    const rem = months % 12;
-    return rem > 0 ? `${years} Jahre ${rem} Monate` : `${years} Jahre`;
-  }
+    if (!isGenerating) return;
+    startTimeRef.current = Date.now();
+    const id = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [isGenerating]);
 
   async function generateLetter() {
     setIsGenerating(true);
-    setJustGenerated(false);
+    setIsDone(false);
+    setElapsed(0);
     setError("");
-    // Show toast via global context — persists even if this modal is closed
-    // expandKey = kitaKey so SearchClient can reopen the modal for the right kita
-    showProgress(`Anschreiben für ${kita.name}`, "Anschreiben fertig!", kitaKey);
     try {
-      // Build child info from first child in profile
-      const firstChild = children[0];
-      const childName = firstChild?.name ?? undefined;
-      const childAge = firstChild ? (childAgeMonths(firstChild) ?? undefined) : undefined;
-      const childNeeds = firstChild?.special_needs ?? undefined;
-
-      // Build parent note from profile preferences
-      const notes: string[] = [];
-      if (profile?.kita_needed_from) notes.push(`Betreuung ab: ${profile.kita_needed_from}`);
-      if (profile?.preferred_hours) notes.push(`Gewünschte Betreuungszeiten: ${profile.preferred_hours}`);
-      if (profile?.preferred_pedagogy) notes.push(`Pädagogik-Präferenz: ${profile.preferred_pedagogy}`);
-      if (profile?.max_monthly_fee) notes.push(`Max. Monatsbeitrag: ${profile.max_monthly_fee} €`);
-
       const res = await fetch("/api/ai/generate-letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kitaName: kita.name,
           kitaAddress: `${kita.address} ${kita.city}`.trim(),
-          childName,
-          childAge,
-          childNeeds,
-          parentNote: notes.length > 0 ? notes.join("; ") : undefined,
         }),
       });
       if (res.status === 401) {
@@ -124,16 +56,13 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
       const data: { letter?: string; error?: string } = await res.json();
       if (data.letter) {
         setCoverLetter(data.letter);
-        // Cache letter in context — survives modal close, restored on next open
-        storeLetterResult(kitaKey, data.letter);
-        setJustGenerated(true);
+        setEditMode(false);
       }
     } catch {
       setError("Fehler bei der KI-Generierung.");
     } finally {
       setIsGenerating(false);
-      // Marks toast complete in layout-level context — stays visible after modal close
-      markComplete();
+      setIsDone(true);
     }
   }
 
@@ -170,6 +99,14 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
     saveApplication("sent");
   }
 
+  const progressPct = Math.min((elapsed / 90) * 100, 95);
+  const statusText =
+    elapsed < 5
+      ? "KI analysiert und formuliert..."
+      : elapsed < 30
+        ? `Anschreiben wird verfasst - ${elapsed}s`
+        : `Detailliertes Anschreiben in Arbeit - ${elapsed}s`;
+
   return (
     <div
       className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 p-3 sm:p-6"
@@ -178,11 +115,39 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
       }}
     >
       <div className="relative flex h-full max-h-[95vh] w-full max-w-4xl flex-col rounded-2xl bg-card shadow-2xl">
-        {/* Done banner — visible while modal is open after generation */}
-        {justGenerated && !isGenerating && coverLetter && (
+
+        {/* Full-modal loading overlay */}
+        {isGenerating && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-8 rounded-2xl bg-card/97">
+            <div className="relative flex h-24 w-24 items-center justify-center">
+              <div className="absolute inset-0 animate-spin rounded-full border-4 border-border border-t-primary" />
+              <Sparkles className="h-10 w-10 text-primary" />
+            </div>
+            <div className="w-full max-w-sm space-y-4 px-8 text-center">
+              <p className="text-lg font-semibold text-foreground">KI erstellt Ihr Anschreiben</p>
+              <p className="text-sm text-muted-foreground">
+                Fuer <span className="font-medium text-foreground">{kita.name}</span>
+              </p>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-1000"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">{statusText}</p>
+            </div>
+            <p className="max-w-xs text-center text-xs text-muted-foreground">
+              Das Modell verfasst ein individuelles, professionelles Anschreiben.
+              Dies kann bis zu 2 Minuten dauern.
+            </p>
+          </div>
+        )}
+
+        {/* Done banner */}
+        {isDone && !isGenerating && coverLetter && (
           <div className="flex items-center gap-2 rounded-t-2xl bg-green-50 px-5 py-2.5 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
             <CheckCircle2 className="h-4 w-4 shrink-0" />
-            Anschreiben erfolgreich generiert – Sie können es unten bearbeiten.
+            Anschreiben erfolgreich generiert - Sie koennen es unten bearbeiten.
           </div>
         )}
 

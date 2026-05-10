@@ -50,25 +50,15 @@ export default defineConfig({
         // RecommendationsClient — complex fetch-driven component with many branches;
         // same pattern as KitaDetailModal (excluded)
         "src/components/recommendations/RecommendationsClient.tsx",
-        // AiProgressToast — timer-driven UI (setInterval, Date.now) with animated
-        // progress bar; no meaningful unit-test value in jsdom without fake timers;
-        // same pattern as RecommendationsClient (excluded)
-        "src/components/ui/AiProgressToast.tsx",
-        // AiProgressProvider — React context that wraps AiProgressToast;
-        // its logic is integration-level (context + refs + callbacks across components);
-        // excluded together with the toast it orchestrates
-        "src/components/providers/AiProgressProvider.tsx",
       ],
       thresholds: {
         statements: 75,
         branches: 70,
         lines: 75,
-        // functions threshold lowered from 65% → 60%:
-        // ProfileClient (45%) has 9 tabs with many small onChange arrow-functions
-        // SearchClient (48%) has many event handlers and complex conditional branches
-        // KitaCard (40%) has several rendering variants with minimal test surface
-        // These are all tested indirectly via integration-level component tests.
-        functions: 60,
+        // functions threshold lowered from 70% → 65%:
+        // ProfileClient now has 9 tabs each with many small onChange arrow-functions
+        // that have no meaningful unit-test value beyond what already passes.
+        functions: 65,
       },
     },
   },
