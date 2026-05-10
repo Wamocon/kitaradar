@@ -9,7 +9,7 @@
 - **Styling:** Tailwind CSS v4
 - **Backend/DB:** Supabase (PostgreSQL, Auth, RLS) — Schema `kitaradar-dev`
 - **Karte:** MapLibre GL (WebGL, echte 3D-Gebäude) + OpenFreeMap Vector Tiles
-- **KI:** OpenAI (Suchassistent, Bewerbungsgenerator, Empfehlungen)
+- **KI:** MAX AI (self-hosted LiteLLM-Gateway, OpenAI-kompatibler Client) mit dynamischem Multi-Model-Routing
 - **Payments:** Stripe (Free / Pro / Family Pläne)
 - **i18n:** next-intl (DE / EN)
 - **Deployment:** Vercel (via GitHub Actions CI/CD)
@@ -18,10 +18,10 @@
 
 | Bereich | Feature |
 |---|---|
-| **Suche** | Kartenbasierte Umkreissuche (OSM/Overpass), Radius-Auswahl 1–25 km, Träger-Filter |
+| **Suche** | Kartenbasierte Umkreissuche (OSM/Overpass), Radius-Auswahl 1–100 km (benutzerdefiniert), Adress-Autocomplete, Geolocation-Autoload, Träger-Filter |
 | **Karte** | MapLibre GL mit 3 Modi: Normal (Vektor), Satellit (ESRI), 3D-Gebäude (fill-extrusion) |
-| **KI-Suche** | Kontext-Filter per Freitext (OpenAI), KI-Empfehlungen nach Elternpräferenzen |
-| **Bewerbung** | KI-generiertes Anschreiben, Bewerbungs-Tracker (Dashboard) |
+| **KI-Suche** | Kontext-Filter per Freitext (MAX AI), parallele KI-Empfehlungen nach Elternpräferenzen |
+| **Bewerbung** | KI-generiertes Anschreiben (MAX AI, Hintergrundgenerierung mit AiProgressToast), formatierte Vorschau im ApplicationModal, Bewerbungs-Tracker (Dashboard) |
 | **Profil** | Erweitertes Elternprofil (Job, Familie, Sprachen, Budget, Betreuungsbedarf), 9-Tab Sidebar-Navigation (Desktop vertikal, Mobil horizontal), DSGVO-Einwilligung |
 | **Community** | Feed mit Eltern-Posts, Upvoting, Report |
 | **Admin** | Benutzer-Management, Statistiken (DB-Live-Daten), Enrichment-Cache-Verwaltung |
@@ -95,8 +95,13 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SUPABASE_DB_SCHEMA=kitaradar-dev
 
-# OpenAI
-OPENAI_API_KEY=sk-...
+# MAX AI (self-hosted LiteLLM-Gateway)
+MAX_AI_BASE_URL=http://your-max-instance:4000
+MAX_AI_API_KEY=your-key
+MAX_AI_MODEL_DEFAULT=qwen3.5:122b
+MAX_AI_MODEL_REASONING=qwen3.5:122b
+MAX_AI_MODEL_TOOLS=glm-4.7-flash
+MAX_AI_MODEL_VISION=gemma4:31b
 
 # Stripe
 STRIPE_SECRET_KEY=sk_...
@@ -113,7 +118,7 @@ NEXT_PUBLIC_APP_URL=https://kitaradar.de
 |---|---|
 | TypeScript (`tsc --noEmit`) | ✅ 0 Fehler |
 | ESLint | ✅ 0 Fehler, 0 Warnungen |
-| Vitest | ✅ 218/218 Tests, 24 Suiten |
+| Vitest | ✅ Tests, automatisch via CI |
 | Next.js Build | ✅ Fehlerfrei |
 
 Alle Checks werden bei jedem Push automatisch via GitHub Actions ausgeführt.
@@ -147,8 +152,13 @@ Fonts: `fonts.openmaptiles.org` (Open Sans, Noto Sans — kostenlos, kein Key)
 # Migrations-Dateien: supabase/migrations/
 ```
 
-Ausstehende Migration (muss manuell ausgeführt werden):
-- `20260509000005_extended_parent_profile.sql` — 17 neue Spalten für erweitertes Elternprofil
+Alle Migrationen wurden angewendet. Aktueller Stand:
+- `20260506000000_create_schemas.sql` — Schemas anlegen
+- `20260506000001_initial_schema.sql` — Basis-Schema
+- `20260506000002_notifications_and_additions.sql` — Benachrichtigungen
+- `20260507000003_roles_and_profile.sql` — Rollen und Profil
+- `20260509000004_kita_enrichment_cache.sql` — Kita-Cache
+- `20260509000005_extended_parent_profile.sql` — 17 neue Spalten für erweitertes Elternprofil (inkl. `birth_year`, `birth_month`, `special_needs` für Kinder)
 
 ## Documentation
 

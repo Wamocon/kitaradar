@@ -8,37 +8,6 @@ vi.mock("next-intl", () => ({
     params ? `${key}` : key,
 }));
 
-// Mock AiProgressProvider — ApplicationModal uses useAiProgress() hook
-vi.mock("@/components/providers/AiProgressProvider", () => ({
-  useAiProgress: () => ({
-    showProgress: vi.fn(),
-    markComplete: vi.fn(),
-    dismiss: vi.fn(),
-    getLetterResult: vi.fn().mockReturnValue(null),
-    storeLetterResult: vi.fn(),
-    registerExpand: vi.fn(),
-    getExpandKey: vi.fn().mockReturnValue(null),
-  }),
-}));
-
-// Mock Supabase client — ApplicationModal fetches profile data on mount
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
-    },
-    schema: () => ({
-      from: () => ({
-        select: () => ({
-          eq: () => ({
-            single: vi.fn().mockResolvedValue({ data: null }),
-          }),
-        }),
-      }),
-    }),
-  }),
-}));
-
 const baseKita: OverpassKita = {
   id: "osm-1",
   name: "Kita Regenbogen",
@@ -112,9 +81,9 @@ describe("ApplicationModal", () => {
     );
     render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
     fireEvent.click(screen.getByText("ai_generate"));
+    // After generation, editMode is set to false → formatted preview is shown instead of textarea
     await waitFor(() => {
-      const textarea = screen.getByPlaceholderText("cover_letter_placeholder") as HTMLTextAreaElement;
-      expect(textarea.value).toBe("KI-generiertes Anschreiben");
+      expect(screen.getByText("KI-generiertes Anschreiben")).toBeTruthy();
     });
   });
 
