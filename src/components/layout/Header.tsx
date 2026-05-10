@@ -11,15 +11,15 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-foreground">
+      <div className="flex h-14 w-full items-center px-4 sm:px-6">
+        {/* Logo — ganz links */}
+        <Link href="/" className="flex shrink-0 items-center gap-2 font-bold text-foreground">
           <KitaRadarLogo className="h-7 w-7" />
           <span>KitaRadar</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+        {/* Desktop nav — mittig */}
+        <nav className="hidden flex-1 items-center justify-center gap-6 text-sm font-medium md:flex">
           <Link href="/search" className="text-muted-foreground hover:text-foreground transition-colors">
             {t("search")}
           </Link>
@@ -37,8 +37,8 @@ export function Header() {
           </Link>
         </nav>
 
-        {/* Right side */}
-        <div className="flex items-center gap-3">
+        {/* Rechte Seite — ganz rechts */}
+        <div className="flex shrink-0 items-center gap-3">
           <LanguageSwitcher />
           <ThemeToggle />
           <UserNav />

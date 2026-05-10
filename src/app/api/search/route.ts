@@ -28,18 +28,18 @@ export async function POST(request: NextRequest) {
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("search_count, tier")
+      .select("search_count_month, subscription_tier")
       .eq("id", user.id)
       .single();
 
-    if (profile && profile.tier !== "pro") {
-      const count: number = profile.search_count ?? 0;
+    if (profile && profile.subscription_tier !== "pro") {
+      const count: number = profile.search_count_month ?? 0;
       if (count >= SEARCH_LIMIT_FREE) {
         return NextResponse.json({ error: "search_limit_reached", count }, { status: 429 });
       }
       await supabase
         .from("profiles")
-        .update({ search_count: count + 1 })
+        .update({ search_count_month: count + 1 })
         .eq("id", user.id);
     }
   }

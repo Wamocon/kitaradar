@@ -20,19 +20,43 @@ const BUILDINGS_LAYER = "3d-buildings";
 
 // ─── Kita pin colours ─────────────────────────────────────────────────────────
 const TYPE_COLORS: Record<string, string> = {
-  public:  "#2563eb",
-  church:  "#d97706",
-  private: "#7c3aed",
-  free:    "#059669",
+  public:  "#1d4ed8",
+  church:  "#b45309",
+  private: "#6d28d9",
+  free:    "#047857",
 };
 
-function kitaPin(color: string, selected: boolean): string {
-  const h = selected ? 46 : 38;
-  const w = selected ? 30 : 25;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 30 42" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 0C6.716 0 0 6.716 0 15c0 10.5 15 27 15 27S30 25.5 30 15C30 6.716 23.284 0 15 0z" fill="${color}" opacity="0.92"/>
-    <circle cx="15" cy="15" r="7" fill="white" opacity="0.9"/>
-    <path d="M15 8l-6 5.5h2V20h3.5v-3h1v3H19v-6.5h2L15 8z" fill="${color}"/>
+// Icon paths per type (inner symbol inside the pin)
+const TYPE_ICONS: Record<string, string> = {
+  // Public/kommunal: house with chimney
+  public:  "M15 7l-7 6.5h2V20h4v-4h2v4h4v-6.5h2L15 7z",
+  // Church/kirchlich: latin cross
+  church:  "M14 9h2v4h4v2h-4v4h-2v-4h-4v-2h4V9z",
+  // Private: building with windows (office/company)
+  private: "M9 9h12v10H9V9zm2 2v2h2v-2h-2zm4 0v2h2v-2h-2zm-4 4v2h2v-2h-2zm4 0v2h2v-2h-2z",
+  // Free/gemeinnützig: leaf
+  free:    "M15 8c0 0-6 2-6 8 0 3.3 2.7 6 6 6 1.6 0 3.1-.6 4.2-1.7C20.4 19.1 21 17.6 21 16c0-6-6-8-6-8zm0 3c0 0 4 1.3 4 5 0 2.2-1.8 4-4 4s-4-1.8-4-4c0-3.7 4-5 4-5z",
+};
+
+function kitaPin(type: string, color: string, selected: boolean): string {
+  const h = selected ? 50 : 42;
+  const w = selected ? 34 : 28;
+  const iconPath = TYPE_ICONS[type] ?? TYPE_ICONS.public;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 28 42" xmlns="http://www.w3.org/2000/svg">
+    <!-- Drop shadow filter -->
+    <defs>
+      <filter id="shadow" x="-40%" y="-20%" width="180%" height="180%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.45)"/>
+      </filter>
+    </defs>
+    <!-- White glow ring for visibility against 3D buildings -->
+    <path d="M14 0C6.268 0 0 6.268 0 14c0 9.8 14 28 14 28S28 23.8 28 14C28 6.268 21.732 0 14 0z" fill="white" filter="url(#shadow)"/>
+    <!-- Colored pin body -->
+    <path d="M14 1.5C7.1 1.5 1.5 7.1 1.5 14c0 9 12.5 25.5 12.5 25.5S26.5 23 26.5 14C26.5 7.1 20.9 1.5 14 1.5z" fill="${color}"/>
+    <!-- White icon background circle -->
+    <circle cx="14" cy="14" r="8" fill="white" opacity="0.95"/>
+    <!-- Type icon -->
+    <path d="${iconPath}" fill="${color}"/>
   </svg>`;
 }
 
@@ -64,8 +88,8 @@ async function preloadPinImages(map: maplibregl.Map) {
     variants.map(async ({ type, sel }) => {
       const id = `pin-${type}-${sel ? "sel" : "def"}`;
       if (map.hasImage(id)) return;
-      const color = TYPE_COLORS[type] ?? "#2563eb";
-      const img = await svgToImageData(kitaPin(color, sel), sel ? 30 : 25, sel ? 46 : 38);
+      const color = TYPE_COLORS[type] ?? "#1d4ed8";
+      const img = await svgToImageData(kitaPin(type, color, sel), sel ? 34 : 28, sel ? 50 : 42);
       if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 });
     })
   );
@@ -161,13 +185,17 @@ export function KitaMapGL({
     };
   }
 
-  // ─── 3D buildings toggle (identical to ladeKompass) ──────────────────────
+  // ─── 3D buildings toggle ─────────────────────────────────────────────────
   function toggle3D(map: maplibregl.Map, enable: boolean) {
     if (enable) {
       map.setPitch(50);
       map.setBearing(-15);
       if (!map.getLayer(BUILDINGS_LAYER)) {
         try {
+          // Add buildings layer BEFORE cluster/pin layers so pins stay on top
+          const firstSymbolLayer = map.getStyle().layers?.find(
+            (l) => l.type === "symbol" && l.id !== "cluster-count" && l.id !== "kita-pins"
+          )?.id;
           map.addLayer({
             id:     BUILDINGS_LAYER,
             source: "openmaptiles",
@@ -183,12 +211,17 @@ export function KitaMapGL({
               "fill-extrusion-base":    ["coalesce", ["get", "render_min_height"], ["get", "min_height"], 0],
               "fill-extrusion-opacity": 0.75,
             },
-          });
+          }, firstSymbolLayer);
+          // After adding buildings, push pin layers back to top
+          if (map.getLayer("kita-pins")) map.moveLayer("kita-pins");
+          if (map.getLayer("cluster-count")) map.moveLayer("cluster-count");
         } catch {
           // source-layer not in current style — skip silently
         }
       } else {
         map.setLayoutProperty(BUILDINGS_LAYER, "visibility", "visible");
+        if (map.getLayer("kita-pins")) map.moveLayer("kita-pins");
+        if (map.getLayer("cluster-count")) map.moveLayer("cluster-count");
       }
     } else {
       map.setPitch(0);
@@ -208,16 +241,52 @@ export function KitaMapGL({
     const rLat = radiusKm / 111.32;
     const rLng = radiusKm / (111.32 * Math.cos((center.lat * Math.PI) / 180));
 
-    const map = new maplibregl.Map({
-      container:   containerRef.current,
-      style:       STYLE_URLS[styleKey],
-      bounds:      [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
-      fitBoundsOptions: { padding: 60 },
-      // No transformRequest — OpenFreeMap styles embed their own working glyph server URLs.
-      // Redirecting to third-party font servers causes "Unimplemented type" PBF format errors.
-    });
+    // Fix map glyph 404s using transformRequest.
+    // OpenFreeMap styles request font stacks as comma-joined strings:
+    //   "Open Sans Regular,Arial Unicode MS Regular/0-255.pbf" → 404
+    // We intercept every glyph request, take only the FIRST font from the
+    // stack, remap it to a Noto Sans variant, and redirect to protomaps CDN.
+    const GLYPH_CDN = "https://protomaps.github.io/basemaps-assets/fonts";
+    function patchGlyphUrl(url: string): string {
+      // Glyph URLs look like: .../fonts/{fontstack}/{range}.pbf
+      const m = url.match(/\/fonts\/(.+?)\/(\d+-\d+\.pbf)$/);
+      if (!m) return url;
+      const firstFont = decodeURIComponent(m[1]).split(",")[0].trim();
+      const noto = firstFont.toLowerCase().includes("bold") ? "Noto Sans Bold" : "Noto Sans Regular";
+      return `${GLYPH_CDN}/${encodeURIComponent(noto)}/${m[2]}`;
+    }
 
-    mapRef.current = map;
+    async function buildStyle(url: string) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return url;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const style: any = await res.json();
+        return style;
+      } catch {
+        return url;
+      }
+    }
+
+    let destroyed = false;
+
+    buildStyle(STYLE_URLS[styleKey]).then((patchedStyle) => {
+      if (destroyed || !containerRef.current) return;
+
+      const map = new maplibregl.Map({
+        container:   containerRef.current,
+        style:       patchedStyle,
+        bounds:      [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
+        fitBoundsOptions: { padding: 60 },
+        transformRequest: (url, resourceType) => {
+          if (resourceType === "Glyphs") {
+            return { url: patchGlyphUrl(url) };
+          }
+          return { url };
+        },
+      });
+
+      mapRef.current = map;
 
     // Add zoom + compass controls
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
@@ -301,8 +370,18 @@ export function KitaMapGL({
         });
       }
 
-      // 3D buildings if terrain mode
+      // 3D buildings if terrain mode — add BEFORE moving pins to top
       if (tileType === "terrain") toggle3D(map, true);
+
+      // Ensure kita-pins and cluster layers are always on top of 3D buildings.
+      // MapLibre draws layers in stack order; we move them to the very end (top).
+      try {
+        if (map.getLayer("kita-pins")) map.moveLayer("kita-pins");
+        if (map.getLayer("cluster-count")) map.moveLayer("cluster-count");
+        if (map.getLayer("clusters")) map.moveLayer("clusters");
+      } catch {
+        // Ignore if layers not yet present (shouldn't happen here)
+      }
 
       // Click cluster → zoom in
       map.on("click", "clusters", (e) => {
@@ -343,6 +422,16 @@ export function KitaMapGL({
     return () => {
       map.remove();
       mapRef.current = null;
+      initialised.current = false;
+    };
+    }); // end buildStyle.then
+
+    return () => {
+      destroyed = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
       initialised.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
