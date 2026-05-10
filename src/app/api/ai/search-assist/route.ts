@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { openai, getModel } from "@/lib/openai";
+import { openai, createMaxCompletion, getModel } from "@/lib/openai";
 import { createClient } from "@/lib/supabase/server";
 import type { OverpassKita } from "@/lib/overpass";
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
   // Kita-Ranking ist strukturierte Auswahl → default-Modell ist ausreichend
   const model = getModel("default");
-  const completion = await openai.chat.completions.create({
+  const completion = await createMaxCompletion({
     model,
     messages: [
       {
@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
         content: `Meine Präferenzen: ${body.preferences}\n\nVerfügbare Kitas:\n${kitaList}`,
       },
     ],
-    max_tokens: 600,
     temperature: 0.5,
   });
 

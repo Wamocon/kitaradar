@@ -72,18 +72,50 @@ export async function searchKitasOverpass(
 out center tags;
   `.trim();
 
-  const res = await fetch("https://overpass-api.de/api/interpreter", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "KitaRadar/1.0 (kitaradar@wamocon.com)",
-      "Accept": "application/json",
-    },
-    body: `data=${encodeURIComponent(query)}`,
-  });
+  // Primary + mirror endpoints — first success wins
+  const ENDPOINTS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  ];
 
-  if (!res.ok) {
-    console.error(`[overpass] HTTP ${res.status} ${res.statusText}`);
+  const FETCH_TIMEOUT_MS = 20_000;
+
+  async function tryEndpoint(url: string): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "KitaRadar/1.0 (kitaradar@wamocon.com)",
+          "Accept": "application/json",
+        },
+        body: `data=${encodeURIComponent(query)}`,
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      throw err;
+    }
+  }
+
+  let res: Response | null = null;
+  for (const endpoint of ENDPOINTS) {
+    try {
+      const r = await tryEndpoint(endpoint);
+      if (r.ok) { res = r; break; }
+      console.warn(`[overpass] ${endpoint} → HTTP ${r.status}`);
+    } catch (err) {
+      console.warn(`[overpass] ${endpoint} → ${err instanceof Error ? err.message : "error"}`);
+    }
+  }
+
+  if (!res) {
+    console.error("[overpass] All endpoints failed");
     return [];
   }
 

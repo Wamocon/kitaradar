@@ -15,6 +15,7 @@ import {
   Heart,
   ChevronRight,
 } from "lucide-react";
+import { useAiProgress } from "@/components/providers/AiProgressProvider";
 
 interface Child {
   id: string;
@@ -93,6 +94,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
+  const { showProgress, markComplete } = useAiProgress();
 
   const hasPreferences =
     profile?.preferred_pedagogy ||
@@ -107,6 +109,8 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
     }
     setLoading(true);
     setError(null);
+    // Show global toast — persists when user navigates away from this page
+    showProgress("KI analysiert Kitas…", "Empfehlungen fertig!");
     try {
       const res = await fetch("/api/ai/recommendations", {
         method: "POST",
@@ -133,6 +137,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler");
     } finally {
+      markComplete();
       setLoading(false);
     }
   }
@@ -160,7 +165,8 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       {/* Configuration Panel */}
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="mb-4 text-sm font-semibold text-foreground">Empfehlungsparameter</h2>
@@ -269,6 +275,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               KI analysiert Kitas…
+              <span className="text-xs font-normal opacity-75">– läuft im Hintergrund</span>
             </>
           ) : (
             <>
@@ -375,5 +382,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
         </div>
       )}
     </div>
+
+    </>
   );
 }

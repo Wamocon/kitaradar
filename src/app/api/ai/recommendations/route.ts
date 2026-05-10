@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { openai, getModel } from "@/lib/openai";
+import { openai, createMaxCompletion, getModel, extractCoTResponse } from "@/lib/openai";
 import { searchKitasOverpass } from "@/lib/overpass";
 
 interface RequestBody {
@@ -30,20 +30,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 });
   }
 
-  // Check Pro subscription
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("subscription_tier")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.subscription_tier !== "pro") {
-    return NextResponse.json(
-      { error: "KI-Empfehlungen sind nur im Pro-Tarif verfügbar." },
-      { status: 403 }
-    );
-  }
-
   if (!openai) {
     return NextResponse.json(
       { error: "KI-Service nicht verfügbar. Bitte MAX_AI_BASE_URL konfigurieren." },
@@ -58,24 +44,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Suchort fehlt." }, { status: 400 });
   }
 
-  // Geocode city to lat/lng via Nominatim
-  let lat = 50.1109;
-  let lng = 8.6821; // Frankfurt fallback
-  try {
-    const geoRes = await fetch(
+  // Parallel: Profil prüfen + Stadt geocodieren
+  const [profileResult, geoResult] = await Promise.all([
+    supabase.from("profiles").select("subscription_tier").eq("id", user.id).single(),
+    fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`,
       { headers: { "User-Agent": "KitaRadar/1.0 kitaradar@wamocon.com" } }
+    )
+      .then((r) => r.json() as Promise<Array<{ lat: string; lon: string }>>)
+      .catch(() => [] as Array<{ lat: string; lon: string }>),
+  ]);
+
+  if (profileResult.data?.subscription_tier !== "pro") {
+    return NextResponse.json(
+      { error: "KI-Empfehlungen sind nur im Pro-Tarif verfügbar." },
+      { status: 403 }
     );
-    const geoData = await geoRes.json() as Array<{ lat: string; lon: string }>;
-    if (geoData[0]) {
-      lat = parseFloat(geoData[0].lat);
-      lng = parseFloat(geoData[0].lon);
-    }
-  } catch {
-    // Use fallback
   }
 
-  // Fetch nearby kitas from OSM
+  const lat = geoResult[0] ? parseFloat(geoResult[0].lat) : 50.1109;
+  const lng = geoResult[0] ? parseFloat(geoResult[0].lon) : 8.6821;
+
+  // Kitas aus OSM laden (größerer Radius, bis zu 50 Kitas für bessere KI-Auswahl)
   let kitas: Awaited<ReturnType<typeof searchKitasOverpass>> = [];
   try {
     kitas = await searchKitasOverpass(lat, lng, radius * 1000);
@@ -103,7 +93,7 @@ export async function POST(request: Request) {
   }
 
   const kitaList = kitas
-    .slice(0, 20)
+    .slice(0, 50)
     .map(
       (k, i) =>
         `${i + 1}. ${k.name} | Träger: ${k.kitaType} | Adresse: ${k.address ?? "unbekannt"} | Kapazität: ${k.capacity ?? "?"} | Öffnungszeiten: ${k.openingHours ?? "?"} | Konfession: ${k.religion ?? "keine"} | Barrierefrei: ${k.wheelchair ? "ja" : "nein"}`
@@ -138,14 +128,14 @@ Erstelle die TOP 5 passendsten Kitas als JSON-Array. Jedes Objekt hat exakt dies
 Antworte NUR mit dem JSON-Array, keine weiteren Texte.`;
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await createMaxCompletion({
       model: getModel("default"),
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.3,
-      max_tokens: 2000,
+      temperature: 0.2,
     });
 
-    const content = completion.choices[0]?.message?.content ?? "[]";
+    const rawContent = completion.choices[0]?.message?.content ?? "[]";
+    const content = extractCoTResponse(rawContent);
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     const recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
 

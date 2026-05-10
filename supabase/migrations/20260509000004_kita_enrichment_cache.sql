@@ -43,18 +43,23 @@ ALTER TABLE kita_enrichments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE kita_reviews ENABLE ROW LEVEL SECURITY;
 
 -- Enrichments: readable by all authenticated users, writable by server (service_role)
-CREATE POLICY "enrichments_read" ON kita_enrichments
-  FOR SELECT USING (true);
+DO $$ BEGIN
+  CREATE POLICY "enrichments_read" ON kita_enrichments FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Reviews: readable by all, write own only
-CREATE POLICY "reviews_read" ON kita_reviews
-  FOR SELECT USING (true);
+DO $$ BEGIN
+  CREATE POLICY "reviews_read" ON kita_reviews FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE POLICY "reviews_insert_own" ON kita_reviews
-  FOR INSERT WITH CHECK (profile_id = auth.uid());
+DO $$ BEGIN
+  CREATE POLICY "reviews_insert_own" ON kita_reviews FOR INSERT WITH CHECK (profile_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE POLICY "reviews_update_own" ON kita_reviews
-  FOR UPDATE USING (profile_id = auth.uid());
+DO $$ BEGIN
+  CREATE POLICY "reviews_update_own" ON kita_reviews FOR UPDATE USING (profile_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE POLICY "reviews_delete_own" ON kita_reviews
-  FOR DELETE USING (profile_id = auth.uid());
+DO $$ BEGIN
+  CREATE POLICY "reviews_delete_own" ON kita_reviews FOR DELETE USING (profile_id = auth.uid());
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;

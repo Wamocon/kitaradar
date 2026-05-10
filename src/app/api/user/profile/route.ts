@@ -59,7 +59,7 @@ export async function PATCH(request: NextRequest) {
   if (body.work_district !== undefined) update.work_district = body.work_district;
   if (body.work_hours_type !== undefined) update.work_hours_type = body.work_hours_type;
   if (body.work_start_time !== undefined) update.work_start_time = body.work_start_time;
-  if (body.work_end_time !== undefined) update.work_end_time = body.work_start_time;
+  if (body.work_end_time !== undefined) update.work_end_time = body.work_end_time;
   if (body.family_situation !== undefined) update.family_situation = body.family_situation;
   if (body.home_language !== undefined) update.home_language = body.home_language;
   if (body.additional_languages !== undefined) update.additional_languages = body.additional_languages;
