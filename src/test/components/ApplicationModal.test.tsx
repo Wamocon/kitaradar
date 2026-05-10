@@ -8,6 +8,24 @@ vi.mock("next-intl", () => ({
     params ? `${key}` : key,
 }));
 
+// Mock Supabase client — ApplicationModal fetches profile data on mount
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+    },
+    schema: () => ({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: vi.fn().mockResolvedValue({ data: null }),
+          }),
+        }),
+      }),
+    }),
+  }),
+}));
+
 const baseKita: OverpassKita = {
   id: "osm-1",
   name: "Kita Regenbogen",
