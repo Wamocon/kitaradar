@@ -33,25 +33,32 @@ export async function POST(request: NextRequest) {
     .filter(Boolean)
     .join(", ");
 
-  // Anschreiben erfordert gutes Sprachgefühl → reasoning-Modell
-  const model = getModel("reasoning");
+  // Anschreiben: default-Modell mit ausreichend Tokens
+  const model = getModel("default");
   const completion = await openai.chat.completions.create({
     model,
     messages: [
       {
         role: "system",
         content:
-          "Du schreibst professionelle, herzliche und individuelle Bewerbungsschreiben für Kita-Plätze. Das Schreiben soll 3-4 Absätze lang sein, die Familie kurz vorstellen, das Interesse an der spezifischen Einrichtung begründen und sich höflich bedanken. Antworte nur mit dem Anschreiben (ohne Betreff, ohne Datum). Antworte auf Deutsch.",
+          "Du schreibst professionelle, herzliche und individuelle Bewerbungsschreiben für Kita-Plätze. Das Schreiben soll 3-4 Absätze lang sein, die Familie kurz vorstellen, das Interesse an der spezifischen Einrichtung begründen und sich höflich bedanken. Antworte NUR mit dem fertigen Anschreiben (ohne Betreff, ohne Datum, ohne Erklärungen). Antworte auf Deutsch.",
       },
       {
         role: "user",
         content: `Kita: ${body.kitaName}${body.kitaAddress ? ` (${body.kitaAddress})` : ""}\n${childInfo ? `Kind: ${childInfo}` : ""}\n${body.parentNote ? `Zusätzliche Infos der Eltern: ${body.parentNote}` : ""}`,
       },
     ],
-    max_tokens: 600,
+    max_tokens: 1200,
     temperature: 0.7,
   });
 
-  const letter = completion.choices[0]?.message?.content ?? "";
+  // Thinking-Blöcke von CoT-Modellen entfernen (<think>...</think>)
+  const rawContent = completion.choices[0]?.message?.content ?? "";
+  const letter = rawContent.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+
+  if (!letter) {
+    return NextResponse.json({ error: "ai_empty_response" }, { status: 500 });
+  }
+
   return NextResponse.json({ letter });
 }

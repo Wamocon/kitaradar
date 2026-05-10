@@ -145,7 +145,9 @@ Antworte NUR mit dem JSON-Array, keine weiteren Texte.`;
       max_tokens: 2000,
     });
 
-    const content = completion.choices[0]?.message?.content ?? "[]";
+    const rawContent = completion.choices[0]?.message?.content ?? "[]";
+    // Thinking-Blöcke von CoT-Modellen entfernen (<think>...</think>)
+    const content = rawContent.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     const recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
 

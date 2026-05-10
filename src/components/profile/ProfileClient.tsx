@@ -151,6 +151,8 @@ export function ProfileClient({
   const [newChildSpecialNeeds, setNewChildSpecialNeeds] = useState("");
   // UI state
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddingChild, setIsAddingChild] = useState(false);
+  const [childError, setChildError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -239,23 +241,33 @@ export function ProfileClient({
 
   async function addChild() {
     if (!newChildName.trim()) return;
-    const res = await fetch("/api/user/children", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: newChildName,
-        birth_year: newChildBirthYear ? Number(newChildBirthYear) : null,
-        birth_month: newChildBirthMonth ? Number(newChildBirthMonth) : null,
-        special_needs: newChildSpecialNeeds || null,
-      }),
-    });
-    const data: { child?: Child } = await res.json();
-    if (data.child) {
-      setChildren((prev) => [...prev, data.child!]);
-      setNewChildName("");
-      setNewChildBirthYear("");
-      setNewChildBirthMonth("");
-      setNewChildSpecialNeeds("");
+    setIsAddingChild(true);
+    setChildError(null);
+    try {
+      const res = await fetch("/api/user/children", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newChildName,
+          birth_year: newChildBirthYear ? Number(newChildBirthYear) : null,
+          birth_month: newChildBirthMonth ? Number(newChildBirthMonth) : null,
+          special_needs: newChildSpecialNeeds || null,
+        }),
+      });
+      const data: { child?: Child; error?: string } = await res.json();
+      if (data.child) {
+        setChildren((prev) => [...prev, data.child!]);
+        setNewChildName("");
+        setNewChildBirthYear("");
+        setNewChildBirthMonth("");
+        setNewChildSpecialNeeds("");
+      } else {
+        setChildError(data.error ?? t("save_error"));
+      }
+    } catch {
+      setChildError(t("save_error"));
+    } finally {
+      setIsAddingChild(false);
     }
   }
 
@@ -729,32 +741,44 @@ export function ProfileClient({
 
             <div className="mt-3 space-y-2 rounded-lg border border-dashed border-border p-3">
               <p className="text-xs font-medium text-muted-foreground">{t("children.new_child")}</p>
-              <div className="flex flex-wrap gap-2">
-                <input
-                  type="text"
-                  value={newChildName}
-                  onChange={(e) => setNewChildName(e.target.value)}
-                  placeholder={t("children.child_name_placeholder")}
-                  className="min-w-32 flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="number"
-                  value={newChildBirthMonth}
-                  onChange={(e) => setNewChildBirthMonth(e.target.value)}
-                  placeholder={t("children.birth_month")}
-                  min={1}
-                  max={12}
-                  className="w-20 rounded-lg border border-border bg-background px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="number"
-                  value={newChildBirthYear}
-                  onChange={(e) => setNewChildBirthYear(e.target.value)}
-                  placeholder={t("children.birth_year")}
-                  min={2018}
-                  max={new Date().getFullYear() + 1}
-                  className="w-24 rounded-lg border border-border bg-background px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
-                />
+              {childError && (
+                <p className="rounded-md bg-red-50 dark:bg-red-900/20 px-3 py-2 text-xs text-red-700 dark:text-red-400">{childError}</p>
+              )}
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-end">
+                <div>
+                  <label className="mb-1 block text-xs text-muted-foreground">{t("children.child_name_placeholder")}</label>
+                  <input
+                    type="text"
+                    value={newChildName}
+                    onChange={(e) => setNewChildName(e.target.value)}
+                    placeholder={t("children.child_name_placeholder")}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div className="w-20">
+                  <label className="mb-1 block text-xs text-muted-foreground">{t("children.birth_month")}</label>
+                  <input
+                    type="number"
+                    value={newChildBirthMonth}
+                    onChange={(e) => setNewChildBirthMonth(e.target.value)}
+                    placeholder="MM"
+                    min={1}
+                    max={12}
+                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                  />
+                </div>
+                <div className="w-24">
+                  <label className="mb-1 block text-xs text-muted-foreground">{t("children.birth_year")}</label>
+                  <input
+                    type="number"
+                    value={newChildBirthYear}
+                    onChange={(e) => setNewChildBirthYear(e.target.value)}
+                    placeholder="JJJJ"
+                    min={2018}
+                    max={new Date().getFullYear() + 1}
+                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-sm focus:border-primary focus:outline-none"
+                  />
+                </div>
               </div>
               <input
                 type="text"
@@ -765,9 +789,11 @@ export function ProfileClient({
               />
               <button
                 onClick={addChild}
-                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                disabled={isAddingChild}
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition-colors"
               >
-                <Plus className="h-4 w-4" /> {t("children.add_btn")}
+                {isAddingChild ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                {t("children.add_btn")}
               </button>
             </div>
           </div>
