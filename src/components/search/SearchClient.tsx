@@ -46,6 +46,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [isDark, setIsDark] = useState(false);
   const [tileType, setTileType] = useState<"normal" | "satellite" | "terrain">("terrain");
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const geoSearchedRef = useRef(false);
 
   // Detect dark mode
@@ -70,10 +71,12 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         body: JSON.stringify({ address: addressLabel, lat, lng, radius: searchRadius, kitaType }),
       });
       if (res.status === 429) { setError(t("free_limit_warning")); return; }
+      if (!res.ok) { setError(t("error_generic")); return; }
       const data: { kitas?: OverpassKita[]; center?: { lat: number; lng: number }; total?: number; error?: string } = await res.json();
       setKitas(data.kitas ?? []);
       setTotal(data.total ?? data.kitas?.length ?? null);
       if (data.center) setCenter(data.center);
+      setHasSearched(true);
     } catch {
       setError(t("error_generic"));
     } finally {
@@ -138,6 +141,10 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         setError(t("free_limit_warning"));
         return;
       }
+      if (!res.ok) {
+        setError(t("error_generic"));
+        return;
+      }
       const data: { kitas?: OverpassKita[]; center?: { lat: number; lng: number }; total?: number; error?: string } =
         await res.json();
       if (data.error === "geocode_failed") {
@@ -147,6 +154,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       setKitas(data.kitas ?? []);
       setTotal(data.total ?? data.kitas?.length ?? null);
       if (data.center) setCenter(data.center);
+      setHasSearched(true);
     } catch {
       setError(t("error_generic"));
     } finally {
@@ -185,6 +193,8 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
               }}
               onSelect={(result: AutocompleteResult) => {
                 setSelectedCoords({ lat: result.lat, lng: result.lng });
+                // Auto-trigger search when user picks from autocomplete
+                void searchWithCoords(result.lat, result.lng, result.shortName);
               }}
             />
 
@@ -314,7 +324,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
 
         {/* ── Schwebender Kita-Listen-Popup (oben links) ── */}
         <div
-          className={`absolute top-3 left-3 z-[1000] flex flex-col rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md transition-all duration-300 ${
+          className={`absolute top-3 left-3 z-1000 flex flex-col rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md transition-all duration-300 ${
             panelOpen
               ? "max-h-[calc(100vh-10rem)] w-80 overflow-hidden"
               : "overflow-hidden"
@@ -388,6 +398,11 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                     <Search className="h-8 w-8 opacity-30" />
                     {isGeoLoading ? (
                       <p>Standort wird ermittelt…</p>
+                    ) : hasSearched ? (
+                      <>
+                        <p className="font-medium">Keine Einrichtungen gefunden</p>
+                        <p className="text-xs">Radius vergrößern oder anderen Ort suchen.</p>
+                      </>
                     ) : (
                       <p>Adresse eingeben und Suche starten.</p>
                     )}
@@ -410,7 +425,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
 
         {/* ── Kartentyp-Wizard (unten rechts, zuklappbar) ── */}
-        <div className="absolute bottom-8 right-2 z-[900] flex flex-col items-end gap-1.5">
+        <div className="absolute bottom-8 right-2 z-900 flex flex-col items-end gap-1.5">
           {wizardOpen && (
             <div className="overflow-hidden rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md">
               {(
