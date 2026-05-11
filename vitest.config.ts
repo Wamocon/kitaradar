@@ -56,6 +56,9 @@ export default defineConfig({
         // AiProgressToast — pure UI toast driven by AiProgressProvider context;
         // no testable logic beyond rendering, excluded like AiProgressProvider
         "src/components/ui/AiProgressToast.tsx",
+        // GlobalModalsPanel — root-level panel that renders modals/toasts driven
+        // by AiProgressProvider; pure UI + timer effects, no testable logic
+        "src/components/providers/GlobalModalsPanel.tsx",
       ],
       thresholds: {
         statements: 75,
