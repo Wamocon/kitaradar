@@ -479,7 +479,13 @@
     "save_draft": "Save draft",
     "status_sent": "Application saved as sent.",
     "no_email": "No email address known for this Kita. Please contact the facility directly.",
-    "error": "Error saving application."
+    "error": "Error saving application.",
+    "saved_sent_title": "Application submitted!",
+    "saved_sent_desc": "Your application has been saved as \"Submitted\". You can update the status at any time in your applications overview.",
+    "saved_draft_title": "Draft saved!",
+    "saved_draft_desc": "Your draft has been saved. Open the applications overview to complete and send it.",
+    "to_applications": "Go to applications →",
+    "close_modal": "Close"
   },
   "notifications": {
     "title": "Notifications",
