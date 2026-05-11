@@ -6,6 +6,7 @@ import type { OverpassKita } from "@/lib/overpass";
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string, params?: Record<string, unknown>) =>
     params ? `${key}` : key,
+  useLocale: () => "de",
 }));
 
 const baseKita: OverpassKita = {
@@ -129,7 +130,7 @@ describe("ApplicationModal", () => {
     render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
     fireEvent.click(screen.getByText("save_draft"));
     await waitFor(() => {
-      expect(screen.getByText("status_sent")).toBeTruthy();
+      expect(screen.getByText("saved_draft_title")).toBeTruthy();
     });
   });
 

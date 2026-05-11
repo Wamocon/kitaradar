@@ -60,6 +60,11 @@ interface CacheEntry { data: OverpassKita[]; expires: number; }
 const OVERPASS_CACHE = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
+/** Clears the Overpass in-memory cache. Intended for use in tests only. */
+export function clearOverpassCache(): void {
+  OVERPASS_CACHE.clear();
+}
+
 /** Query Overpass API for kindergartens / childcare within a radius */
 export async function searchKitasOverpass(
   lat: number,

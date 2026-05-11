@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { geocodeAddress, searchKitasOverpass } from "@/lib/overpass";
+import { geocodeAddress, searchKitasOverpass, clearOverpassCache } from "@/lib/overpass";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const BERLIN = { lat: 52.52, lng: 13.405 };
@@ -62,8 +62,7 @@ describe("geocodeAddress", () => {
 // ─── searchKitasOverpass ──────────────────────────────────────────────────────
 describe("searchKitasOverpass", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+    vi.unstubAllGlobals();    clearOverpassCache();  });
 
   it("returns an empty array when the HTTP request fails", async () => {
     vi.stubGlobal("fetch", mockFetch(503, {}));

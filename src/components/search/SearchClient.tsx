@@ -23,7 +23,7 @@ const KitaMapGL = dynamic(() => import("./KitaMapGL").then((m) => ({ default: m.
 
 const KITA_TYPES = ["all", "public", "church", "private", "free"] as const;
 
-export function SearchClient({ isLoggedIn, initialAddress }: { isLoggedIn: boolean; initialAddress?: string }) {
+export function SearchClient({ isLoggedIn, initialAddress, initialPinpoint }: { isLoggedIn: boolean; initialAddress?: string; initialPinpoint?: boolean }) {
   const t = useTranslations("search");
   const [address, setAddress] = useState(initialAddress ?? "");
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -99,8 +99,9 @@ export function SearchClient({ isLoggedIn, initialAddress }: { isLoggedIn: boole
 
     // Priority 1: address passed from recommendations (e.g. /search?address=...)
     if (initialAddress) {
-      setRadius(5);
-      void searchWithCoords(0, 0, initialAddress, 5);
+      const r = initialPinpoint ? 0.05 : 5;
+      setRadius(r);
+      void searchWithCoords(0, 0, initialAddress, r);
       return;
     }
 
@@ -328,6 +329,7 @@ export function SearchClient({ isLoggedIn, initialAddress }: { isLoggedIn: boole
             userPos={userPos}
             isDark={isDark}
             tileType={tileType}
+            showRadius={!initialPinpoint}
             onSelect={(kita) => { setSelectedKita(kita); setDetailKita(kita); }}
           />
         ) : (

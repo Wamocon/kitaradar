@@ -193,6 +193,8 @@ export interface KitaMapGLProps {
   userPos?: [number, number] | null;
   isDark?: boolean;
   tileType?: "normal" | "satellite" | "terrain";
+  /** Hide the radius circle and zoom directly to the kita (pinpoint mode) */
+  showRadius?: boolean;
   onSelect: (kita: OverpassKita) => void;
 }
 
@@ -209,6 +211,7 @@ export function KitaMapGL({
   userPos,
   isDark = false,
   tileType = "normal",
+  showRadius = true,
   onSelect,
 }: KitaMapGLProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -521,18 +524,31 @@ export function KitaMapGL({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const rLat = radiusKm / 111.32;
-    const rLng = radiusKm / (111.32 * Math.cos((center.lat * Math.PI) / 180));
-    // Preserve current pitch/bearing so 3D mode is not reset on every new search
-    map.fitBounds(
-      [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
-      { padding: 60, duration: 900, pitch: map.getPitch(), bearing: map.getBearing() }
-    );
-    // Update radius circle
-    if (map.getSource("radius")) {
-      (map.getSource("radius") as maplibregl.GeoJSONSource).setData(buildRadiusGeoJSON(center.lat, center.lng, radiusKm));
+
+    if (!showRadius) {
+      // Pinpoint mode: fly directly to the kita at street level
+      map.flyTo({
+        center: [center.lng, center.lat],
+        zoom: 17,
+        pitch: 0,
+        bearing: 0,
+        duration: 900,
+      });
+    } else {
+      const rLat = radiusKm / 111.32;
+      const rLng = radiusKm / (111.32 * Math.cos((center.lat * Math.PI) / 180));
+      map.fitBounds(
+        [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
+        { padding: 60, duration: 900, pitch: map.getPitch(), bearing: map.getBearing() }
+      );
     }
-  }, [center.lat, center.lng, radiusKm]);
+    // Update radius circle visibility + data
+    if (map.getSource("radius")) {
+      (map.getSource("radius") as maplibregl.GeoJSONSource).setData(
+        showRadius ? buildRadiusGeoJSON(center.lat, center.lng, radiusKm) : { type: "FeatureCollection", features: [] }
+      );
+    }
+  }, [center.lat, center.lng, radiusKm, showRadius]);
 
   // ─── User location marker ─────────────────────────────────────────────────
   useEffect(() => {
