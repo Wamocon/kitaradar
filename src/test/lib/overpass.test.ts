@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { geocodeAddress, searchKitasOverpass } from "@/lib/overpass";
+import { geocodeAddress, searchKitasOverpass, clearOverpassCache } from "@/lib/overpass";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const BERLIN = { lat: 52.52, lng: 13.405 };
@@ -62,8 +62,7 @@ describe("geocodeAddress", () => {
 // ─── searchKitasOverpass ──────────────────────────────────────────────────────
 describe("searchKitasOverpass", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+    vi.unstubAllGlobals();    clearOverpassCache();  });
 
   it("returns an empty array when the HTTP request fails", async () => {
     vi.stubGlobal("fetch", mockFetch(503, {}));
@@ -281,5 +280,56 @@ describe("searchKitasOverpass", () => {
     await searchKitasOverpass(BERLIN.lat, BERLIN.lng, 7500);
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
     expect(init.body).toContain("7500");
+  });
+
+  // ── tryEndpoint catch block (lines 101-102): fetch throws network error ───
+
+  it("returns empty array when fetch throws (network-level failure)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
+    const result = await searchKitasOverpass(BERLIN.lat, BERLIN.lng, 5000);
+    expect(result).toEqual([]);
+  });
+
+  // ── capacity, minAge, maxAge, wheelchair tag coverage (lines 167, 171-173) ─
+
+  it("parses numeric capacity, minAge, maxAge and wheelchair=yes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      mockFetch(200, {
+        elements: [
+          {
+            type: "node",
+            id: 99,
+            lat: 52.52,
+            lon: 13.41,
+            tags: {
+              name: "Kita Tags",
+              capacity: "30",
+              min_age: "1.5",
+              max_age: "6",
+              wheelchair: "yes",
+            },
+          },
+        ],
+      })
+    );
+    const result = await searchKitasOverpass(BERLIN.lat, BERLIN.lng, 5000);
+    expect(result[0].capacity).toBe(30);
+    expect(result[0].minAge).toBe(1.5);
+    expect(result[0].maxAge).toBe(6);
+    expect(result[0].wheelchair).toBe(true);
+  });
+
+  it("returns wheelchair=false for wheelchair=no tag", async () => {
+    vi.stubGlobal(
+      "fetch",
+      mockFetch(200, {
+        elements: [
+          { type: "node", id: 100, lat: 52.52, lon: 13.41, tags: { wheelchair: "no" } },
+        ],
+      })
+    );
+    const result = await searchKitasOverpass(BERLIN.lat, BERLIN.lng, 5000);
+    expect(result[0].wheelchair).toBe(false);
   });
 });

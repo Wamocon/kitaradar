@@ -66,6 +66,17 @@ describe("PostCard", () => {
     await waitFor(() => {
       expect(upvoteBtn).toBeDisabled();
     });
+    // Second click with upvoted=true covers the early-return guard branch
+    fireEvent.click(upvoteBtn);
+  });
+
+  it("does not re-report after already reporting (early-return guard branch)", async () => {
+    render(<PostCard post={basePost} />);
+    const reportBtn = screen.getByText("report").closest("button")!;
+    fireEvent.click(reportBtn);
+    await waitFor(() => screen.getByText("reported"));
+    // Second click covers the if(reported) return branch
+    fireEvent.click(reportBtn);
   });
 
   it("changes report label to 'Gemeldet' after clicking", async () => {
@@ -137,5 +148,65 @@ describe("NewPostForm", () => {
     render(<NewPostForm onPosted={vi.fn()} />);
     fireEvent.click(screen.getByText("post_submit"));
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("shows error when fetch rejects (network error)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    render(<NewPostForm onPosted={vi.fn()} />);
+    fireEvent.change(screen.getByPlaceholderText("new_post"), { target: { value: "T" } });
+    fireEvent.change(screen.getByPlaceholderText("post_placeholder"), { target: { value: "C" } });
+    fireEvent.click(screen.getByText("post_submit"));
+    await waitFor(() => {
+      expect(screen.getByText("pro_required")).toBeTruthy();
+    });
+  });
+
+  it("shows error on non-ok response (non-403)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500, json: async () => ({}) }));
+    render(<NewPostForm onPosted={vi.fn()} />);
+    fireEvent.change(screen.getByPlaceholderText("new_post"), { target: { value: "T" } });
+    fireEvent.change(screen.getByPlaceholderText("post_placeholder"), { target: { value: "C" } });
+    fireEvent.click(screen.getByText("post_submit"));
+    await waitFor(() => {
+      expect(screen.getByText("pro_required")).toBeTruthy();
+    });
+  });
+
+  it("updates tag select", () => {
+    render(<NewPostForm onPosted={vi.fn()} />);
+    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: "experience" } });
+    expect(select.value).toBe("experience");
+  });
+});
+
+describe("PostCard — edge cases", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
+  });
+
+  it("does not send upvote request when already upvoted", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    vi.stubGlobal("fetch", fetchSpy);
+    render(<PostCard post={basePost} />);
+    fireEvent.click(screen.getByText("3")); // first click
+    await waitFor(() => expect(screen.getByText("4")).toBeTruthy());
+    fireEvent.click(screen.getByText("4")); // second click — should be ignored (disabled)
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+  });
+
+  it("does not send report request when already reported", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    vi.stubGlobal("fetch", fetchSpy);
+    render(<PostCard post={basePost} />);
+    fireEvent.click(screen.getByText("report"));
+    await waitFor(() => screen.getByText("reported"));
+    fireEvent.click(screen.getByText("reported")); // second click — should be ignored
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+  });
+
+  it("renders unknown tag as raw tag value", () => {
+    render(<PostCard post={{ ...basePost, tag: "unknown_custom_tag" }} />);
+    expect(screen.getByText("unknown_custom_tag")).toBeTruthy();
   });
 });

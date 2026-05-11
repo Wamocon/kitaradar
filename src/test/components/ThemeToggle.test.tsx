@@ -1,23 +1,35 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
-// vi.hoisted ensures mockSetTheme is available when vi.mock factory runs
-const { mockSetTheme } = vi.hoisted(() => ({ mockSetTheme: vi.fn() }));
+// Single hoisted mock — resolvedTheme controlled via a mutable variable
+const mockSetTheme = vi.fn();
+let mockResolvedTheme = "light";
 
 vi.mock("next-themes", () => ({
-  useTheme: () => ({ setTheme: mockSetTheme, resolvedTheme: "light", theme: "light", themes: [], systemTheme: "light", forcedTheme: undefined }),
+  useTheme: () => ({
+    setTheme: mockSetTheme,
+    resolvedTheme: mockResolvedTheme,
+    theme: mockResolvedTheme,
+    themes: [],
+    systemTheme: mockResolvedTheme,
+    forcedTheme: undefined,
+  }),
 }));
 
-describe("ThemeToggle", () => {
+describe("ThemeToggle (light mode)", () => {
+  beforeEach(() => {
+    mockResolvedTheme = "light";
+    mockSetTheme.mockClear();
+  });
+
   it("renders a button with aria-label", () => {
     render(<ThemeToggle />);
     expect(screen.getByRole("button", { name: /toggle theme/i })).toBeTruthy();
   });
 
-  it("shows Moon icon in light mode", () => {
+  it("shows SVG icon in light mode", () => {
     const { container } = render(<ThemeToggle />);
-    // lucide Moon renders an SVG; the button has aria-label so we check SVG presence
     expect(container.querySelector("svg")).toBeTruthy();
   });
 
@@ -27,9 +39,31 @@ describe("ThemeToggle", () => {
     expect(mockSetTheme).toHaveBeenCalledWith("dark");
   });
 
-  it("renders correctly (smoke test for dark-mode path)", () => {
-    // The single mock always returns light mode; just verify the component renders
+  it("renders correctly (smoke test)", () => {
     const { container } = render(<ThemeToggle />);
     expect(container.querySelector("button")).toBeTruthy();
   });
 });
+
+describe("ThemeToggle (dark mode)", () => {
+  beforeEach(() => {
+    mockResolvedTheme = "dark";
+    mockSetTheme.mockClear();
+  });
+
+  afterEach(() => {
+    mockResolvedTheme = "light";
+  });
+
+  it("calls setTheme('light') when clicked in dark mode", () => {
+    render(<ThemeToggle />);
+    fireEvent.click(screen.getByRole("button", { name: /toggle theme/i }));
+    expect(mockSetTheme).toHaveBeenCalledWith("light");
+  });
+
+  it("shows SVG icon in dark mode", () => {
+    const { container } = render(<ThemeToggle />);
+    expect(container.querySelector("svg")).toBeTruthy();
+  });
+});
+

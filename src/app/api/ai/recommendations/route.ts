@@ -122,7 +122,8 @@ Erstelle die TOP 5 passendsten Kitas als JSON-Array. Jedes Objekt hat exakt dies
   "matchScore": 0-100,
   "reasons": ["Grund 1", "Grund 2", "Grund 3"],
   "strengths": ["Stärke 1", "Stärke 2"],
-  "considerations": ["Hinweis falls relevant"]
+  "considerations": ["Hinweis falls relevant"],
+  "detailedReport": "Ausführlicher Bericht (4-6 Sätze): Warum passt diese Kita optimal zum Kind und zur Familie? Gehe auf Träger, Öffnungszeiten, Pädagogik, Kapazität und spezifische Passung zur Familiensituation ein. Sei konkret und nenne reale Daten aus der Kita-Liste."
 }
 
 Antworte NUR mit dem JSON-Array, keine weiteren Texte.`;

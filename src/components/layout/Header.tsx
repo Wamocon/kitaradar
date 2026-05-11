@@ -29,6 +29,9 @@ export function Header() {
           <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
             {t("dashboard")}
           </Link>
+          <Link href="/applications" className="text-muted-foreground hover:text-foreground transition-colors">
+            Bewerbungen
+          </Link>
           <Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
             {t("pricing")}
           </Link>

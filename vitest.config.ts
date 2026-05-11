@@ -56,16 +56,15 @@ export default defineConfig({
         // AiProgressToast — pure UI toast driven by AiProgressProvider context;
         // no testable logic beyond rendering, excluded like AiProgressProvider
         "src/components/ui/AiProgressToast.tsx",
+        // GlobalModalsPanel — root-level panel that renders modals/toasts driven
+        // by AiProgressProvider; pure UI + timer effects, no testable logic
+        "src/components/providers/GlobalModalsPanel.tsx",
       ],
       thresholds: {
-        statements: 75,
-        branches: 70,
-        lines: 75,
-        // functions threshold lowered from 70% → 65% → 63%:
-        // ProfileClient has 9 tabs with many small onChange arrow-functions,
-        // and openai.ts wraps external MAX AI / LiteLLM functions
-        // that cannot be unit-tested without a live gateway.
-        functions: 63,
+        statements: 85,
+        branches: 85,
+        lines: 85,
+        functions: 85,
       },
     },
   },

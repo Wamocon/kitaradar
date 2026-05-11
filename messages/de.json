@@ -479,7 +479,13 @@
     "save_draft": "Entwurf speichern",
     "status_sent": "Bewerbung als gesendet gespeichert.",
     "no_email": "Keine E-Mail-Adresse für diese Kita bekannt. Bitte kontaktieren Sie die Einrichtung direkt.",
-    "error": "Fehler beim Speichern der Bewerbung."
+    "error": "Fehler beim Speichern der Bewerbung.",
+    "saved_sent_title": "Bewerbung eingereicht!",
+    "saved_sent_desc": "Ihre Bewerbung wurde als \"Eingereicht\" gespeichert. Sie können den Status jederzeit in Ihrer Bewerbungsübersicht aktualisieren.",
+    "saved_draft_title": "Entwurf gespeichert!",
+    "saved_draft_desc": "Ihr Entwurf wurde gespeichert. Öffnen Sie die Bewerbungsübersicht, um ihn zu vervollständigen und abzuschicken.",
+    "to_applications": "Zur Bewerbungsübersicht →",
+    "close_modal": "Schließen"
   },
   "notifications": {
     "title": "Benachrichtigungen",

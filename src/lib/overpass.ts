@@ -55,14 +55,29 @@ export async function geocodeAddress(
   return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
 }
 
+// ─── In-memory cache for Overpass results (TTL: 5 minutes) ─────────────────
+interface CacheEntry { data: OverpassKita[]; expires: number; }
+const OVERPASS_CACHE = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+/** Clears the Overpass in-memory cache. Intended for use in tests only. */
+export function clearOverpassCache(): void {
+  OVERPASS_CACHE.clear();
+}
+
 /** Query Overpass API for kindergartens / childcare within a radius */
 export async function searchKitasOverpass(
   lat: number,
   lng: number,
   radiusMeters: number
 ): Promise<OverpassKita[]> {
+  // Round to ~100m precision to maximise cache hits
+  const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)},${radiusMeters}`;
+  const cached = OVERPASS_CACHE.get(cacheKey);
+  if (cached && cached.expires > Date.now()) return cached.data;
+
   const query = `
-[out:json][timeout:25];
+[out:json][timeout:15][maxsize:50000000];
 (
   node["amenity"="kindergarten"](around:${radiusMeters},${lat},${lng});
   way["amenity"="kindergarten"](around:${radiusMeters},${lat},${lng});
@@ -72,14 +87,14 @@ export async function searchKitasOverpass(
 out center tags;
   `.trim();
 
-  // Primary + mirror endpoints — first success wins
+  // All endpoints fired in parallel — first success wins
   const ENDPOINTS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
   ];
 
-  const FETCH_TIMEOUT_MS = 20_000;
+  const FETCH_TIMEOUT_MS = 15_000;
 
   async function tryEndpoint(url: string): Promise<Response> {
     const controller = new AbortController();
@@ -96,6 +111,7 @@ out center tags;
         signal: controller.signal,
       });
       clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res;
     } catch (err) {
       clearTimeout(timer);
@@ -103,25 +119,16 @@ out center tags;
     }
   }
 
-  let res: Response | null = null;
-  for (const endpoint of ENDPOINTS) {
-    try {
-      const r = await tryEndpoint(endpoint);
-      if (r.ok) { res = r; break; }
-      console.warn(`[overpass] ${endpoint} → HTTP ${r.status}`);
-    } catch (err) {
-      console.warn(`[overpass] ${endpoint} → ${err instanceof Error ? err.message : "error"}`);
-    }
-  }
+  const res = await Promise.any(ENDPOINTS.map(tryEndpoint)).catch((err: unknown) => {
+    console.error("[overpass] All endpoints failed", err);
+    return null;
+  });
 
-  if (!res) {
-    console.error("[overpass] All endpoints failed");
-    return [];
-  }
+  if (!res) return [];
 
   const data: { elements: OverpassElement[] } = await res.json();
 
-  return data.elements
+  const results = data.elements
     .filter((el) => el.lat !== undefined || el.center !== undefined)
     .map((el): OverpassKita => {
       const elLat = el.lat ?? el.center!.lat;
@@ -174,6 +181,10 @@ out center tags;
         fax: tags["contact:fax"] ?? tags["fax"] ?? null,
       };
     });
+
+  // Populate cache
+  OVERPASS_CACHE.set(cacheKey, { data: results, expires: Date.now() + CACHE_TTL_MS });
+  return results;
 }
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {

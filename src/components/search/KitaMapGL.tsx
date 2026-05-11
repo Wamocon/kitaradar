@@ -5,6 +5,13 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { OverpassKita } from "@/lib/overpass";
 
+const LEGEND_ITEMS = [
+  { type: "public",  color: "#2563eb", bg: "bg-blue-600",    label: "Kommunal" },
+  { type: "church",  color: "#d97706", bg: "bg-amber-600",   label: "Kirchlich" },
+  { type: "private", color: "#7c3aed", bg: "bg-violet-700",  label: "Privat" },
+  { type: "free",    color: "#059669", bg: "bg-emerald-600", label: "Freier Träger" },
+] as const;
+
 // ─── OpenFreeMap styles (free, no API key) ────────────────────────────────────
 const STYLE_URLS = {
   normal_light: "https://tiles.openfreemap.org/styles/positron",
@@ -26,49 +33,139 @@ const TYPE_COLORS: Record<string, string> = {
   free:    "#059669",
 };
 
-function kitaPin(color: string, selected: boolean): string {
-  const h = selected ? 46 : 38;
+// Draw a type-specific map pin on a canvas.
+// Returns an HTMLCanvasElement — supported directly by maplibregl.Map.addImage.
+function drawKitaPin(type: string, color: string, selected: boolean): HTMLCanvasElement {
   const w = selected ? 30 : 25;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 30 42" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 0C6.716 0 0 6.716 0 15c0 10.5 15 27 15 27S30 25.5 30 15C30 6.716 23.284 0 15 0z" fill="${color}" opacity="0.92"/>
-    <circle cx="15" cy="15" r="7" fill="white" opacity="0.9"/>
-    <path d="M15 8l-6 5.5h2V20h3.5v-3h1v3H19v-6.5h2L15 8z" fill="${color}"/>
-  </svg>`;
+  const h = selected ? 46 : 38;
+  const scale = 2; // retina
+  const canvas = document.createElement("canvas");
+  canvas.width  = w * scale;
+  canvas.height = h * scale;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(scale, scale);
+  ctx.clearRect(0, 0, w, h);
+
+  const sx = w / 30;
+  const sy = h / 42;
+
+  // ── Pin shadow ───────────────────────────────────────────────────────────
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.35)";
+  ctx.shadowBlur  = 4 * scale;
+  ctx.shadowOffsetY = 2 * scale;
+
+  // ── Pin body (teardrop) ──────────────────────────────────────────────────
+  ctx.beginPath();
+  ctx.moveTo(15 * sx, 0);
+  ctx.bezierCurveTo(6.716 * sx, 0,          0,           6.716 * sy, 0,         15 * sy);
+  ctx.bezierCurveTo(0,          25.5 * sy,  15 * sx,    42 * sy,    15 * sx,   42 * sy);
+  ctx.bezierCurveTo(15 * sx,   42 * sy,    30 * sx,    25.5 * sy,  30 * sx,   15 * sy);
+  ctx.bezierCurveTo(30 * sx,    6.716 * sy, 23.284 * sx, 0,         15 * sx,   0);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+
+  // ── White inner circle ───────────────────────────────────────────────────
+  ctx.beginPath();
+  ctx.arc(15 * sx, 14 * sy, 7.5 * Math.min(sx, sy), 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  // ── Type-specific icon (white on coloured circle) ────────────────────────
+  ctx.fillStyle = color;
+  const cx = 15 * sx;
+  const cy = 14 * sy;
+
+  if (type === "church") {
+    // Latin cross
+    const bw = 3.5 * sx; // bar width
+    const th = 12 * sy; // total height
+    const hw = 7 * sx;  // horizontal arm half-width
+    const hy = 4.5 * sy; // horizontal arm y offset from top
+    const ht = 3 * sy;   // horizontal arm thickness
+    ctx.beginPath();
+    // vertical bar
+    ctx.rect(cx - bw / 2, cy - th / 2, bw, th);
+    ctx.fill();
+    ctx.beginPath();
+    // horizontal bar
+    ctx.rect(cx - hw, cy - th / 2 + hy, hw * 2, ht);
+    ctx.fill();
+
+  } else if (type === "private") {
+    // 5-pointed star
+    const outerR = 6.5 * Math.min(sx, sy);
+    const innerR = 2.8 * Math.min(sx, sy);
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 === 0 ? outerR : innerR;
+      const angle = (i * Math.PI) / 5 - Math.PI / 2;
+      const px = cx + r * Math.cos(angle);
+      const py = cy + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+  } else if (type === "free") {
+    // Leaf shape
+    const lh = 6 * sy;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + lh);           // bottom tip
+    ctx.bezierCurveTo(cx - 5.5 * sx, cy + lh * 0.3,  cx - 5.5 * sx, cy - lh * 0.8, cx, cy - lh); // left arc
+    ctx.bezierCurveTo(cx + 5.5 * sx, cy - lh * 0.8,  cx + 5.5 * sx, cy + lh * 0.3, cx, cy + lh); // right arc
+    ctx.closePath();
+    ctx.fill();
+    // stem
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2 * Math.min(sx, sy);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + lh);
+    ctx.lineTo(cx, cy + lh * 0.3);
+    ctx.stroke();
+
+  } else {
+    // public — house
+    ctx.beginPath();
+    ctx.moveTo(cx,             cy - 6.5 * sy);
+    ctx.lineTo(cx - 6 * sx,   cy - 1 * sy);
+    ctx.lineTo(cx - 4.5 * sx, cy - 1 * sy);
+    ctx.lineTo(cx - 4.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx - 1.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx - 1.5 * sx, cy + 2 * sy);
+    ctx.lineTo(cx + 1.5 * sx, cy + 2 * sy);
+    ctx.lineTo(cx + 1.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx + 4.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx + 4.5 * sx, cy - 1 * sy);
+    ctx.lineTo(cx + 6 * sx,   cy - 1 * sy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  return canvas;
 }
 
-function svgToImageData(svgStr: string, w: number, h: number): Promise<ImageData> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement("canvas");
-    canvas.width = w * 2; canvas.height = h * 2;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) { reject(new Error("no canvas")); return; }
-    const img = new Image(w * 2, h * 2);
-    img.onload = () => { ctx.drawImage(img, 0, 0, w * 2, h * 2); resolve(ctx.getImageData(0, 0, w * 2, h * 2)); };
-    img.onerror = reject;
-    const sized = svgStr.replace(/(<svg[^>]*)width="[^"]*"\s*height="[^"]*"/, `$1width="${w * 2}" height="${h * 2}"`);
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sized)}`;
-  });
-}
-
-// Pre-render all 8 Kita-pin variants (4 types × 2 states) into the map image atlas.
-// Must complete BEFORE the kita-pins symbol layer is added, otherwise MapLibre renders
-// nothing and "styleimagemissing" fires in a race-prone async cycle.
-async function preloadPinImages(map: maplibregl.Map) {
+// Synchronously load all 8 pin variants into the map image atlas.
+// Always removes then re-adds each image so stale entries after a style
+// reload never prevent fresh pins from appearing.
+function preloadPinImages(map: maplibregl.Map) {
   const variants: Array<{ type: string; sel: boolean }> = [
     { type: "public",  sel: false }, { type: "public",  sel: true },
     { type: "church",  sel: false }, { type: "church",  sel: true },
     { type: "private", sel: false }, { type: "private", sel: true },
     { type: "free",    sel: false }, { type: "free",    sel: true },
   ];
-  await Promise.all(
-    variants.map(async ({ type, sel }) => {
-      const id = `pin-${type}-${sel ? "sel" : "def"}`;
-      if (map.hasImage(id)) return;
-      const color = TYPE_COLORS[type] ?? "#2563eb";
-      const img = await svgToImageData(kitaPin(color, sel), sel ? 30 : 25, sel ? 46 : 38);
-      if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 });
-    })
-  );
+  for (const { type, sel } of variants) {
+    const id = `pin-${type}-${sel ? "sel" : "def"}`;
+    const color = TYPE_COLORS[type] ?? "#2563eb";
+    const canvas = drawKitaPin(type, color, sel);
+    const ctx2 = canvas.getContext("2d")!;
+    const imgData = ctx2.getImageData(0, 0, canvas.width, canvas.height);
+    if (map.hasImage(id)) map.removeImage(id);
+    map.addImage(id, imgData, { pixelRatio: 2 });
+  }
 }
 
 // Inject one-time CSS for pulse animation
@@ -96,10 +193,15 @@ export interface KitaMapGLProps {
   userPos?: [number, number] | null;
   isDark?: boolean;
   tileType?: "normal" | "satellite" | "terrain";
+  /** Hide the radius circle and zoom directly to the kita (pinpoint mode) */
+  showRadius?: boolean;
   onSelect: (kita: OverpassKita) => void;
 }
 
 const SOURCE_ID = "kitas";
+
+// Module-level style cache — avoids re-fetching tile style JSON on every mount
+const STYLE_CACHE = new Map<string, unknown>();
 
 export function KitaMapGL({
   kitas,
@@ -109,6 +211,7 @@ export function KitaMapGL({
   userPos,
   isDark = false,
   tileType = "normal",
+  showRadius = true,
   onSelect,
 }: KitaMapGLProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -168,6 +271,11 @@ export function KitaMapGL({
       map.setBearing(-15);
       if (!map.getLayer(BUILDINGS_LAYER)) {
         try {
+          // Insert BEFORE the first symbol/cluster layer so buildings stay
+          // underneath pins in the layer stack
+          const firstSymbol = map.getStyle().layers?.find(
+            (l) => l.type === "symbol" || l.id === "clusters" || l.id === "kita-pins"
+          )?.id;
           map.addLayer({
             id:     BUILDINGS_LAYER,
             source: "openmaptiles",
@@ -183,12 +291,16 @@ export function KitaMapGL({
               "fill-extrusion-base":    ["coalesce", ["get", "render_min_height"], ["get", "min_height"], 0],
               "fill-extrusion-opacity": 0.75,
             },
-          });
+          }, firstSymbol);
         } catch {
           // source-layer not in current style — skip silently
         }
       } else {
         map.setLayoutProperty(BUILDINGS_LAYER, "visibility", "visible");
+      }
+      // Always ensure kita layers sit on top of buildings
+      for (const id of ["clusters", "cluster-count", "kita-pins"]) {
+        if (map.getLayer(id)) map.moveLayer(id);
       }
     } else {
       map.setPitch(0);
@@ -224,11 +336,13 @@ export function KitaMapGL({
     }
 
     async function buildStyle(url: string) {
+      if (STYLE_CACHE.has(url)) return STYLE_CACHE.get(url)!;
       try {
         const res = await fetch(url);
         if (!res.ok) return url;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const style: any = await res.json();
+        STYLE_CACHE.set(url, style);
         return style;
       } catch {
         return url;
@@ -258,9 +372,9 @@ export function KitaMapGL({
     // Add zoom + compass controls
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
 
-    map.once("load", async () => {
+    map.once("load", () => {
       // Pre-load all 8 Kita pin variants BEFORE adding the symbol layer
-      await preloadPinImages(map);
+      preloadPinImages(map);
 
       // Satellite mode: add raster source as background
       if (tileType === "satellite" && !map.getSource("esri-sat")) {
@@ -319,15 +433,19 @@ export function KitaMapGL({
           source: SOURCE_ID,
           filter: ["!", ["has", "point_count"]],
           layout: {
-            "icon-image":         ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
-            "icon-size":          ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
-            "icon-allow-overlap": true,
-            "icon-anchor":        "bottom",
-            "text-field":         ["step", ["zoom"], "", 15, ["get", "name"]],
-            "text-size":          11,
-            "text-anchor":        "top",
-            "text-offset":        [0, 0.2],
-            "text-max-width":     10,
+            "icon-image":              ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
+            "icon-size":               ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
+            "icon-allow-overlap":      true,
+            "icon-anchor":             "bottom",
+            "icon-pitch-alignment":    "viewport",
+            "icon-rotation-alignment": "viewport",
+            "text-field":              ["step", ["zoom"], "", 15, ["get", "name"]],
+            "text-size":               11,
+            "text-anchor":             "top",
+            "text-offset":             [0, 0.2],
+            "text-max-width":          10,
+            "text-pitch-alignment":    "viewport",
+            "text-rotation-alignment": "viewport",
           },
           paint: {
             "text-color":      isDark ? "#fff" : "#1e293b",
@@ -406,17 +524,31 @@ export function KitaMapGL({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const rLat = radiusKm / 111.32;
-    const rLng = radiusKm / (111.32 * Math.cos((center.lat * Math.PI) / 180));
-    map.fitBounds(
-      [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
-      { padding: 60, duration: 900 }
-    );
-    // Update radius circle
-    if (map.getSource("radius")) {
-      (map.getSource("radius") as maplibregl.GeoJSONSource).setData(buildRadiusGeoJSON(center.lat, center.lng, radiusKm));
+
+    if (!showRadius) {
+      // Pinpoint mode: fly directly to the kita at street level
+      map.flyTo({
+        center: [center.lng, center.lat],
+        zoom: 17,
+        pitch: 0,
+        bearing: 0,
+        duration: 900,
+      });
+    } else {
+      const rLat = radiusKm / 111.32;
+      const rLng = radiusKm / (111.32 * Math.cos((center.lat * Math.PI) / 180));
+      map.fitBounds(
+        [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
+        { padding: 60, duration: 900, pitch: map.getPitch(), bearing: map.getBearing() }
+      );
     }
-  }, [center.lat, center.lng, radiusKm]);
+    // Update radius circle visibility + data
+    if (map.getSource("radius")) {
+      (map.getSource("radius") as maplibregl.GeoJSONSource).setData(
+        showRadius ? buildRadiusGeoJSON(center.lat, center.lng, radiusKm) : { type: "FeatureCollection", features: [] }
+      );
+    }
+  }, [center.lat, center.lng, radiusKm, showRadius]);
 
   // ─── User location marker ─────────────────────────────────────────────────
   useEffect(() => {
@@ -444,9 +576,9 @@ export function KitaMapGL({
 
     map.setStyle(newStyle, { diff: false });
 
-    map.once("styledata", async () => {
+    map.once("styledata", () => {
       // Re-load pin images after style wipe
-      await preloadPinImages(map);
+      preloadPinImages(map);
 
       // Re-add satellite raster layer on top of vector base
       if (tileType === "satellite" && !map.getSource("esri-sat")) {
@@ -468,7 +600,20 @@ export function KitaMapGL({
       if (!map.getLayer("clusters")) {
         map.addLayer({ id: "clusters", type: "circle", source: SOURCE_ID, filter: ["has", "point_count"], paint: { "circle-color": "#2563eb", "circle-radius": ["step", ["get", "point_count"], 20, 10, 28, 50, 36], "circle-stroke-width": 3, "circle-stroke-color": "#1d4ed8" } });
         map.addLayer({ id: "cluster-count", type: "symbol", source: SOURCE_ID, filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 13 }, paint: { "text-color": "#fff" } });
-        map.addLayer({ id: "kita-pins", type: "symbol", source: SOURCE_ID, filter: ["!", ["has", "point_count"]], layout: { "icon-image": ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]], "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5], "icon-allow-overlap": true, "icon-anchor": "bottom", "text-field": ["step", ["zoom"], "", 15, ["get", "name"]], "text-size": 11, "text-anchor": "top", "text-offset": [0, 0.2], "text-max-width": 10 }, paint: { "text-color": isDark ? "#fff" : "#1e293b", "text-halo-color": isDark ? "rgba(0,0,0,.8)" : "rgba(255,255,255,.9)", "text-halo-width": 1.5 } });
+        map.addLayer({
+          id: "kita-pins", type: "symbol", source: SOURCE_ID,
+          filter: ["!", ["has", "point_count"]],
+          layout: {
+            "icon-image": ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
+            "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
+            "icon-allow-overlap": true, "icon-anchor": "bottom",
+            "icon-pitch-alignment": "viewport", "icon-rotation-alignment": "viewport",
+            "text-field": ["step", ["zoom"], "", 15, ["get", "name"]],
+            "text-size": 11, "text-anchor": "top", "text-offset": [0, 0.2], "text-max-width": 10,
+            "text-pitch-alignment": "viewport", "text-rotation-alignment": "viewport",
+          },
+          paint: { "text-color": isDark ? "#fff" : "#1e293b", "text-halo-color": isDark ? "rgba(0,0,0,.8)" : "rgba(255,255,255,.9)", "text-halo-width": 1.5 },
+        });
       }
 
       // 3D buildings for terrain mode
@@ -477,5 +622,24 @@ export function KitaMapGL({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tileType, isDark]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div ref={containerRef} className="h-full w-full" />
+
+      {/* ─── Legend ─────────────────────────────────────────────────────── */}
+      <div className="pointer-events-none absolute bottom-8 left-2 z-10 rounded-xl border border-white/30 bg-white/90 px-3 py-2.5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-gray-900/90">
+        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          Träger
+        </p>
+        {LEGEND_ITEMS.map((item) => (
+          <div key={item.type} className="mb-1 flex items-center gap-2 last:mb-0">
+            <span
+              className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${item.bg}`}
+            />
+            <span className="text-xs text-gray-700 dark:text-gray-300">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

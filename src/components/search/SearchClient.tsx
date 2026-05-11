@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { OverpassKita } from "@/lib/overpass";
 import { KitaCard } from "./KitaCard";
-import { ApplicationModal } from "./ApplicationModal";
 import { KitaDetailModal } from "./KitaDetailModal";
+import { useAiProgress } from "@/components/providers/AiProgressProvider";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { AutocompleteResult } from "@/app/api/geocode/autocomplete/route";
 import { useTranslations } from "next-intl";
@@ -23,18 +23,18 @@ const KitaMapGL = dynamic(() => import("./KitaMapGL").then((m) => ({ default: m.
 
 const KITA_TYPES = ["all", "public", "church", "private", "free"] as const;
 
-export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function SearchClient({ isLoggedIn, initialAddress, initialPinpoint }: { isLoggedIn: boolean; initialAddress?: string; initialPinpoint?: boolean }) {
   const t = useTranslations("search");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(initialAddress ?? "");
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [radius, setRadius] = useState(5);
+  const [radius, setRadius] = useState(1);
   const [kitaType, setKitaType] = useState<string>("all");
   const [kitas, setKitas] = useState<OverpassKita[]>([]);
   const [total, setTotal] = useState<number | null>(null);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedKita, setSelectedKita] = useState<OverpassKita | null>(null);
-  const [applyKita, setApplyKita] = useState<OverpassKita | null>(null);
   const [detailKita, setDetailKita] = useState<OverpassKita | null>(null);
+  const { letter } = useAiProgress();
   const [isLoading, setIsLoading] = useState(false);
   const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,8 +44,9 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [isDark, setIsDark] = useState(false);
-  const [tileType, setTileType] = useState<"normal" | "satellite" | "terrain">("normal");
+  const [tileType, setTileType] = useState<"normal" | "satellite" | "terrain">("terrain");
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const geoSearchedRef = useRef(false);
 
   // Detect dark mode
@@ -63,17 +64,26 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
     setKitas([]);
     setAiRanking("");
     setTotal(null);
+    // lat=0,lng=0 means "no pre-resolved coords" — let the API geocode
+    const hasCoords = lat !== 0 || lng !== 0;
     try {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: addressLabel, lat, lng, radius: searchRadius, kitaType }),
+        body: JSON.stringify({
+          address: addressLabel,
+          ...(hasCoords && { lat, lng }),
+          radius: searchRadius,
+          kitaType,
+        }),
       });
       if (res.status === 429) { setError(t("free_limit_warning")); return; }
+      if (!res.ok) { setError(t("error_generic")); return; }
       const data: { kitas?: OverpassKita[]; center?: { lat: number; lng: number }; total?: number; error?: string } = await res.json();
       setKitas(data.kitas ?? []);
       setTotal(data.total ?? data.kitas?.length ?? null);
       if (data.center) setCenter(data.center);
+      setHasSearched(true);
     } catch {
       setError(t("error_generic"));
     } finally {
@@ -82,11 +92,21 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
    
   }, [kitaType, radius, t]);
 
-  // Auto-search on mount via browser geolocation
+  // Auto-search on mount: use initialAddress (from URL param) first, then geolocation
   useEffect(() => {
     if (geoSearchedRef.current) return;
-    if (!navigator.geolocation) return;
     geoSearchedRef.current = true;
+
+    // Priority 1: address passed from recommendations (e.g. /search?address=...)
+    if (initialAddress) {
+      const r = initialPinpoint ? 0.05 : 5;
+      setRadius(r);
+      void searchWithCoords(0, 0, initialAddress, r);
+      return;
+    }
+
+    // Priority 2: browser geolocation
+    if (!navigator.geolocation) return;
     setIsGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -138,6 +158,10 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         setError(t("free_limit_warning"));
         return;
       }
+      if (!res.ok) {
+        setError(t("error_generic"));
+        return;
+      }
       const data: { kitas?: OverpassKita[]; center?: { lat: number; lng: number }; total?: number; error?: string } =
         await res.json();
       if (data.error === "geocode_failed") {
@@ -147,6 +171,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
       setKitas(data.kitas ?? []);
       setTotal(data.total ?? data.kitas?.length ?? null);
       if (data.center) setCenter(data.center);
+      setHasSearched(true);
     } catch {
       setError(t("error_generic"));
     } finally {
@@ -185,6 +210,8 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
               }}
               onSelect={(result: AutocompleteResult) => {
                 setSelectedCoords({ lat: result.lat, lng: result.lng });
+                // Auto-trigger search when user picks from autocomplete
+                void searchWithCoords(result.lat, result.lng, result.shortName);
               }}
             />
 
@@ -302,6 +329,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
             userPos={userPos}
             isDark={isDark}
             tileType={tileType}
+            showRadius={!initialPinpoint}
             onSelect={(kita) => { setSelectedKita(kita); setDetailKita(kita); }}
           />
         ) : (
@@ -314,7 +342,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
 
         {/* ── Schwebender Kita-Listen-Popup (oben links) ── */}
         <div
-          className={`absolute top-3 left-3 z-[1000] flex flex-col rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md transition-all duration-300 ${
+          className={`absolute top-3 left-3 z-1000 flex flex-col rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md transition-all duration-300 ${
             panelOpen
               ? "max-h-[calc(100vh-10rem)] w-80 overflow-hidden"
               : "overflow-hidden"
@@ -388,6 +416,11 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                     <Search className="h-8 w-8 opacity-30" />
                     {isGeoLoading ? (
                       <p>Standort wird ermittelt…</p>
+                    ) : hasSearched ? (
+                      <>
+                        <p className="font-medium">Keine Einrichtungen gefunden</p>
+                        <p className="text-xs">Radius vergrößern oder anderen Ort suchen.</p>
+                      </>
                     ) : (
                       <p>Adresse eingeben und Suche starten.</p>
                     )}
@@ -400,7 +433,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                       kita={kita}
                       selected={selectedKita?.id === kita.id}
                       onSelect={() => { setSelectedKita(kita); setDetailKita(kita); }}
-                      onApply={() => setApplyKita(kita)}
+                      onApply={() => letter.openFor(kita)}
                     />
                   ))}
                 </div>
@@ -410,7 +443,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
 
         {/* ── Kartentyp-Wizard (unten rechts, zuklappbar) ── */}
-        <div className="absolute bottom-8 right-2 z-[900] flex flex-col items-end gap-1.5">
+        <div className="absolute bottom-8 right-2 z-900 flex flex-col items-end gap-1.5">
           {wizardOpen && (
             <div className="overflow-hidden rounded-xl border border-border bg-background/95 shadow-2xl backdrop-blur-md">
               {(
@@ -450,14 +483,10 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
       </div>
 
-      {applyKita && (
-        <ApplicationModal kita={applyKita} onClose={() => setApplyKita(null)} />
-      )}
-
       <KitaDetailModal
         kita={detailKita}
         onClose={() => setDetailKita(null)}
-        onApply={(kita) => { setDetailKita(null); setApplyKita(kita); }}
+        onApply={(kita) => { setDetailKita(null); letter.openFor(kita); }}
       />
     </div>
   );
