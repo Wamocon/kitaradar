@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
   const contextBlock = lines.length > 0 ? lines.join("\n") : "Keine Profildaten vorhanden.";
 
   // ─── KI-Aufruf ────────────────────────────────────────────────────
-  const model = getModel("reasoning");
+  const model = getModel("default");
   let completion;
   try {
     completion = await createMaxCompletion({
