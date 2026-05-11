@@ -135,4 +135,38 @@ describe("KitaCard", () => {
       expect(screen.getByText(label)).toBeTruthy();
     });
   });
+
+  it("phone link click does not trigger onSelect (stopPropagation)", () => {
+    const onSelect = vi.fn();
+    render(<KitaCard kita={baseKita} selected={false} onSelect={onSelect} onApply={vi.fn()} />);
+    const phoneLink = screen.getByText("+49301234567");
+    fireEvent.click(phoneLink);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("email link click does not trigger onSelect (stopPropagation)", () => {
+    const onSelect = vi.fn();
+    render(<KitaCard kita={baseKita} selected={false} onSelect={onSelect} onApply={vi.fn()} />);
+    const emailLink = screen.getByText("info@kita.de");
+    fireEvent.click(emailLink);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("website link click does not trigger onSelect (stopPropagation)", () => {
+    const onSelect = vi.fn();
+    render(<KitaCard kita={baseKita} selected={false} onSelect={onSelect} onApply={vi.fn()} />);
+    const websiteLink = screen.getByText("Website");
+    fireEvent.click(websiteLink);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("renders kita without city (no comma after address)", () => {
+    render(<KitaCard kita={{ ...baseKita, city: "" }} selected={false} onSelect={vi.fn()} onApply={vi.fn()} />);
+    expect(screen.getByText("Musterstraße 1")).toBeTruthy();
+  });
+
+  it("omits address block when address is empty", () => {
+    render(<KitaCard kita={{ ...baseKita, address: "" }} selected={false} onSelect={vi.fn()} onApply={vi.fn()} />);
+    expect(screen.queryByText(/Musterstraße/)).toBeNull();
+  });
 });

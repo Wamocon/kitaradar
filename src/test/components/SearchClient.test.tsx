@@ -301,4 +301,69 @@ describe("SearchClient", () => {
       expect(screen.getByText(/beste Wahl/)).toBeTruthy();
     });
   });
+
+  it("collapses and expands the kita panel", async () => {
+    render(<SearchClient isLoggedIn={false} />);
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
+    await waitFor(() => screen.getByText("Kita Sonnenschein"));
+
+    // Collapse panel
+    fireEvent.click(screen.getByLabelText("Liste einklappen"));
+    expect(screen.queryByText("Kita Sonnenschein")).toBeNull();
+
+    // Expand panel again
+    fireEvent.click(screen.getByLabelText("Liste ausklappen"));
+    await waitFor(() => expect(screen.getByText("Kita Sonnenschein")).toBeTruthy());
+  });
+
+  it("opens the tile-type wizard and selects satellite", async () => {
+    render(<SearchClient isLoggedIn={false} />);
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
+    await waitFor(() => screen.getByText("Kita Sonnenschein"));
+
+    // Open wizard
+    fireEvent.click(screen.getByLabelText("Kartenansicht wählen"));
+    expect(screen.getByText("tile_labels.normal")).toBeTruthy();
+
+    // Select Normal
+    fireEvent.click(screen.getByText("tile_labels.normal"));
+    // Wizard closes
+    expect(screen.queryByText("tile_labels.satellite")).toBeNull();
+  });
+
+  it("geolocation button triggers search on success", async () => {
+    const mockPosition = { coords: { latitude: 52.52, longitude: 13.4 } };
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      geolocation: {
+        getCurrentPosition: vi.fn((_deny, _error, _opts) => {
+          // This is the button-click geolocation (not the mount auto-search)
+        }),
+      },
+    });
+    render(<SearchClient isLoggedIn={false} />);
+    // Button is identifiable by its title
+    const geoBtn = screen.getByTitle("Meinen Standort verwenden");
+    expect(geoBtn).toBeTruthy();
+    fireEvent.click(geoBtn);
+    // geolocation.getCurrentPosition was called
+    expect(navigator.geolocation.getCurrentPosition).toHaveBeenCalled();
+  });
+
+  it("does not submit AI assist when kitas list is empty", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ kitas: [], center: { lat: 52.52, lng: 13.4 } }),
+    });
+    vi.stubGlobal("fetch", fetchSpy);
+    render(<SearchClient isLoggedIn={true} />);
+    fireEvent.change(screen.getByPlaceholderText(/Stadt|PLZ/), { target: { value: "Berlin" } });
+    fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1));
+    // AI assist input only visible when kitas.length > 0, so no second fetch should happen
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
 });

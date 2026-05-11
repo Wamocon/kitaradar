@@ -159,4 +159,70 @@ describe("ApplicationModal", () => {
       expect(fetchSpy).toHaveBeenCalledWith("/api/applications", expect.objectContaining({ method: "POST" }));
     });
   });
+
+  it("closes modal when backdrop is clicked", () => {
+    const onClose = vi.fn();
+    const { container } = render(<ApplicationModal kita={baseKita} onClose={onClose} />);
+    const backdrop = container.firstChild as HTMLElement;
+    fireEvent.mouseDown(backdrop);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows edit/preview toggle after AI generates a letter", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ letter: "Sehr geehrte Damen und Herren,\n\nBewerbungstext." }),
+      })
+    );
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText("ai_generate"));
+    await waitFor(() => screen.getByText("Bewerbungstext."));
+    // Toggle to edit mode
+    fireEvent.click(screen.getByText("Bearbeiten"));
+    // Should now show the textarea again
+    expect(screen.getByPlaceholderText("cover_letter_placeholder")).toBeTruthy();
+    // Toggle back to preview
+    fireEvent.click(screen.getByText("Vorschau"));
+    expect(screen.getByText("Bewerbungstext.")).toBeTruthy();
+  });
+
+  it("shows regenerate label when cover letter already exists", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ letter: "Erstes Anschreiben" }),
+      })
+    );
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText("ai_generate"));
+    await waitFor(() => screen.getByText("Erstes Anschreiben"));
+    expect(screen.getByText("Anschreiben neu generieren")).toBeTruthy();
+  });
+
+  it("renders kita address in header when address is present", () => {
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    expect(screen.getByText(/Gartenweg 3/)).toBeTruthy();
+  });
+
+  it("renders kita address without city when city is empty", () => {
+    render(<ApplicationModal kita={{ ...baseKita, city: "" }} onClose={vi.fn()} />);
+    expect(screen.getByText("Gartenweg 3")).toBeTruthy();
+  });
+
+  it("send_email uses cover letter text in mailto body", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => ({}) }));
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    const textarea = screen.getByPlaceholderText("cover_letter_placeholder") as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: "Mein Anschreiben" } });
+    fireEvent.click(screen.getByText("send_email"));
+    expect(window.open).toHaveBeenCalledWith(
+      expect.stringContaining(encodeURIComponent("Mein Anschreiben")),
+      "_blank"
+    );
+  });
 });

@@ -61,14 +61,10 @@ export default defineConfig({
         "src/components/providers/GlobalModalsPanel.tsx",
       ],
       thresholds: {
-        statements: 75,
-        branches: 70,
-        lines: 75,
-        // functions threshold lowered from 70% → 65% → 63%:
-        // ProfileClient has 9 tabs with many small onChange arrow-functions,
-        // and openai.ts wraps external MAX AI / LiteLLM functions
-        // that cannot be unit-tested without a live gateway.
-        functions: 63,
+        statements: 85,
+        branches: 80,
+        lines: 88,
+        functions: 85,
       },
     },
   },
