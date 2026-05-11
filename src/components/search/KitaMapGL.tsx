@@ -37,9 +37,10 @@ function drawKitaPin(color: string, selected: boolean): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width  = w * scale;
   canvas.height = h * scale;
-  // alpha: false → every pixel starts as opaque black; no premultiplied-alpha issues
-  const ctx = canvas.getContext("2d", { alpha: false })!;
+  // alpha: true (default) — pixels outside the pin path stay fully transparent
+  const ctx = canvas.getContext("2d")!;
   ctx.scale(scale, scale);
+  ctx.clearRect(0, 0, w, h); // guarantee transparent background
 
   // Scale from viewBox 30×42 to actual pin size
   const sx = w / 30;
@@ -99,7 +100,7 @@ function preloadPinImages(map: maplibregl.Map) {
     const ctx2 = canvas.getContext("2d")!;
     const imgData = ctx2.getImageData(0, 0, canvas.width, canvas.height);
     if (map.hasImage(id)) map.removeImage(id);
-    map.addImage(id, imgData, { pixelRatio: 2 });
+    map.addImage(id, imgData, { pixelRatio: 2, premultiplied: false });
   }
 }
 
