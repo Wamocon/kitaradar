@@ -14,6 +14,9 @@ import {
   BookOpen,
   Heart,
   ChevronRight,
+  X,
+  FileText,
+  Info,
 } from "lucide-react";
 import { AiProgressToast } from "@/components/ui/AiProgressToast";
 import { useAiProgress } from "@/components/providers/AiProgressProvider";
@@ -46,6 +49,7 @@ interface Recommendation {
   reasons: string[];
   strengths: string[];
   considerations: string[];
+  detailedReport?: string;
   osmId?: string;
 }
 
@@ -95,6 +99,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
+  const [detailRec, setDetailRec] = useState<Recommendation | null>(null);
   const { reco } = useAiProgress();
 
   const hasPreferences =
@@ -301,7 +306,11 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
             <span className="text-primary">{searchCity}</span>
           </h2>
           {recommendations.map((rec, i) => (
-            <div key={i} className="rounded-xl border border-border bg-card p-5">
+            <div
+              key={i}
+              className="cursor-pointer rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md"
+              onClick={() => setDetailRec(rec)}
+            >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -324,29 +333,31 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {rec.matchScore}% Match
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{rec.matchScore}% Match</p>
                 </div>
               </div>
 
-              {/* Reasons */}
               {rec.reasons.length > 0 && (
                 <div className="mb-3">
                   <p className="text-xs font-medium text-muted-foreground mb-1.5">Warum diese Kita?</p>
                   <ul className="space-y-1">
-                    {rec.reasons.map((reason, j) => (
+                    {rec.reasons.slice(0, 2).map((reason, j) => (
                       <li key={j} className="flex items-start gap-2 text-xs text-foreground">
                         <span className="mt-0.5 text-primary">✓</span>
                         {reason}
                       </li>
                     ))}
+                    {rec.reasons.length > 2 && (
+                      <li className="flex items-center gap-1 text-xs text-primary">
+                        <Info className="h-3 w-3" /> +{rec.reasons.length - 2} weitere — Details anzeigen
+                      </li>
+                    )}
                   </ul>
                 </div>
               )}
 
               <div className="flex flex-wrap gap-2 mt-3">
-                {rec.strengths.map((s, j) => (
+                {rec.strengths.slice(0, 2).map((s, j) => (
                   <span key={j} className="flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs text-green-700 dark:text-green-300">
                     <Heart className="h-3 w-3" /> {s}
                   </span>
@@ -356,32 +367,146 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
               {rec.considerations.length > 0 && (
                 <div className="mt-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
                   <p className="text-xs text-amber-700 dark:text-amber-400">
-                    <strong>Zu beachten:</strong> {rec.considerations.join(" · ")}
+                    <strong>Zu beachten:</strong> {rec.considerations[0]}
                   </p>
                 </div>
               )}
 
-              <div className="mt-3 flex gap-2">
-                <Link
-                  href={`/search?city=${encodeURIComponent(rec.name)}`}
-                  className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                  Auf Karte suchen
-                </Link>
-                <Link
-                  href={`/search?q=${encodeURIComponent(rec.name)}&city=${encodeURIComponent(searchCity)}`}
-                  className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors"
-                >
-                  Bewerben
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex gap-2">
+                  <Link
+                    href={`/search?city=${encodeURIComponent(rec.name)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                  >
+                    <MapPin className="h-3.5 w-3.5" /> Auf Karte suchen
+                  </Link>
+                  <Link
+                    href={`/search?q=${encodeURIComponent(rec.name)}&city=${encodeURIComponent(searchCity)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors"
+                  >
+                    Bewerben <ChevronRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <FileText className="h-3.5 w-3.5" /> Details
+                </span>
               </div>
             </div>
           ))}
         </div>
       )}
     </div>
+
+      {/* ─── Detail Popup ──────────────────────────────────────────────────────── */}
+      {detailRec && (
+        <div
+          className="fixed inset-0 z-3000 flex items-center justify-center bg-black/60 p-4"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setDetailRec(null); }}
+        >
+          <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-card shadow-2xl">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">{detailRec.name}</h2>
+                <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5" /> {detailRec.address}
+                  {detailRec.distance && <span className="ml-1 text-primary">· {detailRec.distance}</span>}
+                </p>
+              </div>
+              <button
+                onClick={() => setDetailRec(null)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent"
+                aria-label="Schließen"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="overflow-y-auto px-6 py-5 space-y-5">
+              {/* Match score */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      className={`h-5 w-5 ${s <= Math.round(detailRec.matchScore / 20) ? "text-yellow-400 fill-yellow-400" : "text-zinc-300 dark:text-zinc-600"}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-lg font-bold text-primary">{detailRec.matchScore}%</span>
+                <span className="text-sm text-muted-foreground">Übereinstimmung</span>
+              </div>
+
+              {/* Detailed report */}
+              {detailRec.detailedReport && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-4">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">KI-Analyse</p>
+                  <p className="text-sm leading-relaxed text-foreground">{detailRec.detailedReport}</p>
+                </div>
+              )}
+
+              {/* All reasons */}
+              {detailRec.reasons.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Passgründe</p>
+                  <ul className="space-y-2">
+                    {detailRec.reasons.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                        <span className="mt-0.5 shrink-0 text-primary">✓</span> {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Strengths */}
+              {detailRec.strengths.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Stärken</p>
+                  <div className="flex flex-wrap gap-2">
+                    {detailRec.strengths.map((s, i) => (
+                      <span key={i} className="flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-sm text-green-700 dark:text-green-300">
+                        <Heart className="h-3.5 w-3.5" /> {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Considerations */}
+              {detailRec.considerations.length > 0 && (
+                <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 px-4 py-3">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">Zu beachten</p>
+                  <ul className="space-y-1">
+                    {detailRec.considerations.map((c, i) => (
+                      <li key={i} className="text-sm text-amber-700 dark:text-amber-300">⚠ {c}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 border-t border-border px-6 py-4">
+              <Link
+                href={`/search?city=${encodeURIComponent(detailRec.name)}`}
+                className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+              >
+                <MapPin className="h-4 w-4" /> Auf Karte suchen
+              </Link>
+              <Link
+                href={`/search?q=${encodeURIComponent(detailRec.name)}&city=${encodeURIComponent(searchCity)}`}
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+              >
+                Jetzt bewerben <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AiProgressToast
         visible={reco.isVisible}

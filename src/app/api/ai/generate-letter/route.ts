@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
             "3. Begründung, warum genau diese Einrichtung gewählt wurde (Name und Pädagogik nennen)\n" +
             "4. Betreuungsbedarf: Beginn, Umfang und ggf. berufliche Situation der Eltern\n" +
             "5. Persönliche Werte und Erwartungen an die Kita (Einbeziehung des bevorzugten pädagogischen Ansatzes)\n" +
-            "6. Höflicher Abschluss mit Bitte um Gespräch/Rückmeldung\n" +
+            "6. Freundliche Verabschiedung: Bitte um Gespräch/Rückmeldung, gefolgt von einer Leerzeile, dann 'Mit freundlichen Grüßen' und darunter den vollen Namen(n) der Eltern sowie den Namen des Kindes / der Kinder (z.B. 'Familie Müller\nAnna Müller und Thomas Müller\nmit Tochter Lena (3 Jahre)').\n" +
             "Stil: warmherzig, authentisch, konkret — keine Floskeln. Reale Details aus dem Profil einarbeiten.\n" +
             "Antworte NUR mit dem fertigen Anschreiben (ohne Betreff, ohne Datum, ohne Erklärungen). Sprache: Deutsch.",
         },
