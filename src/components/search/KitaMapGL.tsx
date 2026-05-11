@@ -606,7 +606,7 @@ export function KitaMapGL({
       <div ref={containerRef} className="h-full w-full" />
 
       {/* ─── Legend ─────────────────────────────────────────────────────── */}
-      <div className="pointer-events-none absolute bottom-8 right-2 z-10 rounded-xl border border-white/30 bg-white/90 px-3 py-2.5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-gray-900/90">
+      <div className="pointer-events-none absolute bottom-8 left-2 z-10 rounded-xl border border-white/30 bg-white/90 px-3 py-2.5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-gray-900/90">
         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
           Träger
         </p>
