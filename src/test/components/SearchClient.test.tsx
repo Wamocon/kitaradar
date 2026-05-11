@@ -2,6 +2,28 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { SearchClient } from "@/components/search/SearchClient";
 
+// ─── Mock AiProgressProvider so SearchClient can be rendered without the real provider ─
+const mockOpenFor = vi.fn();
+vi.mock("@/components/providers/AiProgressProvider", () => ({
+  useAiProgress: () => ({
+    letter: {
+      kita: null,
+      isOpen: false,
+      openFor: mockOpenFor,
+      minimize: vi.fn(),
+      dismiss: vi.fn(),
+    },
+    reco: {
+      isVisible: false,
+      isGenerating: false,
+      isDone: false,
+      show: vi.fn(),
+      finish: vi.fn(),
+      dismiss: vi.fn(),
+    },
+  }),
+}));
+
 // ─── Mock CSS import (already aliased in vitest.config.ts) ───────────────────
 // ─── Mock next/dynamic → render map placeholder synchronously ───────────────
 vi.mock("next/dynamic", () => ({
@@ -33,6 +55,8 @@ const mockKitas = [
 
 describe("SearchClient", () => {
   beforeEach(() => {
+    mockOpenFor.mockClear();
+
     // Mock geolocation – deny permission so the auto-search doesn't interfere
     vi.stubGlobal("navigator", {
       ...navigator,
@@ -173,9 +197,10 @@ describe("SearchClient", () => {
     fireEvent.submit(screen.getByRole("button", { name: "Suchen" }).closest("form")!);
     await waitFor(() => screen.getByText("Jetzt bewerben"));
     fireEvent.click(screen.getByText("Jetzt bewerben"));
-    // Modal renders title (mocked as "modal_title")
+    // ApplicationModal is now rendered by GlobalModalsPanel (global context).
+    // Verify that openFor was called with the correct kita.
     await waitFor(() => {
-      expect(screen.getByText("modal_title")).toBeTruthy();
+      expect(mockOpenFor).toHaveBeenCalledWith(mockKitas[0]);
     });
   });
 
