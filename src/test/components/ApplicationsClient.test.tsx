@@ -261,4 +261,74 @@ describe("ApplicationsClient", () => {
     render(<ApplicationsClient initialApplications={[app]} />);
     expect(screen.getByText("Abgelehnt")).toBeTruthy();
   });
+
+  // ── statusMeta fallback: unknown status → defaults to STATUS_OPTIONS[0] ──
+
+  it("statusMeta falls back to first option for unknown status", () => {
+    const app = { ...baseApp, status: "unknown_status_xyz" };
+    render(<ApplicationsClient initialApplications={[app]} />);
+    // Should not crash; first status (draft = "Entwurf") badge label is shown as fallback
+    expect(screen.getByText("Entwurf")).toBeTruthy();
+  });
+
+  // ── updateStatus with multiple apps: covers both branches of ternary ─────
+
+  it("updateStatus: only updates the matching app when multiple exist", async () => {
+    const apps = [
+      { ...baseApp, id: "app-1", kita_name: "Kita Sonnenschein", status: "draft" },
+      { ...baseApp, id: "app-2", kita_name: "Kita Regenbogen", status: "draft" },
+    ];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          application: { ...apps[0], status: "sent" },
+        }),
+      })
+    );
+    render(<ApplicationsClient initialApplications={apps} />);
+    // Expand first app (first button is the expand/collapse button)
+    fireEvent.click(screen.getAllByRole("button")[0]);
+    await waitFor(() => expect(screen.getAllByText("Eingereicht").length).toBeGreaterThan(0));
+    // Click "Eingereicht" to update status for app-1
+    const buttons = screen.getAllByText("Eingereicht");
+    fireEvent.click(buttons[0]);
+    await waitFor(() => {
+      // app-1 now shows "Eingereicht" badge in header
+      expect(screen.getAllByText("Eingereicht").length).toBeGreaterThan(1);
+    });
+    // app-2 still shows "Entwurf" (not updated → took false branch in map)
+    expect(screen.getAllByText("Entwurf").length).toBeGreaterThan(0);
+  });
+
+  // ── saveNotes: success path with data.application update ─────────────────
+
+  it("saveNotes: updates app in list after successful save", async () => {
+    const app = { ...baseApp, notes: null };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          application: { ...app, notes: "Neue Notiz" },
+        }),
+      })
+    );
+    render(<ApplicationsClient initialApplications={[app]} />);
+    // Expand app
+    fireEvent.click(screen.getAllByRole("button")[0]);
+    await waitFor(() => screen.getByPlaceholderText(/Eigene Notizen/));
+    const notesArea = screen.getByPlaceholderText(/Eigene Notizen/) as HTMLTextAreaElement;
+    fireEvent.change(notesArea, { target: { value: "Neue Notiz" } });
+    // Click save notes button
+    fireEvent.click(screen.getByText("Notizen speichern"));
+    await waitFor(() => {
+      // Fetch was called
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/applications",
+        expect.objectContaining({ method: "PATCH" })
+      );
+    });
+  });
 });

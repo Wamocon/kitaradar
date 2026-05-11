@@ -109,4 +109,25 @@ describe("FeedClient", () => {
       expect(fetchSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
   });
+
+  it("hides form and reloads posts after NewPostForm onPosted fires (line 73 branch)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => ({ posts: mockPosts }) })
+    );
+    render(<FeedClient isPro={true} />);
+    await waitFor(() => screen.getByText("new_post_btn"));
+    // Open the form
+    fireEvent.click(screen.getByText("new_post_btn"));
+    expect(screen.getByPlaceholderText("new_post")).toBeTruthy();
+    // Fill title AND content (both required by handleSubmit guard)
+    fireEvent.change(screen.getByPlaceholderText("new_post"), { target: { value: "Mein Beitrag" } });
+    fireEvent.change(screen.getByPlaceholderText("post_placeholder"), { target: { value: "Mein Inhalt" } });
+    const form = screen.getByPlaceholderText("new_post").closest("form")!;
+    fireEvent.submit(form);
+    // onPosted fires → setShowForm(false) → form disappears
+    await waitFor(() => {
+      expect(screen.queryByPlaceholderText("new_post")).toBeNull();
+    });
+  });
 });

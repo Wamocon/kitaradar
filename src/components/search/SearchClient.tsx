@@ -23,9 +23,9 @@ const KitaMapGL = dynamic(() => import("./KitaMapGL").then((m) => ({ default: m.
 
 const KITA_TYPES = ["all", "public", "church", "private", "free"] as const;
 
-export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function SearchClient({ isLoggedIn, initialAddress }: { isLoggedIn: boolean; initialAddress?: string }) {
   const t = useTranslations("search");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(initialAddress ?? "");
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [radius, setRadius] = useState(1);
   const [kitaType, setKitaType] = useState<string>("all");
@@ -85,11 +85,36 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
    
   }, [kitaType, radius, t]);
 
-  // Auto-search on mount via browser geolocation
+  // Auto-search on mount: use initialAddress (from URL param) first, then geolocation
   useEffect(() => {
     if (geoSearchedRef.current) return;
-    if (!navigator.geolocation) return;
     geoSearchedRef.current = true;
+
+    // Priority 1: address passed from recommendations (e.g. /search?address=...)
+    if (initialAddress) {
+      setIsLoading(true);
+      fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(initialAddress)}&countrycodes=de&format=json&limit=1`,
+        { headers: { "User-Agent": "KitaRadar/1.0 (kitaradar@wamocon.com)" } }
+      )
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: Array<{ lat: string; lon: string }>) => {
+          if (data.length) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            setSelectedCoords({ lat, lng });
+            setUserPos([lat, lng]);
+            setRadius(5);
+            void searchWithCoords(lat, lng, initialAddress, 5);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+      return;
+    }
+
+    // Priority 2: browser geolocation
+    if (!navigator.geolocation) return;
     setIsGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {

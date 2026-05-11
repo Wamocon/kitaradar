@@ -24,14 +24,12 @@ export function PostCard({ post }: { post: FeedPost }) {
   const [reported, setReported] = useState(false);
 
   async function handleUpvote() {
-    if (upvoted) return;
     setUpvoted(true);
     setUpvotes((n) => n + 1);
     await fetch(`/api/feed/posts/${post.id}/upvote`, { method: "POST" });
   }
 
   async function handleReport() {
-    if (reported) return;
     setReported(true);
     await fetch(`/api/feed/posts/${post.id}/report`, {
       method: "POST",

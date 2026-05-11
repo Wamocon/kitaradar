@@ -375,7 +375,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
               <div className="mt-3 flex items-center justify-between">
                 <div className="flex gap-2">
                   <Link
-                    href={`/search?city=${encodeURIComponent(rec.name)}`}
+                    href={`/search?address=${encodeURIComponent(rec.address || rec.name)}`}
                     onClick={(e) => e.stopPropagation()}
                     className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
                   >
@@ -492,7 +492,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
             {/* Footer */}
             <div className="flex gap-3 border-t border-border px-6 py-4">
               <Link
-                href={`/search?city=${encodeURIComponent(detailRec.name)}`}
+                href={`/search?address=${encodeURIComponent(detailRec.address || detailRec.name)}`}
                 className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
               >
                 <MapPin className="h-4 w-4" /> Auf Karte suchen

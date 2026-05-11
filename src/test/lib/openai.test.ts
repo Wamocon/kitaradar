@@ -109,6 +109,14 @@ describe("openai lib", () => {
       expect(extractCoTResponse("plain answer")).toBe("plain answer");
     });
 
+    // ── line 100: raw.trim() fallback (no think blocks, stripped <= 10 chars) ─
+    it("returns raw.trim() when no think blocks and stripped text is short", async () => {
+      vi.resetModules();
+      const { extractCoTResponse } = await import("@/lib/openai");
+      // "OK" has 2 chars → stripped.length ≤ 10 → no think blocks → returns raw.trim()
+      expect(extractCoTResponse("  OK  ")).toBe("OK");
+    });
+
     it("uses last think block when multiple exist in Layout B", async () => {
       vi.resetModules();
       const { extractCoTResponse } = await import("@/lib/openai");

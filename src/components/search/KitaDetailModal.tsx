@@ -258,11 +258,18 @@ export function KitaDetailModal({ kita, onClose, onApply }: KitaDetailModalProps
               Kontakt & Adresse
             </h3>
             <div className="rounded-lg border border-border bg-card px-4 py-1">
-              {fullAddress && (
+              {fullAddress ? (
                 <DetailRow
                   icon={<MapPin className="h-4 w-4" />}
                   label="Adresse"
                   value={fullAddress}
+                  href={mapsUrl}
+                />
+              ) : (
+                <DetailRow
+                  icon={<MapPin className="h-4 w-4" />}
+                  label="Standort"
+                  value="Auf Google Maps anzeigen →"
                   href={mapsUrl}
                 />
               )}

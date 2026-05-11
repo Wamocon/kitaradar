@@ -9,7 +9,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-export default async function SearchPage() {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ address?: string }>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -17,7 +22,7 @@ export default async function SearchPage() {
     <div className="flex h-screen flex-col overflow-hidden">
       <Header />
       <main className="flex flex-1 flex-col overflow-hidden">
-        <SearchClient isLoggedIn={!!user} />
+        <SearchClient isLoggedIn={!!user} initialAddress={params.address} />
       </main>
     </div>
   );

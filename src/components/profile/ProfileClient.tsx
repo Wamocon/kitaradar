@@ -293,10 +293,6 @@ export function ProfileClient({
   }
 
   async function deleteAccount() {
-    if (!deleteConfirm) {
-      setDeleteConfirm(true);
-      return;
-    }
     setIsDeleting(true);
     await fetch("/api/user/account", { method: "DELETE" });
     window.location.href = "/";

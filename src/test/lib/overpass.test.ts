@@ -282,4 +282,55 @@ describe("searchKitasOverpass", () => {
     const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
     expect(init.body).toContain("7500");
   });
+
+  // ── tryEndpoint catch block (lines 101-102): fetch throws network error ───
+
+  it("returns empty array when fetch throws (network-level failure)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
+    const result = await searchKitasOverpass(BERLIN.lat, BERLIN.lng, 5000);
+    expect(result).toEqual([]);
+  });
+
+  // ── capacity, minAge, maxAge, wheelchair tag coverage (lines 167, 171-173) ─
+
+  it("parses numeric capacity, minAge, maxAge and wheelchair=yes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      mockFetch(200, {
+        elements: [
+          {
+            type: "node",
+            id: 99,
+            lat: 52.52,
+            lon: 13.41,
+            tags: {
+              name: "Kita Tags",
+              capacity: "30",
+              min_age: "1.5",
+              max_age: "6",
+              wheelchair: "yes",
+            },
+          },
+        ],
+      })
+    );
+    const result = await searchKitasOverpass(BERLIN.lat, BERLIN.lng, 5000);
+    expect(result[0].capacity).toBe(30);
+    expect(result[0].minAge).toBe(1.5);
+    expect(result[0].maxAge).toBe(6);
+    expect(result[0].wheelchair).toBe(true);
+  });
+
+  it("returns wheelchair=false for wheelchair=no tag", async () => {
+    vi.stubGlobal(
+      "fetch",
+      mockFetch(200, {
+        elements: [
+          { type: "node", id: 100, lat: 52.52, lon: 13.41, tags: { wheelchair: "no" } },
+        ],
+      })
+    );
+    const result = await searchKitasOverpass(BERLIN.lat, BERLIN.lng, 5000);
+    expect(result[0].wheelchair).toBe(false);
+  });
 });

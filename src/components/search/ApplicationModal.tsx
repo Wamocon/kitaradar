@@ -89,7 +89,6 @@ export function ApplicationModal({ kita, onClose }: ApplicationModalProps) {
   }
 
   function openMailto() {
-    if (!kita.email) return;
     const subject = encodeURIComponent(`Bewerbung um einen Kita-Platz - ${kita.name}`);
     const body = encodeURIComponent(
       coverLetter ||

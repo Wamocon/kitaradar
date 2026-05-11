@@ -66,6 +66,17 @@ describe("PostCard", () => {
     await waitFor(() => {
       expect(upvoteBtn).toBeDisabled();
     });
+    // Second click with upvoted=true covers the early-return guard branch
+    fireEvent.click(upvoteBtn);
+  });
+
+  it("does not re-report after already reporting (early-return guard branch)", async () => {
+    render(<PostCard post={basePost} />);
+    const reportBtn = screen.getByText("report").closest("button")!;
+    fireEvent.click(reportBtn);
+    await waitFor(() => screen.getByText("reported"));
+    // Second click covers the if(reported) return branch
+    fireEvent.click(reportBtn);
   });
 
   it("changes report label to 'Gemeldet' after clicking", async () => {

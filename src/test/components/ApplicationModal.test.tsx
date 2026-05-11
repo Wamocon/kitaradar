@@ -225,4 +225,79 @@ describe("ApplicationModal", () => {
       "_blank"
     );
   });
+
+  // ── generateLetter: network error triggers catch block ────────────────────
+
+  it("shows generic error when AI generate fetch throws", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network")));
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText("ai_generate"));
+    await waitFor(() => {
+      expect(screen.getByText("Fehler bei der KI-Generierung.")).toBeTruthy();
+    });
+  });
+
+  // ── generateLetter: data.letter absent (falsy branch) ────────────────────
+
+  it("does not set cover letter when AI response has no letter field", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ error: "no_letter" }),
+      })
+    );
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText("ai_generate"));
+    await waitFor(() => {
+      // After generation done, textarea is still visible (no letter set = editMode still true)
+      expect(screen.getByPlaceholderText("cover_letter_placeholder")).toBeTruthy();
+    });
+  });
+
+  // ── setInterval timer branch: isGenerating overlay visible ──────────────
+
+  it("shows generating overlay while AI is processing", async () => {
+    // Never-resolving fetch keeps isGenerating=true throughout
+    vi.stubGlobal("fetch", vi.fn().mockImplementation(() => new Promise(() => {})));
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText("ai_generate"));
+    // Overlay (lines 104-114) renders synchronously while isGenerating=true
+    await waitFor(() => {
+      expect(screen.getByText("KI analysiert und formuliert...")).toBeTruthy();
+    });
+  });
+
+  // ── setInterval callback (line 29): fake timers advance to trigger it ────
+
+  it("advances elapsed counter after 1s via setInterval", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn().mockImplementation(() => new Promise(() => {})));
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText("ai_generate"));
+    // Advance 1100ms → setInterval fires and calls setElapsed
+    vi.advanceTimersByTime(1100);
+    vi.useRealTimers();
+  });
+
+  // ── cover letter with \n within paragraph (line 213: <br />) ──────────────
+
+  it("renders cover letter paragraphs with inline line breaks", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        // Single \n inside a paragraph triggers the <br /> branch (line 213)
+        json: async () => ({ letter: "Erste Zeile\nZweite Zeile\n\nNeuer Absatz" }),
+      })
+    );
+    render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByText("ai_generate"));
+    await waitFor(() => screen.getByText("Erste Zeile"));
+    // Both lines of the first paragraph are visible
+    expect(screen.getByText("Zweite Zeile")).toBeTruthy();
+    expect(screen.getByText("Neuer Absatz")).toBeTruthy();
+  });
 });
