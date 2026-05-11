@@ -43,7 +43,35 @@ export async function POST(request: NextRequest) {
   }
 
   // ─── Profil + Kinder aus der Datenbank laden ───────────────────────────────────
-  const [{ data: profile }, { data: children }] = await Promise.all([
+  interface ProfileRow {
+    full_name: string | null;
+    partner_name: string | null;
+    role: string | null;
+    family_situation: string | null;
+    home_language: string | null;
+    additional_languages: string | null;
+    job_title: string | null;
+    employer: string | null;
+    work_district: string | null;
+    work_hours_type: string | null;
+    work_start_time: string | null;
+    work_end_time: string | null;
+    preferred_pedagogy: string | null;
+    preferred_kita_type: string | null;
+    preferred_languages: string | null;
+    preferred_hours: string | null;
+    max_monthly_fee: number | null;
+    kita_needed_from: string | null;
+    ai_consent: boolean;
+  }
+  interface ChildRow {
+    name: string;
+    birth_year: number | null;
+    birth_month: number | null;
+    special_needs: string | null;
+  }
+
+  const [{ data: profileRaw }, { data: childrenRaw }] = await Promise.all([
     supabase
       .from("profiles")
       .select(
@@ -59,6 +87,9 @@ export async function POST(request: NextRequest) {
       .eq("profile_id", user.id)
       .order("created_at"),
   ]);
+
+  const profile = profileRaw as ProfileRow | null;
+  const children = childrenRaw as ChildRow[] | null;
 
   // ─── Kontext-Abschnitte für den KI-Prompt zusammenstellen ───────────────────
   const now = new Date();

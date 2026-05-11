@@ -25,6 +25,24 @@ export interface Database {
         default_search_radius: number;
         created_at: string;
         updated_at: string;
+        // Migration 005: extended parent profile fields
+        job_title: string | null;
+        employer: string | null;
+        work_district: string | null;
+        work_hours_type: string | null;
+        work_start_time: string | null;
+        work_end_time: string | null;
+        family_situation: string | null;
+        home_language: string | null;
+        additional_languages: string | null;
+        max_monthly_fee: number | null;
+        kita_needed_from: string | null;
+        ai_consent: boolean;
+        ai_consent_at: string | null;
+        preferred_pedagogy: string | null;
+        preferred_kita_type: string | null;
+        preferred_languages: string | null;
+        preferred_hours: string | null;
       };
       Insert: Omit<Database["Tables"]["profiles"]["Row"], "created_at" | "updated_at">;
       Update: Partial<Database["Tables"]["profiles"]["Insert"]>;
@@ -34,8 +52,12 @@ export interface Database {
         id: string;
         profile_id: string;
         name: string;
-        date_of_birth: string;
+        date_of_birth: string | null;
         created_at: string;
+        // Migration 006: extended children fields
+        birth_year: number | null;
+        birth_month: number | null;
+        special_needs: string | null;
       };
       Insert: Omit<Database["Tables"]["children"]["Row"], "id" | "created_at">;
       Update: Partial<Database["Tables"]["children"]["Insert"]>;

@@ -164,7 +164,7 @@ function preloadPinImages(map: maplibregl.Map) {
     const ctx2 = canvas.getContext("2d")!;
     const imgData = ctx2.getImageData(0, 0, canvas.width, canvas.height);
     if (map.hasImage(id)) map.removeImage(id);
-    map.addImage(id, imgData, { pixelRatio: 2, premultiplied: false });
+    map.addImage(id, imgData, { pixelRatio: 2 });
   }
 }
 
