@@ -201,6 +201,11 @@ export function KitaMapGL({
       map.setBearing(-15);
       if (!map.getLayer(BUILDINGS_LAYER)) {
         try {
+          // Insert BEFORE the first symbol/cluster layer so buildings stay
+          // underneath pins in the layer stack
+          const firstSymbol = map.getStyle().layers?.find(
+            (l) => l.type === "symbol" || l.id === "clusters" || l.id === "kita-pins"
+          )?.id;
           map.addLayer({
             id:     BUILDINGS_LAYER,
             source: "openmaptiles",
@@ -216,12 +221,16 @@ export function KitaMapGL({
               "fill-extrusion-base":    ["coalesce", ["get", "render_min_height"], ["get", "min_height"], 0],
               "fill-extrusion-opacity": 0.75,
             },
-          });
+          }, firstSymbol);
         } catch {
           // source-layer not in current style — skip silently
         }
       } else {
         map.setLayoutProperty(BUILDINGS_LAYER, "visibility", "visible");
+      }
+      // Always ensure kita layers sit on top of buildings
+      for (const id of ["clusters", "cluster-count", "kita-pins"]) {
+        if (map.getLayer(id)) map.moveLayer(id);
       }
     } else {
       map.setPitch(0);
@@ -352,15 +361,19 @@ export function KitaMapGL({
           source: SOURCE_ID,
           filter: ["!", ["has", "point_count"]],
           layout: {
-            "icon-image":         ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
-            "icon-size":          ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
-            "icon-allow-overlap": true,
-            "icon-anchor":        "bottom",
-            "text-field":         ["step", ["zoom"], "", 15, ["get", "name"]],
-            "text-size":          11,
-            "text-anchor":        "top",
-            "text-offset":        [0, 0.2],
-            "text-max-width":     10,
+            "icon-image":              ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
+            "icon-size":               ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
+            "icon-allow-overlap":      true,
+            "icon-anchor":             "bottom",
+            "icon-pitch-alignment":    "viewport",
+            "icon-rotation-alignment": "viewport",
+            "text-field":              ["step", ["zoom"], "", 15, ["get", "name"]],
+            "text-size":               11,
+            "text-anchor":             "top",
+            "text-offset":             [0, 0.2],
+            "text-max-width":          10,
+            "text-pitch-alignment":    "viewport",
+            "text-rotation-alignment": "viewport",
           },
           paint: {
             "text-color":      isDark ? "#fff" : "#1e293b",
@@ -502,7 +515,20 @@ export function KitaMapGL({
       if (!map.getLayer("clusters")) {
         map.addLayer({ id: "clusters", type: "circle", source: SOURCE_ID, filter: ["has", "point_count"], paint: { "circle-color": "#2563eb", "circle-radius": ["step", ["get", "point_count"], 20, 10, 28, 50, 36], "circle-stroke-width": 3, "circle-stroke-color": "#1d4ed8" } });
         map.addLayer({ id: "cluster-count", type: "symbol", source: SOURCE_ID, filter: ["has", "point_count"], layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 13 }, paint: { "text-color": "#fff" } });
-        map.addLayer({ id: "kita-pins", type: "symbol", source: SOURCE_ID, filter: ["!", ["has", "point_count"]], layout: { "icon-image": ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]], "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5], "icon-allow-overlap": true, "icon-anchor": "bottom", "text-field": ["step", ["zoom"], "", 15, ["get", "name"]], "text-size": 11, "text-anchor": "top", "text-offset": [0, 0.2], "text-max-width": 10 }, paint: { "text-color": isDark ? "#fff" : "#1e293b", "text-halo-color": isDark ? "rgba(0,0,0,.8)" : "rgba(255,255,255,.9)", "text-halo-width": 1.5 } });
+        map.addLayer({
+          id: "kita-pins", type: "symbol", source: SOURCE_ID,
+          filter: ["!", ["has", "point_count"]],
+          layout: {
+            "icon-image": ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
+            "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
+            "icon-allow-overlap": true, "icon-anchor": "bottom",
+            "icon-pitch-alignment": "viewport", "icon-rotation-alignment": "viewport",
+            "text-field": ["step", ["zoom"], "", 15, ["get", "name"]],
+            "text-size": 11, "text-anchor": "top", "text-offset": [0, 0.2], "text-max-width": 10,
+            "text-pitch-alignment": "viewport", "text-rotation-alignment": "viewport",
+          },
+          paint: { "text-color": isDark ? "#fff" : "#1e293b", "text-halo-color": isDark ? "rgba(0,0,0,.8)" : "rgba(255,255,255,.9)", "text-halo-width": 1.5 },
+        });
       }
 
       // 3D buildings for terrain mode
