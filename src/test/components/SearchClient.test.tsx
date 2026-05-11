@@ -378,13 +378,11 @@ describe("SearchClient", () => {
   it("initialAddress: geocodes and auto-searches on mount", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => [{ lat: "50.11", lon: "8.68" }] })
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({ kitas: mockKitas, center: { lat: 50.11, lng: 8.68 } }),
-        })
+      vi.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ kitas: mockKitas, center: { lat: 50.11, lng: 8.68 } }),
+      })
     );
     render(<SearchClient isLoggedIn={false} initialAddress="Musterstr. 5, Frankfurt" />);
     await waitFor(() => expect(screen.getByText("Kita Sonnenschein")).toBeTruthy());

@@ -142,7 +142,7 @@ describe("ApplicationModal", () => {
     render(<ApplicationModal kita={baseKita} onClose={vi.fn()} />);
     fireEvent.click(screen.getByText("save_draft"));
     await waitFor(() => {
-      expect(screen.getByText("error")).toBeTruthy();
+      expect(screen.getByText("network error")).toBeTruthy();
     });
   });
 
