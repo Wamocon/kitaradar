@@ -5,6 +5,13 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { OverpassKita } from "@/lib/overpass";
 
+const LEGEND_ITEMS = [
+  { type: "public",  color: "#2563eb", bg: "bg-blue-600",    label: "Kommunal" },
+  { type: "church",  color: "#d97706", bg: "bg-amber-600",   label: "Kirchlich" },
+  { type: "private", color: "#7c3aed", bg: "bg-violet-700",  label: "Privat" },
+  { type: "free",    color: "#059669", bg: "bg-emerald-600", label: "Freier Träger" },
+] as const;
+
 // ─── OpenFreeMap styles (free, no API key) ────────────────────────────────────
 const STYLE_URLS = {
   normal_light: "https://tiles.openfreemap.org/styles/positron",
@@ -26,25 +33,27 @@ const TYPE_COLORS: Record<string, string> = {
   free:    "#059669",
 };
 
-// Draw a map-pin directly on a canvas using the 2D API.
-// Avoids the SVG→Image→Canvas pipeline which can produce alpha-channel
-// artefacts (premultiplied alpha + gamma) across browsers and MapLibre versions.
+// Draw a type-specific map pin on a canvas.
 // Returns an HTMLCanvasElement — supported directly by maplibregl.Map.addImage.
-function drawKitaPin(color: string, selected: boolean): HTMLCanvasElement {
+function drawKitaPin(type: string, color: string, selected: boolean): HTMLCanvasElement {
   const w = selected ? 30 : 25;
   const h = selected ? 46 : 38;
   const scale = 2; // retina
   const canvas = document.createElement("canvas");
   canvas.width  = w * scale;
   canvas.height = h * scale;
-  // alpha: true (default) — pixels outside the pin path stay fully transparent
   const ctx = canvas.getContext("2d")!;
   ctx.scale(scale, scale);
-  ctx.clearRect(0, 0, w, h); // guarantee transparent background
+  ctx.clearRect(0, 0, w, h);
 
-  // Scale from viewBox 30×42 to actual pin size
   const sx = w / 30;
   const sy = h / 42;
+
+  // ── Pin shadow ───────────────────────────────────────────────────────────
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.35)";
+  ctx.shadowBlur  = 4 * scale;
+  ctx.shadowOffsetY = 2 * scale;
 
   // ── Pin body (teardrop) ──────────────────────────────────────────────────
   ctx.beginPath();
@@ -56,29 +65,84 @@ function drawKitaPin(color: string, selected: boolean): HTMLCanvasElement {
   ctx.closePath();
   ctx.fillStyle = color;
   ctx.fill();
+  ctx.restore();
 
   // ── White inner circle ───────────────────────────────────────────────────
   ctx.beginPath();
-  ctx.arc(15 * sx, 15 * sy, 7 * Math.min(sx, sy), 0, Math.PI * 2);
+  ctx.arc(15 * sx, 14 * sy, 7.5 * Math.min(sx, sy), 0, Math.PI * 2);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
 
-  // ── House icon ───────────────────────────────────────────────────────────
-  ctx.beginPath();
-  ctx.moveTo(15 * sx,   8 * sy);
-  ctx.lineTo( 9 * sx,  13.5 * sy);
-  ctx.lineTo(11 * sx,  13.5 * sy);
-  ctx.lineTo(11 * sx,  20 * sy);
-  ctx.lineTo(14.5 * sx, 20 * sy);
-  ctx.lineTo(14.5 * sx, 17 * sy);
-  ctx.lineTo(15.5 * sx, 17 * sy);
-  ctx.lineTo(15.5 * sx, 20 * sy);
-  ctx.lineTo(19 * sx,  20 * sy);
-  ctx.lineTo(19 * sx,  13.5 * sy);
-  ctx.lineTo(21 * sx,  13.5 * sy);
-  ctx.closePath();
+  // ── Type-specific icon (white on coloured circle) ────────────────────────
   ctx.fillStyle = color;
-  ctx.fill();
+  const cx = 15 * sx;
+  const cy = 14 * sy;
+
+  if (type === "church") {
+    // Latin cross
+    const bw = 3.5 * sx; // bar width
+    const th = 12 * sy; // total height
+    const hw = 7 * sx;  // horizontal arm half-width
+    const hy = 4.5 * sy; // horizontal arm y offset from top
+    const ht = 3 * sy;   // horizontal arm thickness
+    ctx.beginPath();
+    // vertical bar
+    ctx.rect(cx - bw / 2, cy - th / 2, bw, th);
+    ctx.fill();
+    ctx.beginPath();
+    // horizontal bar
+    ctx.rect(cx - hw, cy - th / 2 + hy, hw * 2, ht);
+    ctx.fill();
+
+  } else if (type === "private") {
+    // 5-pointed star
+    const outerR = 6.5 * Math.min(sx, sy);
+    const innerR = 2.8 * Math.min(sx, sy);
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 === 0 ? outerR : innerR;
+      const angle = (i * Math.PI) / 5 - Math.PI / 2;
+      const px = cx + r * Math.cos(angle);
+      const py = cy + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+  } else if (type === "free") {
+    // Leaf shape
+    const lh = 6 * sy;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + lh);           // bottom tip
+    ctx.bezierCurveTo(cx - 5.5 * sx, cy + lh * 0.3,  cx - 5.5 * sx, cy - lh * 0.8, cx, cy - lh); // left arc
+    ctx.bezierCurveTo(cx + 5.5 * sx, cy - lh * 0.8,  cx + 5.5 * sx, cy + lh * 0.3, cx, cy + lh); // right arc
+    ctx.closePath();
+    ctx.fill();
+    // stem
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2 * Math.min(sx, sy);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + lh);
+    ctx.lineTo(cx, cy + lh * 0.3);
+    ctx.stroke();
+
+  } else {
+    // public — house
+    ctx.beginPath();
+    ctx.moveTo(cx,             cy - 6.5 * sy);
+    ctx.lineTo(cx - 6 * sx,   cy - 1 * sy);
+    ctx.lineTo(cx - 4.5 * sx, cy - 1 * sy);
+    ctx.lineTo(cx - 4.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx - 1.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx - 1.5 * sx, cy + 2 * sy);
+    ctx.lineTo(cx + 1.5 * sx, cy + 2 * sy);
+    ctx.lineTo(cx + 1.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx + 4.5 * sx, cy + 5.5 * sy);
+    ctx.lineTo(cx + 4.5 * sx, cy - 1 * sy);
+    ctx.lineTo(cx + 6 * sx,   cy - 1 * sy);
+    ctx.closePath();
+    ctx.fill();
+  }
 
   return canvas;
 }
@@ -96,7 +160,7 @@ function preloadPinImages(map: maplibregl.Map) {
   for (const { type, sel } of variants) {
     const id = `pin-${type}-${sel ? "sel" : "def"}`;
     const color = TYPE_COLORS[type] ?? "#2563eb";
-    const canvas = drawKitaPin(color, sel);
+    const canvas = drawKitaPin(type, color, sel);
     const ctx2 = canvas.getContext("2d")!;
     const imgData = ctx2.getImageData(0, 0, canvas.width, canvas.height);
     if (map.hasImage(id)) map.removeImage(id);
@@ -362,7 +426,7 @@ export function KitaMapGL({
           filter: ["!", ["has", "point_count"]],
           layout: {
             "icon-image":              ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
-            "icon-size":               ["interpolate", ["linear"], ["zoom"], 10, 1.6, 14, 2.2, 17, 3.0],
+            "icon-size":               ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
             "icon-allow-overlap":      true,
             "icon-anchor":             "bottom",
             "icon-pitch-alignment":    "viewport",
@@ -520,7 +584,7 @@ export function KitaMapGL({
           filter: ["!", ["has", "point_count"]],
           layout: {
             "icon-image": ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
-            "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 1.6, 14, 2.2, 17, 3.0],
+            "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
             "icon-allow-overlap": true, "icon-anchor": "bottom",
             "icon-pitch-alignment": "viewport", "icon-rotation-alignment": "viewport",
             "text-field": ["step", ["zoom"], "", 15, ["get", "name"]],
@@ -537,5 +601,24 @@ export function KitaMapGL({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tileType, isDark]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div ref={containerRef} className="h-full w-full" />
+
+      {/* ─── Legend ─────────────────────────────────────────────────────── */}
+      <div className="pointer-events-none absolute bottom-8 right-2 z-10 rounded-xl border border-white/30 bg-white/90 px-3 py-2.5 shadow-lg backdrop-blur-sm dark:border-white/10 dark:bg-gray-900/90">
+        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          Träger
+        </p>
+        {LEGEND_ITEMS.map((item) => (
+          <div key={item.type} className="mb-1 flex items-center gap-2 last:mb-0">
+            <span
+              className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${item.bg}`}
+            />
+            <span className="text-xs text-gray-700 dark:text-gray-300">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
