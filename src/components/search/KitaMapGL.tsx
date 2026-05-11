@@ -37,7 +37,8 @@ function drawKitaPin(color: string, selected: boolean): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width  = w * scale;
   canvas.height = h * scale;
-  const ctx = canvas.getContext("2d")!;
+  // alpha: false → every pixel starts as opaque black; no premultiplied-alpha issues
+  const ctx = canvas.getContext("2d", { alpha: false })!;
   ctx.scale(scale, scale);
 
   // Scale from viewBox 30×42 to actual pin size
@@ -95,12 +96,10 @@ function preloadPinImages(map: maplibregl.Map) {
     const id = `pin-${type}-${sel ? "sel" : "def"}`;
     const color = TYPE_COLORS[type] ?? "#2563eb";
     const canvas = drawKitaPin(color, sel);
+    const ctx2 = canvas.getContext("2d")!;
+    const imgData = ctx2.getImageData(0, 0, canvas.width, canvas.height);
     if (map.hasImage(id)) map.removeImage(id);
-    // Pass HTMLCanvasElement directly — MapLibre GL supports this at runtime
-    // and handles the WebGL texture upload correctly without premultiplied-alpha
-    // artefacts that occur when going via ImageData.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    map.addImage(id, canvas as any, { pixelRatio: 2 });
+    map.addImage(id, imgData, { pixelRatio: 2 });
   }
 }
 
