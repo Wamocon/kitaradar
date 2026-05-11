@@ -362,7 +362,7 @@ export function KitaMapGL({
           filter: ["!", ["has", "point_count"]],
           layout: {
             "icon-image":              ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
-            "icon-size":               ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
+            "icon-size":               ["interpolate", ["linear"], ["zoom"], 10, 1.6, 14, 2.2, 17, 3.0],
             "icon-allow-overlap":      true,
             "icon-anchor":             "bottom",
             "icon-pitch-alignment":    "viewport",
@@ -520,7 +520,7 @@ export function KitaMapGL({
           filter: ["!", ["has", "point_count"]],
           layout: {
             "icon-image": ["concat", "pin-", ["get", "type"], "-", ["case", ["get", "selected"], "sel", "def"]],
-            "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.8, 14, 1.1, 17, 1.5],
+            "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 1.6, 14, 2.2, 17, 3.0],
             "icon-allow-overlap": true, "icon-anchor": "bottom",
             "icon-pitch-alignment": "viewport", "icon-rotation-alignment": "viewport",
             "text-field": ["step", ["zoom"], "", 15, ["get", "name"]],
