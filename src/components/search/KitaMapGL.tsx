@@ -26,49 +26,82 @@ const TYPE_COLORS: Record<string, string> = {
   free:    "#059669",
 };
 
-function kitaPin(color: string, selected: boolean): string {
-  const h = selected ? 46 : 38;
+// Draw a map-pin directly on a canvas using the 2D API.
+// Avoids the SVG→Image→Canvas pipeline which can produce alpha-channel
+// artefacts (premultiplied alpha + gamma) across browsers and MapLibre versions.
+// Returns an HTMLCanvasElement — supported directly by maplibregl.Map.addImage.
+function drawKitaPin(color: string, selected: boolean): HTMLCanvasElement {
   const w = selected ? 30 : 25;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 30 42" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 0C6.716 0 0 6.716 0 15c0 10.5 15 27 15 27S30 25.5 30 15C30 6.716 23.284 0 15 0z" fill="${color}" opacity="0.92"/>
-    <circle cx="15" cy="15" r="7" fill="white" opacity="0.9"/>
-    <path d="M15 8l-6 5.5h2V20h3.5v-3h1v3H19v-6.5h2L15 8z" fill="${color}"/>
-  </svg>`;
+  const h = selected ? 46 : 38;
+  const scale = 2; // retina
+  const canvas = document.createElement("canvas");
+  canvas.width  = w * scale;
+  canvas.height = h * scale;
+  const ctx = canvas.getContext("2d")!;
+  ctx.scale(scale, scale);
+
+  // Scale from viewBox 30×42 to actual pin size
+  const sx = w / 30;
+  const sy = h / 42;
+
+  // ── Pin body (teardrop) ──────────────────────────────────────────────────
+  ctx.beginPath();
+  ctx.moveTo(15 * sx, 0);
+  ctx.bezierCurveTo(6.716 * sx, 0,          0,           6.716 * sy, 0,         15 * sy);
+  ctx.bezierCurveTo(0,          25.5 * sy,  15 * sx,    42 * sy,    15 * sx,   42 * sy);
+  ctx.bezierCurveTo(15 * sx,   42 * sy,    30 * sx,    25.5 * sy,  30 * sx,   15 * sy);
+  ctx.bezierCurveTo(30 * sx,    6.716 * sy, 23.284 * sx, 0,         15 * sx,   0);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  // ── White inner circle ───────────────────────────────────────────────────
+  ctx.beginPath();
+  ctx.arc(15 * sx, 15 * sy, 7 * Math.min(sx, sy), 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  // ── House icon ───────────────────────────────────────────────────────────
+  ctx.beginPath();
+  ctx.moveTo(15 * sx,   8 * sy);
+  ctx.lineTo( 9 * sx,  13.5 * sy);
+  ctx.lineTo(11 * sx,  13.5 * sy);
+  ctx.lineTo(11 * sx,  20 * sy);
+  ctx.lineTo(14.5 * sx, 20 * sy);
+  ctx.lineTo(14.5 * sx, 17 * sy);
+  ctx.lineTo(15.5 * sx, 17 * sy);
+  ctx.lineTo(15.5 * sx, 20 * sy);
+  ctx.lineTo(19 * sx,  20 * sy);
+  ctx.lineTo(19 * sx,  13.5 * sy);
+  ctx.lineTo(21 * sx,  13.5 * sy);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  return canvas;
 }
 
-function svgToImageData(svgStr: string, w: number, h: number): Promise<ImageData> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement("canvas");
-    canvas.width = w * 2; canvas.height = h * 2;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) { reject(new Error("no canvas")); return; }
-    const img = new Image(w * 2, h * 2);
-    img.onload = () => { ctx.drawImage(img, 0, 0, w * 2, h * 2); resolve(ctx.getImageData(0, 0, w * 2, h * 2)); };
-    img.onerror = reject;
-    const sized = svgStr.replace(/(<svg[^>]*)width="[^"]*"\s*height="[^"]*"/, `$1width="${w * 2}" height="${h * 2}"`);
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sized)}`;
-  });
-}
-
-// Pre-render all 8 Kita-pin variants (4 types × 2 states) into the map image atlas.
-// Must complete BEFORE the kita-pins symbol layer is added, otherwise MapLibre renders
-// nothing and "styleimagemissing" fires in a race-prone async cycle.
-async function preloadPinImages(map: maplibregl.Map) {
+// Synchronously load all 8 pin variants into the map image atlas.
+// Always removes then re-adds each image so stale entries after a style
+// reload never prevent fresh pins from appearing.
+function preloadPinImages(map: maplibregl.Map) {
   const variants: Array<{ type: string; sel: boolean }> = [
     { type: "public",  sel: false }, { type: "public",  sel: true },
     { type: "church",  sel: false }, { type: "church",  sel: true },
     { type: "private", sel: false }, { type: "private", sel: true },
     { type: "free",    sel: false }, { type: "free",    sel: true },
   ];
-  await Promise.all(
-    variants.map(async ({ type, sel }) => {
-      const id = `pin-${type}-${sel ? "sel" : "def"}`;
-      if (map.hasImage(id)) return;
-      const color = TYPE_COLORS[type] ?? "#2563eb";
-      const img = await svgToImageData(kitaPin(color, sel), sel ? 30 : 25, sel ? 46 : 38);
-      if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 });
-    })
-  );
+  for (const { type, sel } of variants) {
+    const id = `pin-${type}-${sel ? "sel" : "def"}`;
+    const color = TYPE_COLORS[type] ?? "#2563eb";
+    const canvas = drawKitaPin(color, sel);
+    if (map.hasImage(id)) map.removeImage(id);
+    // Pass HTMLCanvasElement directly — MapLibre GL supports this at runtime
+    // and handles the WebGL texture upload correctly without premultiplied-alpha
+    // artefacts that occur when going via ImageData.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.addImage(id, canvas as any, { pixelRatio: 2 });
+  }
 }
 
 // Inject one-time CSS for pulse animation
@@ -258,9 +291,9 @@ export function KitaMapGL({
     // Add zoom + compass controls
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "top-right");
 
-    map.once("load", async () => {
+    map.once("load", () => {
       // Pre-load all 8 Kita pin variants BEFORE adding the symbol layer
-      await preloadPinImages(map);
+      preloadPinImages(map);
 
       // Satellite mode: add raster source as background
       if (tileType === "satellite" && !map.getSource("esri-sat")) {
@@ -408,9 +441,10 @@ export function KitaMapGL({
     if (!map) return;
     const rLat = radiusKm / 111.32;
     const rLng = radiusKm / (111.32 * Math.cos((center.lat * Math.PI) / 180));
+    // Preserve current pitch/bearing so 3D mode is not reset on every new search
     map.fitBounds(
       [[center.lng - rLng, center.lat - rLat], [center.lng + rLng, center.lat + rLat]],
-      { padding: 60, duration: 900 }
+      { padding: 60, duration: 900, pitch: map.getPitch(), bearing: map.getBearing() }
     );
     // Update radius circle
     if (map.getSource("radius")) {
@@ -444,9 +478,9 @@ export function KitaMapGL({
 
     map.setStyle(newStyle, { diff: false });
 
-    map.once("styledata", async () => {
+    map.once("styledata", () => {
       // Re-load pin images after style wipe
-      await preloadPinImages(map);
+      preloadPinImages(map);
 
       // Re-add satellite raster layer on top of vector base
       if (tileType === "satellite" && !map.getSource("esri-sat")) {

@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { AiProgressToast } from "@/components/ui/AiProgressToast";
+import { useAiProgress } from "@/components/providers/AiProgressProvider";
 
 interface Child {
   id: string;
@@ -92,9 +93,9 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   const [searchCity, setSearchCity] = useState(profile?.default_search_city ?? "");
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isToastComplete, setIsToastComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
+  const { reco } = useAiProgress();
 
   const hasPreferences =
     profile?.preferred_pedagogy ||
@@ -108,7 +109,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
       return;
     }
     setLoading(true);
-    setIsToastComplete(false);
+    reco.show();
     setError(null);
     try {
       const res = await fetch("/api/ai/recommendations", {
@@ -136,7 +137,7 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler");
     } finally {
-      setIsToastComplete(true);
+      reco.finish();
       setLoading(false);
     }
   }
@@ -383,11 +384,11 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
     </div>
 
       <AiProgressToast
-        visible={loading || isToastComplete}
-        isComplete={isToastComplete}
+        visible={reco.isVisible}
+        isComplete={reco.isDone}
         label="KI analysiert Kitas…"
         completeLabel="Empfehlungen fertig!"
-        onDismiss={() => setIsToastComplete(false)}
+        onDismiss={reco.dismiss}
       />
     </>
   );

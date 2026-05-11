@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { OverpassKita } from "@/lib/overpass";
 import { KitaCard } from "./KitaCard";
-import { ApplicationModal } from "./ApplicationModal";
 import { KitaDetailModal } from "./KitaDetailModal";
+import { useAiProgress } from "@/components/providers/AiProgressProvider";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import type { AutocompleteResult } from "@/app/api/geocode/autocomplete/route";
 import { useTranslations } from "next-intl";
@@ -27,14 +27,14 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const t = useTranslations("search");
   const [address, setAddress] = useState("");
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [radius, setRadius] = useState(5);
+  const [radius, setRadius] = useState(1);
   const [kitaType, setKitaType] = useState<string>("all");
   const [kitas, setKitas] = useState<OverpassKita[]>([]);
   const [total, setTotal] = useState<number | null>(null);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedKita, setSelectedKita] = useState<OverpassKita | null>(null);
-  const [applyKita, setApplyKita] = useState<OverpassKita | null>(null);
   const [detailKita, setDetailKita] = useState<OverpassKita | null>(null);
+  const { letter } = useAiProgress();
   const [isLoading, setIsLoading] = useState(false);
   const [isGeoLoading, setIsGeoLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,7 +44,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [panelOpen, setPanelOpen] = useState(true);
   const [isDark, setIsDark] = useState(false);
-  const [tileType, setTileType] = useState<"normal" | "satellite" | "terrain">("normal");
+  const [tileType, setTileType] = useState<"normal" | "satellite" | "terrain">("terrain");
   const [wizardOpen, setWizardOpen] = useState(false);
   const geoSearchedRef = useRef(false);
 
@@ -400,7 +400,7 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
                       kita={kita}
                       selected={selectedKita?.id === kita.id}
                       onSelect={() => { setSelectedKita(kita); setDetailKita(kita); }}
-                      onApply={() => setApplyKita(kita)}
+                      onApply={() => letter.openFor(kita)}
                     />
                   ))}
                 </div>
@@ -450,14 +450,10 @@ export function SearchClient({ isLoggedIn }: { isLoggedIn: boolean }) {
         </div>
       </div>
 
-      {applyKita && (
-        <ApplicationModal kita={applyKita} onClose={() => setApplyKita(null)} />
-      )}
-
       <KitaDetailModal
         kita={detailKita}
         onClose={() => setDetailKita(null)}
-        onApply={(kita) => { setDetailKita(null); setApplyKita(kita); }}
+        onApply={(kita) => { setDetailKita(null); letter.openFor(kita); }}
       />
     </div>
   );
