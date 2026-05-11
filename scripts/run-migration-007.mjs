@@ -9,9 +9,15 @@ const sql = readFileSync(
   "utf8"
 );
 
+const connectionString = process.env.SUPABASE_DB_URL;
+if (!connectionString) {
+  console.error("FEHLER: SUPABASE_DB_URL Umgebungsvariable nicht gesetzt.");
+  console.error("Beispiel: SUPABASE_DB_URL=postgresql://postgres:PASSWORT@db.xxx.supabase.co:5432/postgres node scripts/run-migration-007.mjs");
+  process.exit(1);
+}
+
 const client = new Client({
-  connectionString:
-    "SUPABASE_DB_URL_REDACTED",
+  connectionString,
   ssl: { rejectUnauthorized: false },
 });
 
