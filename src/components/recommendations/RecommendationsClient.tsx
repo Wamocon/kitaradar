@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -17,6 +17,9 @@ import {
   X,
   FileText,
   Info,
+  History,
+  Trash2,
+  ChevronDown,
 } from "lucide-react";
 import { AiProgressToast } from "@/components/ui/AiProgressToast";
 import { useAiProgress } from "@/components/providers/AiProgressProvider";
@@ -51,6 +54,42 @@ interface Recommendation {
   considerations: string[];
   detailedReport?: string;
   osmId?: string;
+}
+
+interface ArchiveEntry {
+  id: string;
+  city: string;
+  childName: string;
+  generatedAt: string; // ISO string
+  recommendations: Recommendation[];
+}
+
+const ARCHIVE_KEY = "kitaradar_reco_archive";
+const ARCHIVE_MAX = 5;
+
+function loadArchive(): ArchiveEntry[] {
+  try {
+    const raw = localStorage.getItem(ARCHIVE_KEY);
+    return raw ? (JSON.parse(raw) as ArchiveEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveToArchive(entry: Omit<ArchiveEntry, "id">) {
+  try {
+    const existing = loadArchive().filter(
+      (e) => !(e.city === entry.city && e.childName === entry.childName)
+    );
+    const updated: ArchiveEntry[] = [
+      { ...entry, id: Date.now().toString() },
+      ...existing,
+    ].slice(0, ARCHIVE_MAX);
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch {
+    return loadArchive();
+  }
 }
 
 interface RecommendationsClientProps {
@@ -100,7 +139,13 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
   const [detailRec, setDetailRec] = useState<Recommendation | null>(null);
+  const [archive, setArchive] = useState<ArchiveEntry[]>([]);
+  const [expandedArchiveId, setExpandedArchiveId] = useState<string | null>(null);
   const { reco } = useAiProgress();
+
+  useEffect(() => {
+    setArchive(loadArchive());
+  }, []);
 
   const hasPreferences =
     profile?.preferred_pedagogy ||
@@ -139,6 +184,16 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
       const data: { recommendations: Recommendation[] } = await res.json();
       setRecommendations(data.recommendations);
       setGenerated(true);
+      // Persist to archive
+      if (data.recommendations.length > 0) {
+        const updated = saveToArchive({
+          city: searchCity,
+          childName: selectedChild?.name ?? "Kind",
+          generatedAt: new Date().toISOString(),
+          recommendations: data.recommendations,
+        });
+        setArchive(updated);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler");
     } finally {
@@ -505,6 +560,115 @@ export function RecommendationsClient({ isPro, profile, userChildren }: Recommen
               </Link>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ─── Archive ──────────────────────────────────────────────────────── */}
+      {archive.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <History className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Frühere Empfehlungen</h2>
+            <button
+              onClick={() => {
+                localStorage.removeItem(ARCHIVE_KEY);
+                setArchive([]);
+              }}
+              className="ml-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              title="Archiv löschen"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Archiv löschen
+            </button>
+          </div>
+
+          {archive.map((entry) => (
+            <div key={entry.id} className="rounded-xl border border-border bg-card shadow-sm">
+              {/* Archive entry header */}
+              <button
+                className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left"
+                onClick={() => setExpandedArchiveId(expandedArchiveId === entry.id ? null : entry.id)}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">
+                    {entry.recommendations.length} Empfehlungen für{" "}
+                    <span className="text-primary">{entry.childName}</span> in{" "}
+                    <span className="text-primary">{entry.city}</span>
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {new Date(entry.generatedAt).toLocaleDateString("de-DE", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
+                    expandedArchiveId === entry.id ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Archive entry expanded */}
+              {expandedArchiveId === entry.id && (
+                <div className="border-t border-border px-5 py-4 space-y-3">
+                  {entry.recommendations.map((rec, i) => (
+                    <div
+                      key={i}
+                      className="cursor-pointer rounded-lg border border-border bg-background p-4 hover:shadow-sm transition-shadow"
+                      onClick={() => setDetailRec(rec)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                              {i + 1}
+                            </span>
+                            <p className="truncate text-sm font-medium text-foreground">{rec.name}</p>
+                          </div>
+                          <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1">
+                            <MapPin className="h-3 w-3" /> {rec.address}
+                            {rec.distance && <span className="ml-1 text-primary">· {rec.distance}</span>}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star
+                                key={s}
+                                className={`h-3 w-3 ${
+                                  s <= Math.round(rec.matchScore / 20)
+                                    ? "text-yellow-400 fill-yellow-400"
+                                    : "text-zinc-300 dark:text-zinc-600"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">{rec.matchScore}%</p>
+                        </div>
+                      </div>
+                      {rec.reasons.length > 0 && (
+                        <p className="mt-2 text-xs text-muted-foreground line-clamp-1">
+                          ✓ {rec.reasons[0]}
+                        </p>
+                      )}
+                      <div className="mt-2 flex gap-2">
+                        <Link
+                          href={`/search?address=${encodeURIComponent(rec.address || rec.name)}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                        >
+                          <MapPin className="h-3 w-3" /> Auf Karte
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
