@@ -70,5 +70,8 @@ export async function POST(request: NextRequest) {
   const total = kitas.length;
   kitas = kitas.slice(0, MAX_RESULTS);
 
-  return NextResponse.json({ kitas, center: coords, total });
+  const response = NextResponse.json({ kitas, center: coords, total });
+  // Cache identical queries for 5 minutes in the browser / CDN
+  response.headers.set("Cache-Control", "public, max-age=300, stale-while-revalidate=60");
+  return response;
 }

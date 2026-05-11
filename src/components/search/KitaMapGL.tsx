@@ -198,6 +198,9 @@ export interface KitaMapGLProps {
 
 const SOURCE_ID = "kitas";
 
+// Module-level style cache — avoids re-fetching tile style JSON on every mount
+const STYLE_CACHE = new Map<string, unknown>();
+
 export function KitaMapGL({
   kitas,
   center,
@@ -330,11 +333,13 @@ export function KitaMapGL({
     }
 
     async function buildStyle(url: string) {
+      if (STYLE_CACHE.has(url)) return STYLE_CACHE.get(url)!;
       try {
         const res = await fetch(url);
         if (!res.ok) return url;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const style: any = await res.json();
+        STYLE_CACHE.set(url, style);
         return style;
       } catch {
         return url;

@@ -64,11 +64,18 @@ export function SearchClient({ isLoggedIn, initialAddress }: { isLoggedIn: boole
     setKitas([]);
     setAiRanking("");
     setTotal(null);
+    // lat=0,lng=0 means "no pre-resolved coords" — let the API geocode
+    const hasCoords = lat !== 0 || lng !== 0;
     try {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: addressLabel, lat, lng, radius: searchRadius, kitaType }),
+        body: JSON.stringify({
+          address: addressLabel,
+          ...(hasCoords && { lat, lng }),
+          radius: searchRadius,
+          kitaType,
+        }),
       });
       if (res.status === 429) { setError(t("free_limit_warning")); return; }
       if (!res.ok) { setError(t("error_generic")); return; }
@@ -92,24 +99,8 @@ export function SearchClient({ isLoggedIn, initialAddress }: { isLoggedIn: boole
 
     // Priority 1: address passed from recommendations (e.g. /search?address=...)
     if (initialAddress) {
-      setIsLoading(true);
-      fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(initialAddress)}&countrycodes=de&format=json&limit=1`,
-        { headers: { "User-Agent": "KitaRadar/1.0 (kitaradar@wamocon.com)" } }
-      )
-        .then((r) => (r.ok ? r.json() : []))
-        .then((data: Array<{ lat: string; lon: string }>) => {
-          if (data.length) {
-            const lat = parseFloat(data[0].lat);
-            const lng = parseFloat(data[0].lon);
-            setSelectedCoords({ lat, lng });
-            setUserPos([lat, lng]);
-            setRadius(5);
-            void searchWithCoords(lat, lng, initialAddress, 5);
-          }
-        })
-        .catch(() => {})
-        .finally(() => setIsLoading(false));
+      setRadius(5);
+      void searchWithCoords(0, 0, initialAddress, 5);
       return;
     }
 
